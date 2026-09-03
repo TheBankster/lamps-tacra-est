@@ -1,0 +1,180 @@
+
+
+
+
+Limited Additional Mechanisms for PKIX and SMIME                M. Novak
+Internet-Draft                                   J.P. Morgan Chase & Co.
+Intended status: Informational                             M. Richardson
+Expires: 7 March 2027                           Sandelman Software Works
+                                                             H. Birkholz
+                                                        Franhaufer Inst.
+                                                        3 September 2026
+
+
+                 Remote Attestation Extensions for EST
+                      draft-novak-lamps-tacra-est
+
+Abstract
+
+   This document specifies extensions to Enrollment over Secure
+   Transport (EST, [RFC7030]) to support Remote Attestation Procedures
+   (RATS, [RFC9334]) as an authorization input for workload credential
+   provisioning.  Two modes are defined:
+
+   1.  Attested Credential Enrollment Mode: a workload submits a PKCS#10
+       Certificate Signing Request (CSR) and Remote Attestation
+       Evidence.  The EST server (acting as a RATS Relying Party)
+       authorizes issuance based on attestation and cryptographically
+       binds the issued credential to the CSR key through proof-of-
+       possession and explicit key-binding.
+
+   2.  Attested Credential Retrieval Mode: a workload submits Remote
+       Attestation Evidence that includes an asymmetric Credential
+       Encryption Key (CEK).  Upon successful verification and
+       authorization, the EST server returns an existing shared public
+       credential bundle (e.g., an X.509 certificate, a WIMSE WIC), and
+       a secret, such as an associated signing key, a bearer token, or a
+       preshared key, encrypted to the CEK.
+
+   These extensions add new EST resources, request/response envelopes,
+   processing rules, and security requirements for replay protection,
+   freshness, key-binding, confidentiality, auditability, and key
+   distribution risk management.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at
+   https://TheBankster.github.io/lamps-tacra-est/draft-novak-lamps-
+   tacra-est.html.  Status information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-novak-lamps-tacra/.
+
+   Discussion of this document takes place on the Limited Additional
+   Mechanisms for PKIX and SMIME Working Group mailing list
+   (mailto:spasm@ietf.org), which is archived at
+   https://mailarchive.ietf.org/arch/browse/spasm/.  Subscribe at
+   https://www.ietf.org/mailman/listinfo/spasm/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/TheBankster/lamps-tacra-est.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 7 March 2027.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Conventions and Definitions
+   3.  Security Considerations
+   4.  IANA Considerations
+   5.  References
+     5.1.  Normative References
+     5.2.  Informative References
+   Acknowledgments
+   Authors' Addresses
+
+1.  Introduction
+
+   TODO Introduction
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+3.  Security Considerations
+
+   TODO Security
+
+4.  IANA Considerations
+
+   This document has no IANA actions.
+
+5.  References
+
+5.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC7030]  Pritikin, M., Ed., Yee, P., Ed., and D. Harkins, Ed.,
+              "Enrollment over Secure Transport", RFC 7030,
+              DOI 10.17487/RFC7030, October 2013,
+              <https://www.rfc-editor.org/rfc/rfc7030>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [RFC9334]  Birkholz, H., Thaler, D., Richardson, M., Smith, N., and
+              W. Pan, "Remote ATtestation procedureS (RATS)
+              Architecture", RFC 9334, DOI 10.17487/RFC9334, January
+              2023, <https://www.rfc-editor.org/rfc/rfc9334>.
+
+5.2.  Informative References
+
+   [TWISIGDef]
+              Confidential Computing Consortium Trustworthy Workload
+              Identity SIG, "Trustworthy Workload Identity (TWI) Special
+              Interest Group — Definitions", n.d., <https://github.com/
+              confidential-computing/twi/blob/main/TWI_Definitions.md>.
+
+   [TWISIGReq]
+              Confidential Computing Consortium Trustworthy Workload
+              Identity SIG, "Trustworthy Workload Identity (TWI) Special
+              Interest Group — Requirements", n.d., <https://github.com/
+              confidential-computing/twi/blob/main/TWI_Requirements.md>.
+
+Acknowledgments
+
+   TODO acknowledge.
+
+Authors' Addresses
+
+   Mark Novak
+   J.P. Morgan Chase & Co.
+   Email: mark.f.novak@jpmchase.com
+
+
+   Michael Richardson
+   Sandelman Software Works
+   Email: mcr+ietf@sandelman.ca
+
+
+   Henk Birkholz
+   Franhaufer Inst.
+   Email: Henk.Birkholz@ietf.contact
