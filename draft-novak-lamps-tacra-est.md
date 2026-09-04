@@ -81,7 +81,7 @@ informative:
 
 --- abstract
 
-This document specifies extensions to Enrollment over Secure Transport (EST, {{!RFC7030}}) to support Remote Attestation Procedures (RATS, {{!RFC9334}}) as an authorization input for workload credential provisioning. Two modes are defined:
+This document specifies extensions to Enrollment over Secure Transport (EST, {{!RFC7030}}) to support Remote Attestation Procedures (RATS, {{RFC9334}}) as an authorization input for workload credential provisioning. Two modes are defined:
 
 1. Attested Credential Enrollment Mode: a workload submits a PKCS#10 Certificate Signing Request (CSR) and Remote Attestation Evidence. The EST server (acting as a RATS Relying Party) authorizes issuance based on attestation and cryptographically binds the issued credential to the CSR key through proof-of-possession and explicit key-binding.
 2. Attested Credential Retrieval Mode: a workload submits Remote Attestation Evidence that includes an asymmetric Credential Encryption Key (CEK). Upon successful verification and authorization, the EST server returns an existing shared public credential bundle (e.g., an X.509 certificate, a WIMSE WIC), and a secret, such as an associated signing key, a bearer token, or a preshared key, encrypted to the CEK.
@@ -95,7 +95,7 @@ These extensions add new EST resources, request/response envelopes, processing r
 
 EST ({{!RFC7030}}) defines an HTTPS-based protocol for certificate enrollment and management, typically between an EST client and an EST server acting as an interface to a Certification Authority (CA). In modern environments (e.g., cloud, containers, confidential computing), workloads often lack pre-provisioned credentials and require issuance based on runtime properties. Additionally, zero trust environments place additional restrictions limiting which parties have access to secrets and credentials. This means that EST clients and servers may not be trusted to handle such restricted information in plaintext.
 
-RATS ({{!RFC9334}}) defines an architecture and roles for remote attestation. This document integrates RATS with EST by making an EST server a conduit for credential issuance or credential release decisions based on verified attestation.
+RATS ({{RFC9334}}) defines an architecture and roles for remote attestation. This document integrates RATS with EST by making an EST server a conduit for credential issuance or credential release decisions based on verified attestation.
 
 This document defines two complementary modes:
 
@@ -167,7 +167,7 @@ The mechanisms described below work equally well in both Passport and Background
 ~~~~ ascii-art
 {::include attested_retrieval.txt}
 ~~~~
-{: #fig-enroll title="Attested Retrieval Mode (Passport)"}
+{: #fig-retrieve title="Attested Retrieval Mode (Passport)"}
 
 1. Attester initiates Remote Attestation Challenge
 2. EST client forwards Remote Attestation Challenge to EST server
@@ -182,9 +182,9 @@ The mechanisms described below work equally well in both Passport and Background
 
 These extensions define new resources under the existing EST “/.well-known/” prefix:
 
-* "/.well-known/est/attest-challenge"
-* "/.well-known/est/attest-enroll"
-* "/.well-known/est/attest-retrieve"
+* `/.well-known/est/attest-challenge`
+* `/.well-known/est/attest-enroll`
+* `/.well-known/est/attest-retrieve`
 
 These resources are used in addition to, not in place of, existing EST resources.
 
