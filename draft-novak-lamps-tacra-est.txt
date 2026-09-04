@@ -113,13 +113,13 @@ Table of Contents
        8.1.1.  Request: AttestedEnrollmentRequest
        8.1.2.  Response (Success)
        8.1.3.  Key Binding and PoP Requirements
-       8.1.4.  Server Processing
+       8.1.4.  Enrollment Server Processing
      8.2.  Credential Retrieval Mode
        8.2.1.  Request: AttestedRetrievalRequest
        8.2.2.  Evidence-to-CEK Binding
        8.2.3.  Credential Group ID Determination
        8.2.4.  Response: EncryptedCredentialBundle
-       8.2.5.  Server Processing
+       8.2.5.  Retrieval Server Processing
    9.  Error Handling
    10. Security Considerations
      10.1.  Common to Both Modes
@@ -225,26 +225,31 @@ Table of Contents
 
 3.1.  Attested Enrollment Mode (IdP/CA-mediated issuance)
 
-*  Attester generates keypair and CSR.
+   *  Attester generates keypair and CSR.
 
-*  Attester obtains Evidence that includes a binding to the CSR and
-   freshness data.
+   *  Attester obtains Evidence that includes a binding to the CSR and
+      freshness data.
 
-*  Attester, through the EST client, submits CSR + Evidence to the
-   EST server.
+   *  Attester, through the EST client, submits CSR + Evidence to the
+      EST server.
 
-*  EST server verifies PoP for CSR key and obtains Attestation
-   Results via a Verifier.
+   *  EST server verifies PoP for CSR key and obtains Attestation
+      Results via a Verifier.
 
-*  EST server authorizes and requests credential issuance (or issues
-   credentials directly), returning an EST enrollment response.
+   *  EST server authorizes and requests credential issuance (or issues
+      credentials directly), returning an EST enrollment response.
 
-                                                 ┌──────────┐
-                                                 │ Verifier │
-                                                 └────▲─────┘ ┌──────────┐ (1) ┌─────────────┐ (2) ┌────────────┐  (3,6)  │       │ Attester ├─────► EST Client  ├─────► EST Server ├─────────┤       └──────────┘ (4) └─────────────┘ (5) └────────────┘   (7)   │
-                                                 ┌────▼─────┐
-                                                 │  IdP/CA  │
-                                                 └──────────┘
+                                                          ┌──────────┐
+                                                          │ Verifier │
+                                                          └────▲─────┘
+   ┌──────────┐ (1) ┌─────────────┐ (2) ┌────────────┐  (3,6)  │
+   │ Attester ├─────► EST Client  ├─────► EST Server ├─────────┤
+   └──────────┘ (4) └─────────────┘ (5) └────────────┘   (7)   │
+                                                          ┌────▼─────┐
+                                                          │  IdP/CA  │
+                                                          └──────────┘
+
+               Figure 1: Attested Enrollment Mode (Passport)
 
    1.  Attester initiates Remote Attestation Challenge
 
@@ -267,36 +272,41 @@ Table of Contents
 
 3.2.  Attested Retrieval Mode (Key/Credential Broker)
 
-*  Attester generates an asymmetric CEK keypair and obtains Evidence
-   that includes CEKpub and freshness data.
+   *  Attester generates an asymmetric CEK keypair and obtains Evidence
+      that includes CEKpub and freshness data.
 
-*  Attester submits Evidence to the EST server.
+   *  Attester submits Evidence to the EST server.
 
-*  EST server forwards the Evidence to the Verifier and obtains from
-   the Verifier Attestation Results, which include CEKpub from the
-   Evidence
+   *  EST server forwards the Evidence to the Verifier and obtains from
+      the Verifier Attestation Results, which include CEKpub from the
+      Evidence
 
-*  EST server forwards the Attestation Results to the Key/Credential
-   Store
+   *  EST server forwards the Attestation Results to the Key/Credential
+      Store
 
-*  The Key/Credential Store identifies the Attester's identity from
-   the Attestation Results, retrieves the Key or Credential matching
-   that identity and encrypts that Key or Credential to CEKpub before
-   returning the encrypted blob to the EST server
+   *  The Key/Credential Store identifies the Attester's identity from
+      the Attestation Results, retrieves the Key or Credential matching
+      that identity and encrypts that Key or Credential to CEKpub before
+      returning the encrypted blob to the EST server
 
-*  EST server returns the results from the Key/Credential Store to
-   the EST client
+   *  EST server returns the results from the Key/Credential Store to
+      the EST client
 
-*  EST client returns the encrypted credential to the Attester which
-   decrypts it with CEKpri
+   *  EST client returns the encrypted credential to the Attester which
+      decrypts it with CEKpri
 
-                                                 ┌────────────────┐
-                                                 │    Verifier    │
-                                                 └────▲───────────┘ ┌──────────┐ (1) ┌─────────────┐ (2) ┌────────────┐  (3,6)  │       │ Attester ├─────► EST Client  ├─────► EST Server ├─────────┤       └──────────┘ (4) └─────────────┘ (5) └────────────┘   (7)   │
-                                                 ┌────▼───────────┐
-                                                 │ Key/Credential │
-                                                 │     Store      │
-                                                 └────────────────┘
+                                                       ┌────────────────┐
+                                                       │    Verifier    │
+                                                       └────▲───────────┘
+┌──────────┐ (1) ┌─────────────┐ (2) ┌────────────┐  (3,6)  │
+│ Attester ├─────► EST Client  ├─────► EST Server ├─────────┤
+└──────────┘ (4) └─────────────┘ (5) └────────────┘   (7)   │
+                                                       ┌────▼───────────┐
+                                                       │ Key/Credential │
+                                                       │     Store      │
+                                                       └────────────────┘
+
+             Figure 2: Attested Retrieval Mode (Passport)
 
    1.  Attester initiates Remote Attestation Challenge
 
@@ -480,7 +490,7 @@ Table of Contents
    The binding object MUST indicate which method is used and include any
    required identifiers (e.g., hash algorithm ID).
 
-8.1.4.  Server Processing
+8.1.4.  Enrollment Server Processing
 
    Upon receiving AttestedEnrollRequest, the EST server MUST:
 
@@ -568,7 +578,7 @@ Table of Contents
 
    *  group_id
 
-   *  credential_items[]:
+   *  credential_items (array):
 
       -  X.509 chain (if requested/authorized)
 
@@ -594,7 +604,7 @@ Table of Contents
    TODO: Select exactly one as MUST in the final draft; multiple MAY be
    supported.
 
-8.2.5.  Server Processing
+8.2.5.  Retrieval Server Processing
 
    Upon receiving AttestedCredRequest, the EST server MUST:
 
