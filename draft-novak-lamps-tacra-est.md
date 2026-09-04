@@ -328,7 +328,7 @@ The holder of the requested Credential - the EST Server or the Credential/Key St
 
 A typical construction is:
 
-group_id = H(attestation_subject || profile || policy_version)
+group_id = H(attestation_subject \|\| profile \|\| policy_version)
 
 Where attestation_subject is derived from Attestation Results (not raw Evidence) to avoid nonce/freshness variability.
 
