@@ -141,7 +141,10 @@ The mechanisms described below work equally well in both Passport and Background
 * EST server verifies PoP for CSR key and obtains Attestation Results via a Verifier.
 * EST server authorizes and requests credential issuance (or issues credentials directly), returning an EST enrollment response.
 
+~~~~ ascii-art
 {::include attested_enrollment.txt}
+~~~~
+{: #fig-enroll title="Attested Enrollment Mode (Passport)"}
 
 1. Attester initiates Remote Attestation Challenge
 2. EST client forwards Remote Attestation Challenge to EST server
@@ -161,7 +164,10 @@ The mechanisms described below work equally well in both Passport and Background
 * EST server returns the results from the Key/Credential Store to the EST client
 * EST client returns the encrypted credential to the Attester which decrypts it with CEKpri
 
+~~~~ ascii-art
 {::include attested_retrieval.txt}
+~~~~
+{: #fig-enroll title="Attested Retrieval Mode (Passport)"}
 
 1. Attester initiates Remote Attestation Challenge
 2. EST client forwards Remote Attestation Challenge to EST server
@@ -176,9 +182,9 @@ The mechanisms described below work equally well in both Passport and Background
 
 These extensions define new resources under the existing EST “/.well-known/” prefix:
 
-* /.well-known/est/attest-challenge
-* /.well-known/est/attest-enroll
-* /.well-known/est/attest-retrieve
+* "/.well-known/est/attest-challenge"
+* "/.well-known/est/attest-enroll"
+* "/.well-known/est/attest-retrieve"
 
 These resources are used in addition to, not in place of, existing EST resources.
 
@@ -280,7 +286,7 @@ At least one of the following binding mechanisms MUST be implemented by both cli
 
 The binding object MUST indicate which method is used and include any required identifiers (e.g., hash algorithm ID).
 
-### Server Processing
+### Enrollment Server Processing
 
 Upon receiving AttestedEnrollRequest, the EST server MUST:
 
@@ -339,7 +345,7 @@ TODO: validate everything below
 The response MUST be an authenticated-encryption container encrypted to CEKpub. It contains:
 
 * group_id
-* credential_items[]:
+* `credential_items` (array):
     * X.509 chain (if requested/authorized)
     * WIMSE WIT(s) (if requested/authorized)
     * OPTIONAL: a shared signing key (high risk; see Section 11)
@@ -354,7 +360,7 @@ Mandatory-to-implement encryption mechanism: The specification MUST choose one b
 
 TODO: Select exactly one as MUST in the final draft; multiple MAY be supported.
 
-### Server Processing
+### Retrieval Server Processing
 
 Upon receiving AttestedCredRequest, the EST server MUST:
 
