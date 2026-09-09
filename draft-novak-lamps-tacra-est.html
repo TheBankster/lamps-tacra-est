@@ -9,15 +9,17 @@
 <meta content="Michael Richardson" name="author">
 <meta content="Henk Birkholz" name="author">
 <meta content="
-       This document specifies extensions to Enrollment over Secure Transport (EST,  ) to support Remote Attestation Procedures (RATS,  ) as an authorization input for workload credential provisioning. Two modes are defined: 
+       This document specifies extensions to Enrollment over Secure Transport (EST,  ) that realize the Trustworthy Acquisition of Credentials via Remote Attestation (TACRA) architecture   over EST.
+Remote Attestation Procedures (RATS,  ) are used as an authorization input for workload credential provisioning.
+Two modes are defined: 
        
-           Attested Credential Enrollment Mode: a workload submits a PKCS#10 Certificate Signing Request (CSR) and Remote Attestation Evidence. The EST server (acting as a RATS Relying Party) authorizes issuance based on attestation and cryptographically binds the issued credential to the CSR key through proof-of-possession and explicit key-binding. 
+           Enrollment: the Attester submits a PKCS#10 CSR and Evidence. A Credential Authority, as RATS Relying Party, authorizes issuance from Attestation Results and binds the credential to the CSR key. 
          
          
-           Attested Credential Retrieval Mode: a workload submits Remote Attestation Evidence that includes an asymmetric Credential Encryption Key (CEK). Upon successful verification and authorization, the EST server returns an existing shared public credential bundle (e.g., an X.509 certificate, a WIMSE WIC), and a secret, such as an associated signing key, a bearer token, or a preshared key, encrypted to the CEK. 
+           Retrieval: the Attester submits Evidence that includes a Credential Encryption Key (CEK). A Secret Vault, as RATS Relying Party, releases an existing credential bundle with secrets encrypted to CEKpub. 
          
        
-       These extensions add new EST resources, request/response envelopes, processing rules, and security requirements for replay protection, freshness, key-binding, confidentiality, auditability, and key distribution risk management. 
+       These extensions add EST resources for a two-leg exchange:  attest-initiate , then  attest-enroll  or  attest-retrieve . 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
 <meta content="trustworthy workload identity" name="keyword">
@@ -1058,7 +1060,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Novak, et al.</td>
-<td class="center">Expires 8 March 2027</td>
+<td class="center">Expires 13 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1071,12 +1073,12 @@ svg {
 <dd class="internet-draft">draft-novak-lamps-tacra-est</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-04" class="published">4 September 2026</time>
+<time datetime="2026-09-09" class="published">9 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-08">8 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-13">13 March 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1097,16 +1099,18 @@ svg {
 <h1 id="title">Remote Attestation Extensions for EST</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document specifies extensions to Enrollment over Secure Transport (EST, <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>) to support Remote Attestation Procedures (RATS, <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>) as an authorization input for workload credential provisioning. Two modes are defined:<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document specifies extensions to Enrollment over Secure Transport (EST, <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>) that realize the Trustworthy Acquisition of Credentials via Remote Attestation (TACRA) architecture <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> over EST.
+Remote Attestation Procedures (RATS, <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>) are used as an authorization input for workload credential provisioning.
+Two modes are defined:<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-abstract-2">
 <li id="section-abstract-2.1">
-          <p id="section-abstract-2.1.1">Attested Credential Enrollment Mode: a workload submits a PKCS#10 Certificate Signing Request (CSR) and Remote Attestation Evidence. The EST server (acting as a RATS Relying Party) authorizes issuance based on attestation and cryptographically binds the issued credential to the CSR key through proof-of-possession and explicit key-binding.<a href="#section-abstract-2.1.1" class="pilcrow">¶</a></p>
+          <p id="section-abstract-2.1.1">Enrollment: the Attester submits a PKCS#10 CSR and Evidence. A Credential Authority, as RATS Relying Party, authorizes issuance from Attestation Results and binds the credential to the CSR key.<a href="#section-abstract-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-abstract-2.2">
-          <p id="section-abstract-2.2.1">Attested Credential Retrieval Mode: a workload submits Remote Attestation Evidence that includes an asymmetric Credential Encryption Key (CEK). Upon successful verification and authorization, the EST server returns an existing shared public credential bundle (e.g., an X.509 certificate, a WIMSE WIC), and a secret, such as an associated signing key, a bearer token, or a preshared key, encrypted to the CEK.<a href="#section-abstract-2.2.1" class="pilcrow">¶</a></p>
+          <p id="section-abstract-2.2.1">Retrieval: the Attester submits Evidence that includes a Credential Encryption Key (CEK). A Secret Vault, as RATS Relying Party, releases an existing credential bundle with secrets encrypted to CEKpub.<a href="#section-abstract-2.2.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
-<p id="section-abstract-3">These extensions add new EST resources, request/response envelopes, processing rules, and security requirements for replay protection, freshness, key-binding, confidentiality, auditability, and key distribution risk management.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
+<p id="section-abstract-3">These extensions add EST resources for a two-leg exchange: <code>attest-initiate</code>, then <code>attest-enroll</code> or <code>attest-retrieve</code>.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1143,7 +1147,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 8 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 13 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1193,10 +1197,10 @@ svg {
             <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-architecture" class="internal xref">Architecture</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
-                <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-attested-enrollment-mode-id" class="internal xref">Attested Enrollment Mode (IdP/CA-mediated issuance)</a></p>
+                <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-attested-enrollment-mode" class="internal xref">Attested Enrollment Mode</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
-                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-attested-retrieval-mode-key" class="internal xref">Attested Retrieval Mode (Key/Credential Broker)</a></p>
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-attested-retrieval-mode" class="internal xref">Attested Retrieval Mode</a></p>
 </li>
             </ul>
 </li>
@@ -1207,7 +1211,7 @@ svg {
             <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-resources-and-methods" class="internal xref">Resources and Methods</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
-                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-attest-challenge-get" class="internal xref">attest-challenge (GET)</a></p>
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-attest-initiate" class="internal xref">attest-initiate</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
                 <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-attest-enroll-post" class="internal xref">attest-enroll (POST)</a></p>
@@ -1224,7 +1228,7 @@ svg {
             <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-common-structures" class="internal xref">Common Structures</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
-                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-attestation-challenge" class="internal xref">Attestation Challenge</a></p>
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-attestationinitiateresponse" class="internal xref">AttestationInitiateResponse</a></p>
 </li>
             </ul>
 </li>
@@ -1316,18 +1320,21 @@ svg {
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">EST (<span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>) defines an HTTPS-based protocol for certificate enrollment and management, typically between an EST client and an EST server acting as an interface to a Certification Authority (CA). In modern environments (e.g., cloud, containers, confidential computing), workloads often lack pre-provisioned credentials and require issuance based on runtime properties. Additionally, zero trust environments place additional restrictions limiting which parties have access to secrets and credentials. This means that EST clients and servers may not be trusted to handle such restricted information in plaintext.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">RATS (<span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>) defines an architecture and roles for remote attestation. This document integrates RATS with EST by making an EST server a conduit for credential issuance or credential release decisions based on verified attestation.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">This document defines two complementary modes:<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-1">EST (<span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>) defines an HTTPS-based protocol for certificate enrollment and management, typically between an EST Client and an EST Server acting as an interface to a Credential Authority.
+In modern environments (e.g., cloud, containers, confidential computing), workloads often lack pre-provisioned credentials and require issuance based on runtime properties.
+Additionally, zero trust environments place additional restrictions limiting which parties have access to secrets and credentials.
+This means that EST Clients and servers may not be trusted to handle such restricted information in plaintext.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">RATS (<span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>) defines an architecture and roles for Remote Attestation.
+This document maps TACRA <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> onto EST: the Attester generates keys, Evidence, and CSRs; the EST Client and EST Server are conduits that carry them to a Verifier and a Relying Party (<span>[<a href="#INTERACTION-MODELS" class="cite xref">INTERACTION-MODELS</a>]</span>, Section 10 of <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>, <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span>).<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">Two modes are defined:<a href="#section-1-3" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-1-4">
 <li id="section-1-4.1">
-          <p id="section-1-4.1.1">Issuance of fresh credentials bound to a workload-generated key (traditional EST semantics).<a href="#section-1-4.1.1" class="pilcrow">¶</a></p>
+          <p id="section-1-4.1.1">Enrollment: issuance of a fresh credential bound to a workload-generated Credential Signing Key (CSK)<a href="#section-1-4.1.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-1-4.2">
-          <p id="section-1-4.2.1">Release of a shared credential bundle to replicated workloads that produce equivalent attestation results, using encryption of secrets to an attester-provided key (credential broker semantics).<a href="#section-1-4.2.1" class="pilcrow">¶</a></p>
+          <p id="section-1-4.2.1">Retrieval: release of a shared credential bundle, with secrets encrypted to an attester-provided Credential Encryption Key (CEK)<a href="#section-1-4.2.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
-<p id="section-1-5">In either case, RATS style remote attestation serves to authenticate the workload to the EST server.<a href="#section-1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -1346,13 +1353,13 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         </h3>
 <ul class="normal">
 <li class="normal" id="section-2.1-1.1">
-            <p id="section-2.1-1.1.1">Attester: the workload instance producing Evidence.<a href="#section-2.1-1.1.1" class="pilcrow">¶</a></p>
+            <p id="section-2.1-1.1.1">Attester: the workload instance producing Evidence<a href="#section-2.1-1.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.1-1.2">
-            <p id="section-2.1-1.2.1">Verifier: the component that appraises Evidence and produces Attestation Results.<a href="#section-2.1-1.2.1" class="pilcrow">¶</a></p>
+            <p id="section-2.1-1.2.1">Verifier: the component that appraises Evidence and produces Attestation Results<a href="#section-2.1-1.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.1-1.3">
-            <p id="section-2.1-1.3.1">RATS Relying Party (RRP): consumes Attestation Results to make an authorization decision: in the context of this document, the authorization decision pertains to issuing new or releasing existing credentials to the Attester.<a href="#section-2.1-1.3.1" class="pilcrow">¶</a></p>
+            <p id="section-2.1-1.3.1">RATS Relying Party (RRP): consumes Attestation Results to make an authorization decision; in the context of this document, the authorization decision pertains to issuing new or releasing existing credentials to the Attester<a href="#section-2.1-1.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.1-1.4">
             <p id="section-2.1-1.4.1">RATS-Unaware Relying Party (RUP): authenticates the Attester using credentials issued by or retrieved from the RRP<a href="#section-2.1-1.4.1" class="pilcrow">¶</a></p>
@@ -1367,12 +1374,13 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         </h3>
 <ul class="normal">
 <li class="normal" id="section-2.2-1.1">
-            <p id="section-2.2-1.1.1">EST Client: the protocol participant acting on behalf of the workload<a href="#section-2.2-1.1.1" class="pilcrow">¶</a></p>
+            <p id="section-2.2-1.1.1">EST Client: TACRA Credential Acquisition System (CAS) Client for EST. Renders Attester payloads as EST requests and EST responses as payloads to the Attester.<a href="#section-2.2-1.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.2-1.2">
-            <p id="section-2.2-1.2.1">EST Server: the server exposing EST resources; in these modes it also acts as a conduit to the Verifier, as well as to RATS RP (RRP) such as a Certificate Authority or a Key/Credential Store<a href="#section-2.2-1.2.1" class="pilcrow">¶</a></p>
+            <p id="section-2.2-1.2.1">EST Server: TACRA CAS Server for EST. Forwards Handles, Evidence, Attestation Results, CSRs, and encrypted material between the EST Client, the Verifier, and a Relying Party (Credential Authority or Secret Vault).<a href="#section-2.2-1.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
+<p id="section-2.2-2">Neither has a RATS role. Both <span class="bcp14">MUST NOT</span> generate keys, Evidence, or CSRs; <span class="bcp14">MUST NOT</span> mint <code>present-nonce</code> or <code>present-epoch</code> Handles; <span class="bcp14">MUST NOT</span> appraise Evidence or Attestation Results; <span class="bcp14">MUST NOT</span> authorize issuance or release; and <span class="bcp14">MUST NOT</span> hold plaintext secrets.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="artifacts">
@@ -1382,25 +1390,28 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         </h3>
 <ul class="normal">
 <li class="normal" id="section-2.3-1.1">
-            <p id="section-2.3-1.1.1">Evidence: attestation evidence produced by the Attester (opaque to this specification).<a href="#section-2.3-1.1.1" class="pilcrow">¶</a></p>
+            <p id="section-2.3-1.1.1">Evidence: attestation evidence produced by the Attester<a href="#section-2.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.3-1.2">
-            <p id="section-2.3-1.2.1">Endorsements: auxiliary inputs for verification (optional; opaque to this specification).<a href="#section-2.3-1.2.1" class="pilcrow">¶</a></p>
+            <p id="section-2.3-1.2.1">Attestation Results: RATS Verifier output<a href="#section-2.3-1.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.3-1.3">
-            <p id="section-2.3-1.3.1">Attestation Results: RATS Verifier output.<a href="#section-2.3-1.3.1" class="pilcrow">¶</a></p>
+            <p id="section-2.3-1.3.1">CSR: PKCS#10 certification request (DER-encoded)<a href="#section-2.3-1.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.3-1.4">
-            <p id="section-2.3-1.4.1">CSR: PKCS#10 certification request (DER-encoded).<a href="#section-2.3-1.4.1" class="pilcrow">¶</a></p>
+            <p id="section-2.3-1.4.1">PoP: proof-of-possession of the private key corresponding to the CSR public key<a href="#section-2.3-1.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.3-1.5">
-            <p id="section-2.3-1.5.1">PoP: proof-of-possession of the private key corresponding to the CSR public key.<a href="#section-2.3-1.5.1" class="pilcrow">¶</a></p>
+            <p id="section-2.3-1.5.1">CEK: Credential Encryption Key; when used, CEKpub is carried in Evidence, the response is encrypted to CEKpub<a href="#section-2.3-1.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.3-1.6">
-            <p id="section-2.3-1.6.1">CEK: Credential Encryption Key. When used, CEKpub is carried in Evidence; the response is encrypted to CEKpub.<a href="#section-2.3-1.6.1" class="pilcrow">¶</a></p>
+            <p id="section-2.3-1.6.1">Credential Bundle: container that may include an X.509 chain, WIMSE WIC(s), and optionally a signing key and metadata<a href="#section-2.3-1.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.3-1.7">
-            <p id="section-2.3-1.7.1">Credential Bundle: container that may include an X.509 chain, WIMSE WIC(s), and optionally a signing key and metadata.<a href="#section-2.3-1.7.1" class="pilcrow">¶</a></p>
+            <p id="section-2.3-1.7.1">Freshness kind: the recency method returned by <code>attest-initiate</code>; can be one of <code>absent-timestamp</code>, <code>absent-none</code>, <code>absent-epoch</code>, <code>present-nonce</code>, or <code>present-epoch</code> (<span>[<a href="#INTERACTION-MODELS" class="cite xref">INTERACTION-MODELS</a>]</span>, Section 10 of <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>)<a href="#section-2.3-1.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.3-1.8">
+            <p id="section-2.3-1.8.1">Handle: freshness element included in Evidence when the kind is <code>present-nonce</code> or <code>present-epoch</code> (<span>[<a href="#INTERACTION-MODELS" class="cite xref">INTERACTION-MODELS</a>]</span>)<a href="#section-2.3-1.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1412,32 +1423,18 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
       <h2 id="name-architecture">
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-architecture" class="section-name selfRef">Architecture</a>
       </h2>
-<p id="section-3-1">The mechanisms described below work equally well in both Passport and Background Check RATS modes. Only the Passport mode is illustrated, but the differences between the two modes are immaterial for purposes of this specification.<a href="#section-3-1" class="pilcrow">¶</a></p>
-<div id="attested-enrollment-mode-idpca-mediated-issuance">
+<p id="section-3-1">The EST encoding is the same in Passport and Background Check modes; the modes differ in who originates a Freshness Handle and who contacts the Verifier.
+Only Passport mode is illustrated.
+In Background Check, the EST Server forwards Evidence to the Relying Party and need not obtain Attestation Results itself.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">Both modes use two EST legs: <code>attest-initiate</code>, then <code>attest-enroll</code> or <code>attest-retrieve</code> (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>).<a href="#section-3-2" class="pilcrow">¶</a></p>
+<div id="attested-enrollment-mode">
 <section id="section-3.1">
-        <h3 id="name-attested-enrollment-mode-id">
-<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-attested-enrollment-mode-id" class="section-name selfRef">Attested Enrollment Mode (IdP/CA-mediated issuance)</a>
+        <h3 id="name-attested-enrollment-mode">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-attested-enrollment-mode" class="section-name selfRef">Attested Enrollment Mode</a>
         </h3>
-<ul class="normal">
-<li class="normal" id="section-3.1-1.1">
-            <p id="section-3.1-1.1.1">Attester generates keypair and CSR.<a href="#section-3.1-1.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.1-1.2">
-            <p id="section-3.1-1.2.1">Attester obtains Evidence that includes a binding to the CSR and freshness data.<a href="#section-3.1-1.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.1-1.3">
-            <p id="section-3.1-1.3.1">Attester, through the EST client, submits CSR + Evidence to the EST server.<a href="#section-3.1-1.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.1-1.4">
-            <p id="section-3.1-1.4.1">EST server verifies PoP for CSR key and obtains Attestation Results via a Verifier.<a href="#section-3.1-1.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.1-1.5">
-            <p id="section-3.1-1.5.1">EST server authorizes and requests credential issuance (or issues credentials directly), returning an EST enrollment response.<a href="#section-3.1-1.5.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
 <span id="name-attested-enrollment-mode-pa"></span><div id="fig-enroll">
 <figure id="figure-1">
-          <div class="alignLeft art-ascii-art art-text artwork" id="section-3.1-2.1">
+          <div class="alignLeft art-ascii-art art-text artwork" id="section-3.1-1.1">
 <pre>
                                                        ┌──────────┐
                                                        │ Verifier │
@@ -1454,100 +1451,76 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <a href="#name-attested-enrollment-mode-pa" class="selfRef">Attested Enrollment Mode (Passport)</a>
           </figcaption></figure>
 </div>
-<ol start="1" type="1" class="normal type-1" id="section-3.1-3">
-<li id="section-3.1-3.1">
-            <p id="section-3.1-3.1.1">Attester initiates Remote Attestation Challenge<a href="#section-3.1-3.1.1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-3.1-2">
+<li id="section-3.1-2.1">
+            <p id="section-3.1-2.1.1">Attester initiates (<code>attest-initiate</code>)<a href="#section-3.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-3.1-3.2">
-            <p id="section-3.1-3.2.1">EST client forwards Remote Attestation Challenge to EST server<a href="#section-3.1-3.2.1" class="pilcrow">¶</a></p>
+          <li id="section-3.1-2.2">
+            <p id="section-3.1-2.2.1">EST Client forwards to EST Server<a href="#section-3.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-3.1-3.3">
-            <p id="section-3.1-3.3.1">EST server forwards Remote Attestation Challenge to Verifier, which generates the Challenge and returns it to the Attester via EST server and EST client<a href="#section-3.1-3.3.1" class="pilcrow">¶</a></p>
+          <li id="section-3.1-2.3">
+            <p id="section-3.1-2.3.1">EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client (Verifier-originated Handle shown)<a href="#section-3.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-3.1-3.4">
-            <p id="section-3.1-3.4.1">Attester sends Evidence and CSR to EST client<a href="#section-3.1-3.4.1" class="pilcrow">¶</a></p>
+          <li id="section-3.1-2.4">
+            <p id="section-3.1-2.4.1">Attester generates CSK, CSR, and Evidence bound to the CSR and Freshness<a href="#section-3.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-3.1-3.5">
-            <p id="section-3.1-3.5.1">EST client forwards the Evidence and CSR to EST server<a href="#section-3.1-3.5.1" class="pilcrow">¶</a></p>
+          <li id="section-3.1-2.5">
+            <p id="section-3.1-2.5.1">EST Client POSTs CSR and Evidence (<code>attest-enroll</code>)<a href="#section-3.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-3.1-3.6">
-            <p id="section-3.1-3.6.1">EST server forwards the Evidence to Verifier and obtains Attestation Results<a href="#section-3.1-3.6.1" class="pilcrow">¶</a></p>
+          <li id="section-3.1-2.6">
+            <p id="section-3.1-2.6.1">EST Server forwards Evidence to the Verifier<a href="#section-3.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-3.1-3.7">
-            <p id="section-3.1-3.7.1">EST server sends the CSR and Attestation Results to IdP/CA and obtains the newly issued Credential, which it returns to the Attester via EST server and EST client<a href="#section-3.1-3.7.1" class="pilcrow">¶</a></p>
+          <li id="section-3.1-2.7">
+            <p id="section-3.1-2.7.1">EST Server forwards CSR and Attestation Results to the Credential Authority, which verifies PoP and authorizes issuance; the credential is returned via the EST Client<a href="#section-3.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 </section>
 </div>
-<div id="attested-retrieval-mode-keycredential-broker">
+<div id="attested-retrieval-mode">
 <section id="section-3.2">
-        <h3 id="name-attested-retrieval-mode-key">
-<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-attested-retrieval-mode-key" class="section-name selfRef">Attested Retrieval Mode (Key/Credential Broker)</a>
+        <h3 id="name-attested-retrieval-mode">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-attested-retrieval-mode" class="section-name selfRef">Attested Retrieval Mode</a>
         </h3>
-<ul class="normal">
-<li class="normal" id="section-3.2-1.1">
-            <p id="section-3.2-1.1.1">Attester generates an asymmetric CEK keypair and obtains Evidence that includes CEKpub and freshness data.<a href="#section-3.2-1.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.2-1.2">
-            <p id="section-3.2-1.2.1">Attester submits Evidence to the EST server.<a href="#section-3.2-1.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.2-1.3">
-            <p id="section-3.2-1.3.1">EST server forwards the Evidence to the Verifier and obtains from the Verifier Attestation Results, which include CEKpub from the Evidence<a href="#section-3.2-1.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.2-1.4">
-            <p id="section-3.2-1.4.1">EST server forwards the Attestation Results to the Key/Credential Store<a href="#section-3.2-1.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.2-1.5">
-            <p id="section-3.2-1.5.1">The Key/Credential Store identifies the Attester's identity from the Attestation Results, retrieves the Key or Credential matching that identity and encrypts that Key or Credential to CEKpub before returning the encrypted blob to the EST server<a href="#section-3.2-1.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.2-1.6">
-            <p id="section-3.2-1.6.1">EST server returns the results from the Key/Credential Store to the EST client<a href="#section-3.2-1.6.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.2-1.7">
-            <p id="section-3.2-1.7.1">EST client returns the encrypted credential to the Attester which decrypts it with CEKpri<a href="#section-3.2-1.7.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
 <span id="name-attested-retrieval-mode-pas"></span><div id="fig-retrieve">
 <figure id="figure-2">
-          <div class="alignLeft art-ascii-art art-text artwork" id="section-3.2-2.1">
+          <div class="alignLeft art-ascii-art art-text artwork" id="section-3.2-1.1">
 <pre>
-                                                       ┌────────────────┐
-                                                       │    Verifier    │
-                                                       └────▲───────────┘
+                                                       ┌──────────────┐
+                                                       │   Verifier   │
+                                                       └────▲─────────┘
 ┌──────────┐ (1) ┌─────────────┐ (2) ┌────────────┐  (3,6)  │
 │ Attester ├─────► EST Client  ├─────► EST Server ├─────────┤
 └──────────┘ (4) └─────────────┘ (5) └────────────┘   (7)   │
-                                                       ┌────▼───────────┐
-                                                       │ Key/Credential │
-                                                       │     Store      │
-                                                       └────────────────┘
+                                                       ┌────▼─────────┐
+                                                       │ Secret Vault │
+                                                       └──────────────┘
 </pre>
 </div>
 <figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
 <a href="#name-attested-retrieval-mode-pas" class="selfRef">Attested Retrieval Mode (Passport)</a>
           </figcaption></figure>
 </div>
-<ol start="1" type="1" class="normal type-1" id="section-3.2-3">
-<li id="section-3.2-3.1">
-            <p id="section-3.2-3.1.1">Attester initiates Remote Attestation Challenge<a href="#section-3.2-3.1.1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-3.2-2">
+<li id="section-3.2-2.1">
+            <p id="section-3.2-2.1.1">Attester initiates (<code>attest-initiate</code>)<a href="#section-3.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-3.2-3.2">
-            <p id="section-3.2-3.2.1">EST client forwards Remote Attestation Challenge to EST server<a href="#section-3.2-3.2.1" class="pilcrow">¶</a></p>
+          <li id="section-3.2-2.2">
+            <p id="section-3.2-2.2.1">EST Client forwards to EST Server<a href="#section-3.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-3.2-3.3">
-            <p id="section-3.2-3.3.1">EST server forwards Remote Attestation Challenge to Verifier, which generates the Challenge and returns it to the Attester via EST server and EST client<a href="#section-3.2-3.3.1" class="pilcrow">¶</a></p>
+          <li id="section-3.2-2.3">
+            <p id="section-3.2-2.3.1">EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client (Verifier-originated Handle shown)<a href="#section-3.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-3.2-3.4">
-            <p id="section-3.2-3.4.1">Attester sends Evidence (including CEKpub) to EST client<a href="#section-3.2-3.4.1" class="pilcrow">¶</a></p>
+          <li id="section-3.2-2.4">
+            <p id="section-3.2-2.4.1">Attester generates CEK and Evidence including CEKpub, bound to Freshness<a href="#section-3.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-3.2-3.5">
-            <p id="section-3.2-3.5.1">EST client forwards the Evidence to EST server<a href="#section-3.2-3.5.1" class="pilcrow">¶</a></p>
+          <li id="section-3.2-2.5">
+            <p id="section-3.2-2.5.1">EST Client POSTs Evidence (<code>attest-retrieve</code>)<a href="#section-3.2-2.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-3.2-3.6">
-            <p id="section-3.2-3.6.1">EST server forwards the Evidence to Verifier and obtains Attestation Results, which also include CEKpub<a href="#section-3.2-3.6.1" class="pilcrow">¶</a></p>
+          <li id="section-3.2-2.6">
+            <p id="section-3.2-2.6.1">EST Server forwards Evidence to the Verifier<a href="#section-3.2-2.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-3.2-3.7">
-            <p id="section-3.2-3.7.1">EST server sends the Attestation Results to the Key or Credential Store and obtains the credentials and associated secrets, encrypted to CEKpub, which it returns to the Attester via EST server and EST client<a href="#section-3.2-3.7.1" class="pilcrow">¶</a></p>
+          <li id="section-3.2-2.7">
+            <p id="section-3.2-2.7.1">EST Server forwards Attestation Results to the Secret Vault, which encrypts the matching credential to CEKpub; the EST Client returns that blob to the Attester, which decrypts with CEKpri<a href="#section-3.2-2.7.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 </section>
@@ -1562,7 +1535,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <p id="section-4-1">These extensions define new resources under the existing EST “/.well-known/” prefix:<a href="#section-4-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-4-2.1">
-          <p id="section-4-2.1.1"><code>/.well-known/est/attest-challenge</code><a href="#section-4-2.1.1" class="pilcrow">¶</a></p>
+          <p id="section-4-2.1.1"><code>/.well-known/est/attest-initiate</code><a href="#section-4-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-4-2.2">
           <p id="section-4-2.2.1"><code>/.well-known/est/attest-enroll</code><a href="#section-4-2.2.1" class="pilcrow">¶</a></p>
@@ -1571,8 +1544,11 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
           <p id="section-4-2.3.1"><code>/.well-known/est/attest-retrieve</code><a href="#section-4-2.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-4-3">These resources are used in addition to, not in place of, existing EST resources.<a href="#section-4-3" class="pilcrow">¶</a></p>
-<p id="section-4-4">All exchanges in this document <span class="bcp14">MUST</span> use HTTPS as required by RFC 7030. Server authentication via TLS is <span class="bcp14">REQUIRED</span>. Client authentication is performed through the remote attestation-driven mechanisms defined herein (and optionally additional mechanisms).<a href="#section-4-4" class="pilcrow">¶</a></p>
+<p id="section-4-3">These resources are used in addition to existing EST resources.
+They carry TACRA Initiate-Credential-Acquisition, Enroll-Credential, and Retrieve-Credential <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>.
+EST need not be nonce-based; it <span class="bcp14">MUST</span> be able to carry <code>attest-initiate</code>.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-4">All exchanges <span class="bcp14">MUST</span> use HTTPS as required by <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>.
+Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href="#section-4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="resources-and-methods">
@@ -1580,21 +1556,30 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
       <h2 id="name-resources-and-methods">
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-resources-and-methods" class="section-name selfRef">Resources and Methods</a>
       </h2>
-<div id="attest-challenge-get">
+<div id="attest-initiate">
 <section id="section-5.1">
-        <h3 id="name-attest-challenge-get">
-<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-attest-challenge-get" class="section-name selfRef">attest-challenge (GET)</a>
+        <h3 id="name-attest-initiate">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-attest-initiate" class="section-name selfRef">attest-initiate</a>
         </h3>
-<p id="section-5.1-1">Returns Remote Attestation Verifier challenge material and server constraints for Attested Enrollment Mode.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-1">The first leg of both modes.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">If the EST Client is already configured for an absent kind (<code>absent-timestamp</code>, <code>absent-none</code>, or <code>absent-epoch</code>), it <span class="bcp14">MAY</span> complete <code>attest-initiate</code> locally and <span class="bcp14">MUST NOT</span> contact the EST Server.
+Otherwise <code>attest-initiate</code> is a GET with no body and no query parameters.
+The EST Server obtains the Freshness kind, and a Handle if any, from the configured Verifier or Relying Party and returns that result.
+Absent kinds carry no Handle.
+<code>present-nonce</code> and <code>present-epoch</code> <span class="bcp14">MUST</span> include a Handle from that party.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1-3">The EST Client forwards the response to the Attester.
+The Attester produces Evidence as the kind requires.
+The EST Client then POSTs <code>attest-enroll</code> or <code>attest-retrieve</code> as the Attester indicates.
+If the second leg fails because a <code>present-epoch</code> moved or a <code>present-nonce</code> is no longer valid, the Attester retries <code>attest-initiate</code>.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5.1-2.1">
-            <p id="section-5.1-2.1.1">Method: GET<a href="#section-5.1-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-5.1-4.1">
+            <p id="section-5.1-4.1.1">Method: GET<a href="#section-5.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.1-2.2">
-            <p id="section-5.1-2.2.1">Success: 200 OK<a href="#section-5.1-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.1-4.2">
+            <p id="section-5.1-4.2.1">Success: 200 OK<a href="#section-5.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.1-2.3">
-            <p id="section-5.1-2.3.1">Response: AttestationChallenge<a href="#section-5.1-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.1-4.3">
+            <p id="section-5.1-4.3.1">Response: AttestationInitiateResponse<a href="#section-5.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1604,16 +1589,15 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         <h3 id="name-attest-enroll-post">
 <a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-attest-enroll-post" class="section-name selfRef">attest-enroll (POST)</a>
         </h3>
-<p id="section-5.2-1">Attested enrollment request (CSR + Evidence).<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5.2-2.1">
-            <p id="section-5.2-2.1.1">Method: POST<a href="#section-5.2-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-5.2-1.1">
+            <p id="section-5.2-1.1.1">Method: POST<a href="#section-5.2-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.2-2.2">
-            <p id="section-5.2-2.2.1">Success: 200 OK with an EST enrollment response body (see Section 8)<a href="#section-5.2-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.2-1.2">
+            <p id="section-5.2-1.2.1">Request: AttestedEnrollmentRequest (CSR and Evidence)<a href="#section-5.2-1.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.2-2.3">
-            <p id="section-5.2-2.3.1">Request: AttestedEnrollRequest<a href="#section-5.2-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.2-1.3">
+            <p id="section-5.2-1.3.1">Success: 200 OK, enrollment response as for simpleenroll in <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span><a href="#section-5.2-1.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1623,16 +1607,18 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         <h3 id="name-attest-retrieve-post">
 <a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-attest-retrieve-post" class="section-name selfRef">attest-retrieve (POST)</a>
         </h3>
-<p id="section-5.3-1">Attested credential retrieval request (Evidence includes CEKpub).<a href="#section-5.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5.3-2.1">
-            <p id="section-5.3-2.1.1">Method: POST<a href="#section-5.3-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-5.3-1.1">
+            <p id="section-5.3-1.1.1">Method: POST<a href="#section-5.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.3-2.2">
-            <p id="section-5.3-2.2.1">Success: 200 OK<a href="#section-5.3-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.3-1.2">
+            <p id="section-5.3-1.2.1">Request: AttestedRetrievalRequest (Evidence including CEKpub)<a href="#section-5.3-1.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.3-2.3">
-            <p id="section-5.3-2.3.1">Response: CredentialBundle<a href="#section-5.3-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.3-1.3">
+            <p id="section-5.3-1.3.1">Success: 200 OK<a href="#section-5.3-1.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.3-1.4">
+            <p id="section-5.3-1.4.1">Response: EncryptedCredentialBundle<a href="#section-5.3-1.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1644,17 +1630,9 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
       <h2 id="name-media-types-and-encodings">
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-media-types-and-encodings" class="section-name selfRef">Media Types and Encodings</a>
       </h2>
-<p id="section-6-1">This document defines abstract message structures. Implementations <span class="bcp14">MUST</span> support at least one interoperable encoding. Two encoding families are permitted:<a href="#section-6-1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-6-2.1">
-          <p id="section-6-2.1.1">CBOR-based envelopes (recommended for compactness), using a to-be-registered media type (Section 13).<a href="#section-6-2.1.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-6-2.2">
-          <p id="section-6-2.2.1">JSON-based envelopes (for debugging and ecosystems standardized on JOSE), using a to-be-registered media type.<a href="#section-6-2.2.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
-<p id="section-6-3">A server <span class="bcp14">MUST</span> indicate supported request and response media types via the HTTP Content-Type and Accept headers. Clients <span class="bcp14">MUST</span> send a supported media type.<a href="#section-6-3" class="pilcrow">¶</a></p>
-<p id="section-6-4">Note: Evidence and Endorsements formats are intentionally opaque to this document; they are carried as byte strings.<a href="#section-6-4" class="pilcrow">¶</a></p>
+<p id="section-6-1">Implementations <span class="bcp14">MUST</span> support at least one of CBOR or JSON envelopes, using to-be-registered media types (<a href="#iana" class="auto internal xref">Section 11</a>).
+Servers advertise supported types with Content-Type and Accept; clients <span class="bcp14">MUST</span> send a supported type.
+Evidence and Endorsements are opaque byte strings.<a href="#section-6-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="common-structures">
@@ -1662,37 +1640,58 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
       <h2 id="name-common-structures">
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-common-structures" class="section-name selfRef">Common Structures</a>
       </h2>
-<div id="attestation-challenge">
+<div id="attestationinitiateresponse">
 <section id="section-7.1">
-        <h3 id="name-attestation-challenge">
-<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-attestation-challenge" class="section-name selfRef">Attestation Challenge</a>
+        <h3 id="name-attestationinitiateresponse">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-attestationinitiateresponse" class="section-name selfRef">AttestationInitiateResponse</a>
         </h3>
 <p id="section-7.1-1">Fields:<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 <p id="section-7.1-2">TODO: validate everything below<a href="#section-7.1-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-7.1-3.1">
-            <p id="section-7.1-3.1.1">nonce (bytes): server-generated random value<a href="#section-7.1-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-7.1-3.1.1"><code>freshness_kind</code> (string, <span class="bcp14">REQUIRED</span>): one of<a href="#section-7.1-3.1.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-7.1-3.1.2.1">
+                <p id="section-7.1-3.1.2.1.1"><code>absent-timestamp</code>: stamp Evidence from a trusted clock (<span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>, Section 10.1)<a href="#section-7.1-3.1.2.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-7.1-3.1.2.2">
+                <p id="section-7.1-3.1.2.2.1"><code>absent-none</code>: no freshness claim<a href="#section-7.1-3.1.2.2.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-7.1-3.1.2.3">
+                <p id="section-7.1-3.1.2.3.1"><code>absent-epoch</code>: embed an epoch marker already held locally<a href="#section-7.1-3.1.2.3.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-7.1-3.1.2.4">
+                <p id="section-7.1-3.1.2.4.1"><code>present-nonce</code>: single-use Handle; embed it in Evidence<a href="#section-7.1-3.1.2.4.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-7.1-3.1.2.5">
+                <p id="section-7.1-3.1.2.5.1"><code>present-epoch</code>: current epoch marker as Handle; embed it in Evidence; retry <code>attest-initiate</code> if the epoch moved<a href="#section-7.1-3.1.2.5.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
 </li>
           <li class="normal" id="section-7.1-3.2">
-            <p id="section-7.1-3.2.1">expires_in (integer): seconds until nonce expiration<a href="#section-7.1-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-7.1-3.2.1"><code>handle</code> (bytes): <span class="bcp14">REQUIRED</span> for <code>present-nonce</code> and <code>present-epoch</code>; <span class="bcp14">MUST</span> be absent otherwise (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>)<a href="#section-7.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.1-3.3">
-            <p id="section-7.1-3.3.1">acceptable_evidence (array): identifiers for evidence formats<a href="#section-7.1-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-7.1-3.3.1"><code>expires_in</code> (integer, <span class="bcp14">OPTIONAL</span>): seconds until a <code>present-nonce</code> or <code>present-epoch</code> Handle is no longer valid<a href="#section-7.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.1-3.4">
-            <p id="section-7.1-3.4.1">required_freshness (object): policy hints (e.g., max age)<a href="#section-7.1-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-7.1-3.4.1"><code>max_age</code> (integer, <span class="bcp14">OPTIONAL</span>): for <code>absent-timestamp</code>, the maximum Evidence age in seconds acceptable to the Verifier or Relying Party<a href="#section-7.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.1-3.5">
-            <p id="section-7.1-3.5.1">required_bindings (array): required binding mechanisms for the mode<a href="#section-7.1-3.5.1" class="pilcrow">¶</a></p>
+            <p id="section-7.1-3.5.1"><code>acceptable_evidence</code> (array): identifiers for evidence formats<a href="#section-7.1-3.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.1-3.6">
-            <p id="section-7.1-3.6.1">acceptable_cek (array, only for credential retrieval): acceptable CEK algorithms/suites<a href="#section-7.1-3.6.1" class="pilcrow">¶</a></p>
+            <p id="section-7.1-3.6.1"><code>required_bindings</code> (array): required binding mechanisms for the indicated mode<a href="#section-7.1-3.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.1-3.7">
-            <p id="section-7.1-3.7.1">verifier_hint (optional): identifier or parameters to aid interoperability<a href="#section-7.1-3.7.1" class="pilcrow">¶</a></p>
+            <p id="section-7.1-3.7.1"><code>acceptable_cek</code> (array, only when <code>mode</code> is <code>retrieve</code>): acceptable CEK algorithms/suites<a href="#section-7.1-3.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-7.1-3.8">
+            <p id="section-7.1-3.8.1"><code>mode</code> (string, <span class="bcp14">OPTIONAL</span>): <code>enroll</code> or <code>retrieve</code><a href="#section-7.1-3.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.1-4">Servers <span class="bcp14">MUST</span> ensure nonce uniqueness within a replay window and <span class="bcp14">MUST</span> reject reuse.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
+<p id="section-7.1-4">The Handle originator <span class="bcp14">MUST</span> ensure <code>present-nonce</code> uniqueness and <span class="bcp14">MUST</span> correlate the second-leg request with the Handle from this <code>attest-initiate</code>.
+The Verifier appraises whether Evidence is bound to a still-valid Handle.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1716,22 +1715,25 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <p id="section-8.1.1-2">TODO: validate everything below<a href="#section-8.1.1-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.1.1-3.1">
-              <p id="section-8.1.1-3.1.1">challenge_nonce (bytes, <span class="bcp14">REQUIRED</span>)<a href="#section-8.1.1-3.1.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-3.1.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-8.1.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-3.2">
-              <p id="section-8.1.1-3.2.1">csr (bytes, <span class="bcp14">REQUIRED</span>): DER-encoded PKCS#10 CSR<a href="#section-8.1.1-3.2.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-3.2.1">handle (bytes): <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is <code>present-nonce</code> or <code>present-epoch</code>; <span class="bcp14">MUST</span> be absent otherwise. <span class="bcp14">MUST</span> equal the Handle returned by <code>attest-initiate</code> when present.<a href="#section-8.1.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-3.3">
-              <p id="section-8.1.1-3.3.1">evidence (bytes, <span class="bcp14">REQUIRED</span>)<a href="#section-8.1.1-3.3.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-3.3.1">csr (bytes, <span class="bcp14">REQUIRED</span>): DER-encoded PKCS#10 CSR<a href="#section-8.1.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-3.4">
-              <p id="section-8.1.1-3.4.1">endorsements (bytes, <span class="bcp14">OPTIONAL</span>)<a href="#section-8.1.1-3.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-3.4.1">evidence (bytes, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> be bound to the Freshness returned by <code>attest-initiate</code>, if any<a href="#section-8.1.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-3.5">
-              <p id="section-8.1.1-3.5.1">binding (object, <span class="bcp14">REQUIRED</span>): declares how the CSR key is bound to Evidence (Section 8.3)<a href="#section-8.1.1-3.5.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-3.5.1">endorsements (bytes, <span class="bcp14">OPTIONAL</span>)<a href="#section-8.1.1-3.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-3.6">
-              <p id="section-8.1.1-3.6.1">profile (string, <span class="bcp14">OPTIONAL</span>): requested issuance profile identifier<a href="#section-8.1.1-3.6.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-3.6.1">binding (object, <span class="bcp14">REQUIRED</span>): declares how the CSR key is bound to Evidence<a href="#section-8.1.1-3.6.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.1-3.7">
+              <p id="section-8.1.1-3.7.1">profile (string, <span class="bcp14">OPTIONAL</span>): requested issuance profile identifier<a href="#section-8.1.1-3.7.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -1741,7 +1743,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
           <h4 id="name-response-success">
 <a href="#section-8.1.2" class="section-number selfRef">8.1.2. </a><a href="#name-response-success" class="section-name selfRef">Response (Success)</a>
           </h4>
-<p id="section-8.1.2-1">On success, the EST server returns credentials as in EST enrollment, consistent with RFC 7030 for simpleenroll. This document does not change the EST enrollment response formats; it only defines new request paths and authorization inputs.<a href="#section-8.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.1.2-1">On success, the EST Server returns the enrollment response produced by the Credential Authority, as for simpleenroll in <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>.<a href="#section-8.1.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="key-binding-and-pop-requirements">
@@ -1749,29 +1751,31 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
           <h4 id="name-key-binding-and-pop-require">
 <a href="#section-8.1.3" class="section-number selfRef">8.1.3. </a><a href="#name-key-binding-and-pop-require" class="section-name selfRef">Key Binding and PoP Requirements</a>
           </h4>
-<p id="section-8.1.3-1">Attested Enrollment Mode <span class="bcp14">MUST</span> provide:<a href="#section-8.1.3-1" class="pilcrow">¶</a></p>
-<p id="section-8.1.3-2">TODO: validate everything below<a href="#section-8.1.3-2" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-8.1.3-3">
-<li id="section-8.1.3-3.1">
-              <p id="section-8.1.3-3.1.1">PoP for CSR Key: The server <span class="bcp14">MUST</span> verify that the requester possesses the private key corresponding to the CSR public key, using the CSR’s standard proof mechanisms or an equivalent channel-bound PoP defined by profile.<a href="#section-8.1.3-3.1.1" class="pilcrow">¶</a></p>
+<p id="section-8.1.3-1">TODO: validate everything below<a href="#section-8.1.3-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-8.1.3-2">
+<li id="section-8.1.3-2.1">
+              <p id="section-8.1.3-2.1.1">PoP: The Credential Authority <span class="bcp14">MUST</span> verify possession of the CSR private key.<a href="#section-8.1.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-8.1.3-3.2">
-              <p id="section-8.1.3-3.2.1">Evidence-to-CSR Binding: The request <span class="bcp14">MUST</span> include a binding that prevents substitution of a different CSR by an attacker reusing Evidence.<a href="#section-8.1.3-3.2.1" class="pilcrow">¶</a></p>
+            <li id="section-8.1.3-2.2">
+              <p id="section-8.1.3-2.2.1">Evidence-to-CSR: Evidence <span class="bcp14">MUST</span> bind the CSR so a different CSR cannot be substituted. The Verifier <span class="bcp14">MUST</span> attest to that binding.<a href="#section-8.1.3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-8.1.3-2.3">
+              <p id="section-8.1.3-2.3.1">Evidence-to-Freshness: Evidence <span class="bcp14">MUST</span> be bound to the Freshness from <code>attest-initiate</code> (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>). The Verifier <span class="bcp14">MUST</span> attest to that binding.<a href="#section-8.1.3-2.3.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-8.1.3-4">At least one of the following binding mechanisms <span class="bcp14">MUST</span> be implemented by both client and server:<a href="#section-8.1.3-4" class="pilcrow">¶</a></p>
+<p id="section-8.1.3-3">At least one Evidence-to-CSR mechanism <span class="bcp14">MUST</span> be produced by the Attester and verified by the Verifier:<a href="#section-8.1.3-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.1.3-5.1">
-              <p id="section-8.1.3-5.1.1">CSR Hash Claim Binding: Evidence (as appraised by the Verifier) contains a claim equal to H(csr_der) (hash of the CSR DER), and the verifier attests to its integrity.<a href="#section-8.1.3-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.1.3-4.1">
+              <p id="section-8.1.3-4.1.1">CSR Hash: Evidence contains H(csr_der)<a href="#section-8.1.3-4.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.1.3-5.2">
-              <p id="section-8.1.3-5.2.1">Public Key Thumbprint Binding: Evidence contains a claim equal to a thumbprint of the CSR SubjectPublicKeyInfo (SPKI).<a href="#section-8.1.3-5.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-8.1.3-4.2">
+              <p id="section-8.1.3-4.2.1">Public Key Thumbprint: Evidence contains a thumbprint of the CSR SubjectPublicKeyInfo<a href="#section-8.1.3-4.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.1.3-5.3">
-              <p id="section-8.1.3-5.3.1">Key Certification Binding (Hardware-backed): Evidence contains a verifiable statement that the CSR key is resident in protected hardware/TEE and corresponds to the CSR public key.<a href="#section-8.1.3-5.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-8.1.3-4.3">
+              <p id="section-8.1.3-4.3.1">Key Certification: Evidence states that the CSR key is resident in protected hardware/TEE and matches the CSR public key<a href="#section-8.1.3-4.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-8.1.3-6">The binding object <span class="bcp14">MUST</span> indicate which method is used and include any required identifiers (e.g., hash algorithm ID).<a href="#section-8.1.3-6" class="pilcrow">¶</a></p>
+<p id="section-8.1.3-5">The binding object <span class="bcp14">MUST</span> name the method and any identifiers (e.g., hash algorithm).<a href="#section-8.1.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="enrollment-server-processing">
@@ -1779,36 +1783,25 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
           <h4 id="name-enrollment-server-processin">
 <a href="#section-8.1.4" class="section-number selfRef">8.1.4. </a><a href="#name-enrollment-server-processin" class="section-name selfRef">Enrollment Server Processing</a>
           </h4>
-<p id="section-8.1.4-1">Upon receiving AttestedEnrollRequest, the EST server <span class="bcp14">MUST</span>:<a href="#section-8.1.4-1" class="pilcrow">¶</a></p>
+<p id="section-8.1.4-1">Upon receiving AttestedEnrollmentRequest, the EST Server <span class="bcp14">MUST</span>:<a href="#section-8.1.4-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-8.1.4-2">
 <li id="section-8.1.4-2.1">
-              <p id="section-8.1.4-2.1.1">Validate message syntax, media type, and size limits.<a href="#section-8.1.4-2.1.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.4-2.1.1">Validate syntax, media type, and size limits.<a href="#section-8.1.4-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-8.1.4-2.2">
-              <p id="section-8.1.4-2.2.1">Validate challenge_nonce freshness and single-use (replay protection).<a href="#section-8.1.4-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.4-2.2.1">Correlate <code>handle</code> with the preceding <code>attest-initiate</code> for this session, if a Handle was returned.<a href="#section-8.1.4-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-8.1.4-2.3">
-              <p id="section-8.1.4-2.3.1">Verify CSR PoP.<a href="#section-8.1.4-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.4-2.3.1">Forward Evidence (and endorsements, if any) to the Verifier and obtain Attestation Results.<a href="#section-8.1.4-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-8.1.4-2.4">
-              <p id="section-8.1.4-2.4.1">Obtain Attestation Results by sending evidence (+ endorsements if provided) to a Verifier or by verifying locally.<a href="#section-8.1.4-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.4-2.4.1">Forward the CSR and Attestation Results to the Credential Authority, which verifies PoP and authorizes issuance.<a href="#section-8.1.4-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-8.1.4-2.5">
-              <p id="section-8.1.4-2.5.1">Apply authorization policy mapping Attestation Results to:<a href="#section-8.1.4-2.5.1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-8.1.4-2.5.2.1">
-                  <p id="section-8.1.4-2.5.2.1.1">whether issuance is permitted<a href="#section-8.1.4-2.5.2.1.1" class="pilcrow">¶</a></p>
-</li>
-                <li class="normal" id="section-8.1.4-2.5.2.2">
-                  <p id="section-8.1.4-2.5.2.2.1">issuance profile (subject/SAN constraints, EKU, validity, etc.)<a href="#section-8.1.4-2.5.2.2.1" class="pilcrow">¶</a></p>
-</li>
-              </ul>
-</li>
-            <li id="section-8.1.4-2.6">
-              <p id="section-8.1.4-2.6.1">Perform issuance (directly or via a CA) and return an EST enrollment response.<a href="#section-8.1.4-2.6.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.4-2.5.1">Return the Credential Authority's enrollment response.<a href="#section-8.1.4-2.5.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-8.1.4-3">The server <span class="bcp14">MUST NOT</span> mint identities (e.g., DNS names) beyond what policy explicitly allows for the attested identity context.<a href="#section-8.1.4-3" class="pilcrow">¶</a></p>
+<p id="section-8.1.4-3">The Credential Authority <span class="bcp14">MUST NOT</span> mint identities (e.g., DNS names) beyond policy for the attested identity context.<a href="#section-8.1.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1827,19 +1820,22 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <p id="section-8.2.1-2">TODO: validate everything below<a href="#section-8.2.1-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.2.1-3.1">
-              <p id="section-8.2.1-3.1.1">challenge_nonce (bytes, <span class="bcp14">REQUIRED</span>)<a href="#section-8.2.1-3.1.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.1-3.1.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-8.2.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.2.1-3.2">
-              <p id="section-8.2.1-3.2.1">evidence (bytes, <span class="bcp14">REQUIRED</span>) -- <span class="bcp14">MUST</span> include CEKpub<a href="#section-8.2.1-3.2.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.1-3.2.1">handle (bytes): <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is <code>present-nonce</code> or <code>present-epoch</code>; <span class="bcp14">MUST</span> be absent otherwise. <span class="bcp14">MUST</span> equal the Handle returned by <code>attest-initiate</code> when present.<a href="#section-8.2.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.2.1-3.3">
-              <p id="section-8.2.1-3.3.1">endorsements (bytes, <span class="bcp14">OPTIONAL</span>)<a href="#section-8.2.1-3.3.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.1-3.3.1">evidence (bytes, <span class="bcp14">REQUIRED</span>) -- <span class="bcp14">MUST</span> include CEKpub; <span class="bcp14">MUST</span> be bound to the Freshness returned by <code>attest-initiate</code>, if any<a href="#section-8.2.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.2.1-3.4">
-              <p id="section-8.2.1-3.4.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): e.g., x509, wimse-wit, bundle<a href="#section-8.2.1-3.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.1-3.4.1">endorsements (bytes, <span class="bcp14">OPTIONAL</span>)<a href="#section-8.2.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.2.1-3.5">
-              <p id="section-8.2.1-3.5.1">profile (string, <span class="bcp14">OPTIONAL</span>): profile identifier -- TODO: is it needed here? Why?<a href="#section-8.2.1-3.5.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.1-3.5.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): e.g., x509, wimse-wit, bundle<a href="#section-8.2.1-3.5.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.2.1-3.6">
+              <p id="section-8.2.1-3.6.1">profile (string, <span class="bcp14">OPTIONAL</span>): profile identifier -- TODO: is it needed here? Why?<a href="#section-8.2.1-3.6.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -1850,16 +1846,8 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <a href="#section-8.2.2" class="section-number selfRef">8.2.2. </a><a href="#name-evidence-to-cek-binding" class="section-name selfRef">Evidence-to-CEK Binding</a>
           </h4>
 <p id="section-8.2.2-1">TODO: validate everything below<a href="#section-8.2.2-1" class="pilcrow">¶</a></p>
-<p id="section-8.2.2-2">Evidence, as appraised by the Verifier, <span class="bcp14">MUST</span> integrity-protect:<a href="#section-8.2.2-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-8.2.2-3.1">
-              <p id="section-8.2.2-3.1.1">the challenge_nonce (or a server-provided freshness token that is cryptographically bound to it), and<a href="#section-8.2.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-8.2.2-3.2">
-              <p id="section-8.2.2-3.2.1">a claim conveying CEKpub or a stable thumbprint identifier for CEKpub.<a href="#section-8.2.2-3.2.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-8.2.2-4">Servers <span class="bcp14">MUST</span> reject requests where the Verifier cannot attest to the integrity of these bindings.<a href="#section-8.2.2-4" class="pilcrow">¶</a></p>
+<p id="section-8.2.2-2">Evidence <span class="bcp14">MUST</span> integrity-protect the Freshness from <code>attest-initiate</code> (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>) and a claim conveying CEKpub or a thumbprint of CEKpub.
+The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and the Secret Vault <span class="bcp14">MUST</span> deny release when Attestation Results do not confirm these bindings.<a href="#section-8.2.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="credential-group-id-determination">
@@ -1868,7 +1856,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <a href="#section-8.2.3" class="section-number selfRef">8.2.3. </a><a href="#name-credential-group-id-determi" class="section-name selfRef">Credential Group ID Determination</a>
           </h4>
 <p id="section-8.2.3-1">TODO: validate everything below<a href="#section-8.2.3-1" class="pilcrow">¶</a></p>
-<p id="section-8.2.3-2">The holder of the requested Credential - the EST Server or the Credential/Key Store that stores it, <span class="bcp14">MUST</span> be able to map the Attestation Results from the Verifier to the Credential "group ID" that the EST Client is expecting. The mapping <span class="bcp14">MUST</span> be stable for “replica” workloads intended to receive identical credentials and <span class="bcp14">MUST</span> vary across security domains/tenants/profiles.<a href="#section-8.2.3-2" class="pilcrow">¶</a></p>
+<p id="section-8.2.3-2">The Secret Vault <span class="bcp14">MUST</span> map Attestation Results to a credential group ID that is stable for replica workloads and distinct across security domains, tenants, and profiles.<a href="#section-8.2.3-2" class="pilcrow">¶</a></p>
 <p id="section-8.2.3-3">A typical construction is:<a href="#section-8.2.3-3" class="pilcrow">¶</a></p>
 <p id="section-8.2.3-4">group_id = H(attestation_subject || profile || policy_version)<a href="#section-8.2.3-4" class="pilcrow">¶</a></p>
 <p id="section-8.2.3-5">Where attestation_subject is derived from Attestation Results (not raw Evidence) to avoid nonce/freshness variability.<a href="#section-8.2.3-5" class="pilcrow">¶</a></p>
@@ -1895,7 +1883,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
                   <p id="section-8.2.4-3.2.2.2.1">WIMSE WIT(s) (if requested/authorized)<a href="#section-8.2.4-3.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
                 <li class="normal" id="section-8.2.4-3.2.2.3">
-                  <p id="section-8.2.4-3.2.2.3.1"><span class="bcp14">OPTIONAL</span>: a shared signing key (high risk; see Section 11)<a href="#section-8.2.4-3.2.2.3.1" class="pilcrow">¶</a></p>
+                  <p id="section-8.2.4-3.2.2.3.1"><span class="bcp14">OPTIONAL</span>: a shared signing key (high risk; see <a href="#security" class="auto internal xref">Section 10</a>)<a href="#section-8.2.4-3.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </li>
@@ -1903,7 +1891,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
               <p id="section-8.2.4-3.3.1">metadata (optional): validity, refresh hints, rotation epoch, key identifiers<a href="#section-8.2.4-3.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.2.4-3.4">
-              <p id="section-8.2.4-3.4.1">(implicit or explicit): associated data binding at least {group_id, challenge_nonce, profile, server_id}<a href="#section-8.2.4-3.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.4-3.4.1">(implicit or explicit): associated data binding at least {group_id, handle if any, profile, server_id}<a href="#section-8.2.4-3.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-8.2.4-4">Mandatory-to-implement encryption mechanism: The specification <span class="bcp14">MUST</span> choose one baseline.<a href="#section-8.2.4-4" class="pilcrow">¶</a></p>
@@ -1926,35 +1914,22 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
           <h4 id="name-retrieval-server-processing">
 <a href="#section-8.2.5" class="section-number selfRef">8.2.5. </a><a href="#name-retrieval-server-processing" class="section-name selfRef">Retrieval Server Processing</a>
           </h4>
-<p id="section-8.2.5-1">Upon receiving AttestedCredRequest, the EST server <span class="bcp14">MUST</span>:<a href="#section-8.2.5-1" class="pilcrow">¶</a></p>
+<p id="section-8.2.5-1">Upon receiving AttestedRetrievalRequest, the EST Server <span class="bcp14">MUST</span>:<a href="#section-8.2.5-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-8.2.5-2">
 <li id="section-8.2.5-2.1">
-              <p id="section-8.2.5-2.1.1">Validate syntax, size limits, and challenge_nonce freshness/single-use.<a href="#section-8.2.5-2.1.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.5-2.1.1">Validate syntax and size limits, and correlate <code>handle</code> with the preceding <code>attest-initiate</code> as in enrollment processing.<a href="#section-8.2.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-8.2.5-2.2">
-              <p id="section-8.2.5-2.2.1">Verify Evidence via a Verifier and obtain Attestation Results.<a href="#section-8.2.5-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.5-2.2.1">Forward Evidence to the Verifier and obtain Attestation Results.<a href="#section-8.2.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-8.2.5-2.3">
-              <p id="section-8.2.5-2.3.1">By itself or delegate to Credential/Key store depending on whether EST Server is permitted to see plaintext secrets:<a href="#section-8.2.5-2.3.1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-8.2.5-2.3.2">
-<li id="section-8.2.5-2.3.2.1">
-                  <p id="section-8.2.5-2.3.2.1.1">Compute group_id using policy.<a href="#section-8.2.5-2.3.2.1.1" class="pilcrow">¶</a></p>
-</li>
-                <li id="section-8.2.5-2.3.2.2">
-                  <p id="section-8.2.5-2.3.2.2.1">Authorize the requested credential type/profile for group_id.<a href="#section-8.2.5-2.3.2.2.1" class="pilcrow">¶</a></p>
-</li>
-                <li id="section-8.2.5-2.3.2.3">
-                  <p id="section-8.2.5-2.3.2.3.1">Fetch the credential bundle corresponding to (group_id, profile, credential_type).<a href="#section-8.2.5-2.3.2.3.1" class="pilcrow">¶</a></p>
-</li>
-                <li id="section-8.2.5-2.3.2.4">
-                  <p id="section-8.2.5-2.3.2.4.1">Encrypt the bundle to CEKpub with AAD binding including challenge_nonce and group_id.<a href="#section-8.2.5-2.3.2.4.1" class="pilcrow">¶</a></p>
-</li>
-              </ol>
+              <p id="section-8.2.5-2.3.1">Forward Attestation Results to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub with AAD including group_id and the Handle if any.<a href="#section-8.2.5-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-8.2.5-2.4">
-              <p id="section-8.2.5-2.4.1">Return EncryptedCredentialBundle.<a href="#section-8.2.5-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.5-2.4.1">Return the EncryptedCredentialBundle produced by the Secret Vault.<a href="#section-8.2.5-2.4.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
+<p id="section-8.2.5-3">A deployment in which the EST Server unwraps a vault secret and re-encrypts to CEKpub is possible but discouraged.<a href="#section-8.2.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1966,32 +1941,31 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
       <h2 id="name-error-handling">
 <a href="#section-9" class="section-number selfRef">9. </a><a href="#name-error-handling" class="section-name selfRef">Error Handling</a>
       </h2>
-<p id="section-9-1">Servers <span class="bcp14">SHOULD</span> reuse HTTP status codes consistent with RFC 7030 and provide a machine-readable error body for these resources.<a href="#section-9-1" class="pilcrow">¶</a></p>
-<p id="section-9-2">Recommended error conditions:<a href="#section-9-2" class="pilcrow">¶</a></p>
+<p id="section-9-1">Servers <span class="bcp14">SHOULD</span> reuse HTTP status codes from <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span> and a machine-readable error body:<a href="#section-9-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-9-3.1">
-          <p id="section-9-3.1.1">400 Bad Request: malformed envelope, missing fields<a href="#section-9-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9-2.1">
+          <p id="section-9-2.1.1">400 Bad Request: malformed envelope, missing fields<a href="#section-9-2.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-3.2">
-          <p id="section-9-3.2.1">401 Unauthorized: missing/invalid authentication required by deployment policy<a href="#section-9-3.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-9-2.2">
+          <p id="section-9-2.2.1">401 Unauthorized: missing/invalid authentication required by deployment policy<a href="#section-9-2.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-3.3">
-          <p id="section-9-3.3.1">403 Forbidden: attestation failed or policy denies enrollment/retrieval<a href="#section-9-3.3.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-9-2.3">
+          <p id="section-9-2.3.1">403 Forbidden: attestation failed or policy denies enrollment/retrieval<a href="#section-9-2.3.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-3.4">
-          <p id="section-9-3.4.1">409 Conflict: nonce replay detected<a href="#section-9-3.4.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-9-2.4">
+          <p id="section-9-2.4.1">409 Conflict: Handle replay detected, or <code>present-epoch</code> marker has moved<a href="#section-9-2.4.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-3.5">
-          <p id="section-9-3.5.1">415 Unsupported Media Type: unsupported encoding<a href="#section-9-3.5.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-9-2.5">
+          <p id="section-9-2.5.1">415 Unsupported Media Type: unsupported encoding<a href="#section-9-2.5.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-3.6">
-          <p id="section-9-3.6.1">429 Too Many Requests: rate limiting<a href="#section-9-3.6.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-9-2.6">
+          <p id="section-9-2.6.1">429 Too Many Requests: rate limiting<a href="#section-9-2.6.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-3.7">
-          <p id="section-9-3.7.1">500/503: verifier unavailable or internal error<a href="#section-9-3.7.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-9-2.7">
+          <p id="section-9-2.7.1">500/503: verifier unavailable or internal error<a href="#section-9-2.7.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-9-4">Error bodies <span class="bcp14">MUST NOT</span> leak sensitive attestation details. Servers <span class="bcp14">MAY</span> provide a correlation identifier for debugging.<a href="#section-9-4" class="pilcrow">¶</a></p>
+<p id="section-9-3">Error bodies <span class="bcp14">MUST NOT</span> leak sensitive attestation details. Servers <span class="bcp14">MAY</span> provide a correlation identifier for debugging.<a href="#section-9-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="security">
@@ -2007,19 +1981,19 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         </h3>
 <ul class="normal">
 <li class="normal" id="section-10.1-1.1">
-            <p id="section-10.1-1.1.1">Freshness and Replay Protection: Servers <span class="bcp14">MUST</span> provide a nonce and <span class="bcp14">MUST</span> reject reuse within an enforcement window. Evidence <span class="bcp14">MUST</span> be bound to the nonce (directly or through verifier-issued freshness tokens).<a href="#section-10.1-1.1.1" class="pilcrow">¶</a></p>
+            <p id="section-10.1-1.1.1">Freshness: a nonce Handle <span class="bcp14">MAY</span> come from the Verifier or the Relying Party; a timestamp from the Attester's clock; an epoch marker from a local hold or a returned Handle (Section 10 of <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>). Evidence <span class="bcp14">MUST</span> be bound as required by the kind from <code>attest-initiate</code>. The originator <span class="bcp14">MUST</span> reject <code>present-nonce</code> reuse and a stale <code>present-epoch</code>.<a href="#section-10.1-1.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-10.1-1.2">
-            <p id="section-10.1-1.2.1">Verifier Trust: If the EST server delegates verification, the channel to the verifier <span class="bcp14">MUST</span> provide integrity, authenticity, and replay protection.<a href="#section-10.1-1.2.1" class="pilcrow">¶</a></p>
+            <p id="section-10.1-1.2.1">The channel from EST Server to Verifier <span class="bcp14">MUST</span> provide integrity, authenticity, and replay protection.<a href="#section-10.1-1.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-10.1-1.3">
-            <p id="section-10.1-1.3.1">Attestation Results <span class="bcp14">SHOULD</span> be audience-restricted to the EST server.<a href="#section-10.1-1.3.1" class="pilcrow">¶</a></p>
+            <p id="section-10.1-1.3.1">Attestation Results <span class="bcp14">SHOULD</span> be audience-restricted to the Relying Party, not the EST Server.<a href="#section-10.1-1.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-10.1-1.4">
-            <p id="section-10.1-1.4.1">DoS Considerations: Evidence appraisal can be expensive; servers <span class="bcp14">SHOULD</span> enforce size limits, rate limits, and caching of verifier results where safe.<a href="#section-10.1-1.4.1" class="pilcrow">¶</a></p>
+            <p id="section-10.1-1.4.1">The EST Server <span class="bcp14">SHOULD</span> enforce size and rate limits on Evidence.<a href="#section-10.1-1.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-10.1-1.5">
-            <p id="section-10.1-1.5.1">Downgrade Resistance: If both classic EST and attested resources exist, servers <span class="bcp14">MUST</span> ensure policy can require attestation and <span class="bcp14">MUST NOT</span> silently fall back to weaker modes.<a href="#section-10.1-1.5.1" class="pilcrow">¶</a></p>
+            <p id="section-10.1-1.5.1">If classic EST and attested resources both exist, the Relying Party <span class="bcp14">MUST</span> be able to require attestation. The EST Server <span class="bcp14">MUST NOT</span> substitute a classic EST operation for an attested request.<a href="#section-10.1-1.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2031,10 +2005,10 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         </h3>
 <ul class="normal">
 <li class="normal" id="section-10.2-1.1">
-            <p id="section-10.2-1.1.1">Key Substitution: Prevented only if Evidence-to-CSR binding is mandatory and verified. Implementations <span class="bcp14">MUST NOT</span> treat “attestation success” as sufficient absent key-binding + PoP.<a href="#section-10.2-1.1.1" class="pilcrow">¶</a></p>
+            <p id="section-10.2-1.1.1">Key Substitution: attestation success is not sufficient without Evidence-to-CSR binding and PoP.<a href="#section-10.2-1.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-10.2-1.2">
-            <p id="section-10.2-1.2.1">Identity Over-Issuance: Policies must constrain subject/SAN issuance to attested identity context.<a href="#section-10.2-1.2.1" class="pilcrow">¶</a></p>
+            <p id="section-10.2-1.2.1">Identity Over-Issuance: Credential Authority policy must constrain subject/SAN to the attested identity context.<a href="#section-10.2-1.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2049,7 +2023,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <p id="section-10.3-1.1.1">Shared Signing Key Distribution: If the credential bundle includes a private signing key shared across replicas, compromise of one replica compromises the group. This mode <span class="bcp14">SHOULD</span> be restricted to environments where unwrap and key use are strongly protected.<a href="#section-10.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-10.3-1.2">
-            <p id="section-10.3-1.2.1">Non-Exportability Requirements: Deployments that transport a signing key <span class="bcp14">SHOULD</span> require Evidence to attest that CEKpriv is non-exportable and that decryption/unwrapping occurs only within an approved protected environment (e.g., TEE/TPM-sealed key usage).<a href="#section-10.3-1.2.1" class="pilcrow">¶</a></p>
+            <p id="section-10.3-1.2.1">Non-Exportability Requirements: Deployments that transport a signing key <span class="bcp14">SHOULD</span> require Evidence to attest that CEKpri is non-exportable and that decryption/unwrapping occurs only within an approved protected environment (e.g., TEE/TPM-sealed key usage).<a href="#section-10.3-1.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-10.3-1.3">
             <p id="section-10.3-1.3.1">Attribution: Shared keys eliminate per-instance attribution. If accountability is required, consider per-instance keys with identical identity claims, or a centralized signing service.<a href="#section-10.3-1.3.1" class="pilcrow">¶</a></p>
@@ -2074,7 +2048,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
           <p id="section-11-3.2.1">Media types for:<a href="#section-11-3.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-11-3.2.2.1">
-              <p id="section-11-3.2.2.1.1">AttestationChallenge<a href="#section-11-3.2.2.1.1" class="pilcrow">¶</a></p>
+              <p id="section-11-3.2.2.1.1">AttestationInitiateResponse<a href="#section-11-3.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-11-3.2.2.2">
               <p id="section-11-3.2.2.2.1">AttestedEnrollmentRequest<a href="#section-11-3.2.2.2.1" class="pilcrow">¶</a></p>
@@ -2129,6 +2103,18 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <a href="#section-12.2" class="section-number selfRef">12.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
+<dt id="ATTESTATION-FRESHNESS">[ATTESTATION-FRESHNESS]</dt>
+        <dd>
+<span class="refAuthor">Tschofenig, H.</span>, <span class="refAuthor">Brockhaus, H.</span>, <span class="refAuthor">Mandel, J.</span>, and <span class="refAuthor">S. Turner</span>, <span class="refTitle">"Requesting a Freshness Nonce for Attestation Evidence in Certificate Signing Requests"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-lamps-attestation-freshness-08</span>, <time datetime="2026-07-04" class="refDate">4 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-attestation-freshness-08">https://datatracker.ietf.org/doc/html/draft-ietf-lamps-attestation-freshness-08</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="INTERACTION-MODELS">[INTERACTION-MODELS]</dt>
+        <dd>
+<span class="refAuthor">Birkholz, H.</span>, <span class="refAuthor">Eckel, M.</span>, <span class="refAuthor">Pan, W.</span>, and <span class="refAuthor">E. Voit</span>, <span class="refTitle">"Reference Interaction Models for Remote Attestation Procedures"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-rats-reference-interaction-models-17</span>, <time datetime="2026-04-02" class="refDate">2 April 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-rats-reference-interaction-models-17">https://datatracker.ietf.org/doc/html/draft-ietf-rats-reference-interaction-models-17</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="TACRA">[TACRA]</dt>
+        <dd>
+<span class="refAuthor">Novak, M.</span>, <span class="refAuthor">Richardson, M.</span>, and <span class="refAuthor">H. Birkholz</span>, <span class="refTitle">"Trustworthy Acquisition of Credentials via Remote Attestation"</span>, <span>n.d.</span>, <span>&lt;<a href="https://TheBankster.github.io/rats-tacra/draft-novak-rats-tacra.html">https://TheBankster.github.io/rats-tacra/draft-novak-rats-tacra.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="TWISIGDef">[TWISIGDef]</dt>
         <dd>
 <span class="refAuthor">Confidential Computing Consortium Trustworthy Workload Identity SIG</span>, <span class="refTitle">"Trustworthy Workload Identity (TWI) Special Interest Group — Definitions"</span>, <span>n.d.</span>, <span>&lt;<a href="https://github.com/confidential-computing/twi/blob/main/TWI_Definitions.md">https://github.com/confidential-computing/twi/blob/main/TWI_Definitions.md</a>&gt;</span>. </dd>
