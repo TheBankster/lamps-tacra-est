@@ -1,24 +1,4 @@
 ---
-###
-# Internet-Draft Markdown Template
-#
-# Rename this file from draft-todo-yourname-protocol.md to get started.
-# Draft name format is "draft-<yourname>-<workgroup>-<name>.md".
-#
-# For initial setup, you only need to edit the first block of fields.
-# Only "title" needs to be changed; delete "abbrev" if your title is short.
-# Any other content can be edited, but be careful not to introduce errors.
-# Some fields will be set automatically during setup if they are unchanged.
-#
-# Don't include "-00" or "-latest" in the filename.
-# Labels in the form draft-<yourname>-<workgroup>-<name>-latest are used by
-# the tools to refer to the current version; see "docname" for example.
-#
-# This template uses kramdown-rfc: https://github.com/cabo/kramdown-rfc
-# You can replace the entire file if you prefer a different format.
-# Change the file extension to match the format (.xml for XML, etc...)
-#
-###
 title: Remote Attestation Extensions for EST
 category: info
 
@@ -45,7 +25,7 @@ venue:
 
 author:
  - ins: M. Novak
-   name: Mark Novak
+   name: Mark F. Novak
    org: J.P. Morgan Chase & Co.
    email: mark.f.novak@jpmchase.com
 
@@ -56,7 +36,7 @@ author:
 
  - ins: H. Birkholz
    name: Henk Birkholz
-   org:  Franhaufer Inst.
+   org:  Fraunhofer Inst.
    email: Henk.Birkholz@ietf.contact
 
 normative:
@@ -93,14 +73,14 @@ informative:
 
 --- abstract
 
-This document specifies extensions to Enrollment over Secure Transport (EST, {{!RFC7030}}) that realize the Trustworthy Acquisition of Credentials via Remote Attestation (TACRA) architecture {{TACRA}} over EST.
-Remote Attestation Procedures (RATS, {{RFC9334}}) are used as an authorization input for workload credential provisioning.
+This document specifies extensions to Enrollment over Secure Transport (EST) that realize the Trustworthy Acquisition of Credentials via Remote Attestation (TACRA) architecture {{TACRA}} over EST.
+Remote Attestation Procedures (RATS) are used as an authorization input for workload credential provisioning.
 Two modes are defined:
 
 1. Enrollment: the Attester submits a PKCS#10 CSR and Evidence. A Credential Authority, as RATS Relying Party, authorizes issuance from Attestation Results and binds the credential to the CSR key.
 2. Retrieval: the Attester submits Evidence that includes a Credential Encryption Key (CEK). A Secret Vault, as RATS Relying Party, releases an existing credential bundle with secrets encrypted to CEKpub.
 
-These extensions add EST resources for a two-leg exchange: `attest-initiate`, then `attest-enroll` or `attest-retrieve`.
+These extensions add EST resources for a two-leg exchange: `attest-initiate`, then either `attest-enroll` or `attest-retrieve`.
 
 --- middle
 
@@ -110,10 +90,11 @@ These extensions add EST resources for a two-leg exchange: `attest-initiate`, th
 EST ({{!RFC7030}}) defines an HTTPS-based protocol for certificate enrollment and management, typically between an EST Client and an EST Server acting as an interface to a Credential Authority.
 In modern environments (e.g., cloud, containers, confidential computing), workloads often lack pre-provisioned credentials and require issuance based on runtime properties.
 Additionally, zero trust environments place additional restrictions limiting which parties have access to secrets and credentials.
-This means that EST Clients and servers may not be trusted to handle such restricted information in plaintext.
+This means that EST Clients and Servers may not be trusted to handle such restricted information in plaintext.
 
-RATS ({{RFC9334}}) defines an architecture and roles for Remote Attestation.
-This document maps TACRA {{TACRA}} onto EST: the Attester generates keys, Evidence, and CSRs; the EST Client and EST Server are conduits that carry them to a Verifier and a Relying Party ({{INTERACTION-MODELS}}, Section 10 of {{RFC9334}}, {{ATTESTATION-FRESHNESS}}).
+RATS ({{!RFC9334}}) defines an architecture and roles for Remote Attestation.
+This document maps the TACRA {{TACRA}} architecture onto EST: the Attester generates keys, Evidence, and CSRs; the EST Client and EST Server are conduits that carry them to a Verifier and a RATS Relying Party (RRP) ({{INTERACTION-MODELS}}, Section 10 of {{RFC9334}}, {{ATTESTATION-FRESHNESS}}).
+The RRP in this case is either a Secret Vault, where pre-provisioned credentials are located, or a Credential Authority capable of creating new ones.
 
 Two modes are defined:
 
@@ -130,14 +111,16 @@ Two modes are defined:
 * Attester: the workload instance producing Evidence
 * Verifier: the component that appraises Evidence and produces Attestation Results
 * RATS Relying Party (RRP): consumes Attestation Results to make an authorization decision; in the context of this document, the authorization decision pertains to issuing new or releasing existing credentials to the Attester
+
+## TACRA Entities
+
+* CAS: Credential Acquisition System
 * RATS-Unaware Relying Party (RUP): authenticates the Attester using credentials issued by or retrieved from the RRP
 
 ## EST Entities
 
-* EST Client: TACRA Credential Acquisition System (CAS) Client for EST. Renders Attester payloads as EST requests and EST responses as payloads to the Attester.
+* EST Client: TACRA CAS Client for EST. Renders Attester payloads as EST requests, and EST Server responses as payloads to the Attester.
 * EST Server: TACRA CAS Server for EST. Forwards Handles, Evidence, Attestation Results, CSRs, and encrypted material between the EST Client, the Verifier, and a Relying Party (Credential Authority or Secret Vault).
-
-Neither has a RATS role. Both MUST NOT generate keys, Evidence, or CSRs; MUST NOT mint `present-nonce` or `present-epoch` Handles; MUST NOT appraise Evidence or Attestation Results; MUST NOT authorize issuance or release; and MUST NOT hold plaintext secrets.
 
 ## Artifacts
 
@@ -153,11 +136,18 @@ Neither has a RATS role. Both MUST NOT generate keys, Evidence, or CSRs; MUST NO
 
 # Architecture
 
-The EST encoding is the same in Passport and Background Check modes; the modes differ in who originates a Freshness Handle and who contacts the Verifier.
+The EST encoding is the same in Passport and Background Check modes; the modes differ in who originates a Freshness Handle and whether the EST Server contacts the Verifier and then the RATS Relying Party (Passport) or the RATS Relying Party directly (Background Check).
 Only Passport mode is illustrated.
-In Background Check, the EST Server forwards Evidence to the Relying Party and need not obtain Attestation Results itself.
 
 Both modes use two EST legs: `attest-initiate`, then `attest-enroll` or `attest-retrieve` ({{attest-initiate}}).
+
+Neither EST Client nor EST Server has a RATS role.
+Both are subject to the following restrictions:
+* MUST NOT generate keys, Evidence, or CSRs
+* MUST NOT mint `present-nonce` or `present-epoch` Handles
+* MUST NOT appraise Evidence or Attestation Results
+* MUST NOT authorize credential issuance or release
+* MUST NOT hold plaintext secrets.
 
 ## Attested Enrollment Mode
 
@@ -166,13 +156,13 @@ Both modes use two EST legs: `attest-initiate`, then `attest-enroll` or `attest-
 ~~~~
 {: #fig-enroll title="Attested Enrollment Mode (Passport)"}
 
-1. Attester initiates (`attest-initiate`)
-2. EST Client forwards to EST Server
-3. EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client (Verifier-originated Handle shown)
+1. Attester initiates Remote Attestation
+2. EST Client forwards to EST Server (`attest-initiate`)
+3. EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client
 4. Attester generates CSK, CSR, and Evidence bound to the CSR and Freshness
 5. EST Client POSTs CSR and Evidence (`attest-enroll`)
 6. EST Server forwards Evidence to the Verifier
-7. EST Server forwards CSR and Attestation Results to the Credential Authority, which verifies PoP and authorizes issuance; the credential is returned via the EST Client
+7. EST Server forwards CSR and Attestation Results to the Credential Authority, which verifies PoP and authorizes issuance; the credential is returned to the Attester via the EST Client
 
 ## Attested Retrieval Mode
 
@@ -181,26 +171,25 @@ Both modes use two EST legs: `attest-initiate`, then `attest-enroll` or `attest-
 ~~~~
 {: #fig-retrieve title="Attested Retrieval Mode (Passport)"}
 
-1. Attester initiates (`attest-initiate`)
-2. EST Client forwards to EST Server
-3. EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client (Verifier-originated Handle shown)
+1. Attester initiates Remote Attestation
+2. EST Client forwards to EST Server (`attest-initiate`)
+3. EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client
 4. Attester generates CEK and Evidence including CEKpub, bound to Freshness
 5. EST Client POSTs Evidence (`attest-retrieve`)
 6. EST Server forwards Evidence to the Verifier
-7. EST Server forwards Attestation Results to the Secret Vault, which encrypts the matching credential to CEKpub; the EST Client returns that blob to the Attester, which decrypts with CEKpri
+7. EST Server forwards Attestation Results to the Secret Vault, which encrypts the matching credential to CEKpub; the EST Server, through EST Client, returns that encrypted blob to the Attester, which decrypts it with CEKpri
 
 
 # Protocol Overview
 
-These extensions define new resources under the existing EST “/.well-known/” prefix:
+Three new EST resources are added under the existing EST “/.well-known/” prefix:
 
-* `/.well-known/est/attest-initiate`
-* `/.well-known/est/attest-enroll`
-* `/.well-known/est/attest-retrieve`
+1. `/.well-known/est/attest-initiate`
+2. `/.well-known/est/attest-enroll`
+3. `/.well-known/est/attest-retrieve`
 
 These resources are used in addition to existing EST resources.
-They carry TACRA Initiate-Credential-Acquisition, Enroll-Credential, and Retrieve-Credential {{TACRA}}.
-EST need not be nonce-based; it MUST be able to carry `attest-initiate`.
+They support TACRA Initiate-Credential-Acquisition, Enroll-Credential, and Retrieve-Credential {{TACRA}} commands, encoded with EST semantics.
 
 All exchanges MUST use HTTPS as required by {{RFC7030}}.
 Server authentication via TLS is REQUIRED.
@@ -210,28 +199,35 @@ Server authentication via TLS is REQUIRED.
 
 ## attest-initiate {#attest-initiate}
 
-The first leg of both modes.
+The first leg of both modes is where the Attester initiates Remote Attestation by invoking the EST Client.
 
-If the EST Client is already configured for an absent kind (`absent-timestamp`, `absent-none`, or `absent-epoch`), it MAY complete `attest-initiate` locally and MUST NOT contact the EST Server.
-Otherwise `attest-initiate` is a GET with no body and no query parameters.
-The EST Server obtains the Freshness kind, and a Handle if any, from the configured Verifier or Relying Party and returns that result.
-Absent kinds carry no Handle.
-`present-nonce` and `present-epoch` MUST include a Handle from that party.
+* Method: GET
+* Request: None
+* Success: 200 OK
+* Response: optional Freshness kind
 
-The EST Client forwards the response to the Attester.
-The Attester produces Evidence as the kind requires.
-The EST Client then POSTs `attest-enroll` or `attest-retrieve` as the Attester indicates.
-If the second leg fails because a `present-epoch` moved or a `present-nonce` is no longer valid, the Attester retries `attest-initiate`.
+TODO: add additional parameters to the Initiate Response (e.g., acceptable cipher suites)
+
+* If the EST Client is already configured for an absent Freshness kind (`absent-timestamp`, `absent-none`, or `absent-epoch`), it MAY complete `attest-initiate` locally and, in that case, MUST NOT contact the EST Server. Otherwise, `attest-initiate` is a GET with no body and no query parameters.
+* The EST Server, if contacted, obtains the Freshness kind, and a Handle if any, from the configured Verifier or Relying Party and returns that result. "Absent" Freshness kinds carry no Handle.
+* `present-nonce` and `present-epoch` MUST include a Handle from the party chosen by the EST Server.
+* The EST Client forwards the response to the Attester.
+* The Attester produces Evidence as the Freshness kind requires.
+* The EST Client then POSTs `attest-enroll` or `attest-retrieve` as the Attester indicates.
+* If the second leg fails because a `present-epoch` moved or a `present-nonce` is no longer valid, the Attester retries `attest-initiate`.
 
 * Method: GET
 * Success: 200 OK
 * Response: AttestationInitiateResponse
 
+TODO: Define error code for invalid Freshness
+
 ## attest-enroll (POST)
 
 * Method: POST
 * Request: AttestedEnrollmentRequest (CSR and Evidence)
-* Success: 200 OK, enrollment response as for simpleenroll in {{RFC7030}}
+* Success: 200 OK
+* Response: enrollment response as for simpleenroll in {{RFC7030}}
 
 ## attest-retrieve (POST)
 
@@ -243,14 +239,15 @@ If the second leg fails because a `present-epoch` moved or a `present-nonce` is 
 
 # Media Types and Encodings
 
+TODO: discuss envelopes and media types in more detail; verify correctness
 Implementations MUST support at least one of CBOR or JSON envelopes, using to-be-registered media types ({{iana}}).
 Servers advertise supported types with Content-Type and Accept; clients MUST send a supported type.
-Evidence and Endorsements are opaque byte strings.
+Evidence blobs are opaque byte strings.
 
 
 # Common Structures
 
-## AttestationInitiateResponse
+## AttestationInitiationResponse
 
 Fields:
 
@@ -268,7 +265,7 @@ TODO: validate everything below
 * `acceptable_evidence` (array): identifiers for evidence formats
 * `required_bindings` (array): required binding mechanisms for the indicated mode
 * `acceptable_cek` (array, only when `mode` is `retrieve`): acceptable CEK algorithms/suites
-* `mode` (string, OPTIONAL): `enroll` or `retrieve`
+* `mode` (string, REQUIRED): `enroll` or `retrieve`
 
 The Handle originator MUST ensure `present-nonce` uniqueness and MUST correlate the second-leg request with the Handle from this `attest-initiate`.
 The Verifier appraises whether Evidence is bound to a still-valid Handle.
@@ -386,10 +383,10 @@ Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 
 1. Validate syntax and size limits, and correlate `handle` with the preceding `attest-initiate` as in enrollment processing.
 2. Forward Evidence to the Verifier and obtain Attestation Results.
-3. Forward Attestation Results to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub with AAD including group_id and the Handle if any.
+3. Forward Attestation Results to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub
 4. Return the EncryptedCredentialBundle produced by the Secret Vault.
 
-A deployment in which the EST Server unwraps a vault secret and re-encrypts to CEKpub is possible but discouraged.
+A variant in which the EST Server receives a plaintext vault secret and re-encrypts to CEKpub is possible but discouraged. TODO: Elsewere there are "MUST NOT" directives against this.
 
 
 # Error Handling
@@ -438,7 +435,7 @@ This document requests registrations for:
 
 * New EST well-known paths (if applicable under EST registries).
 * Media types for:
-    * AttestationInitiateResponse
+    * AttestationInitiationResponse
     * AttestedEnrollmentRequest
     * AttestedRetrievalRequest
     * EncryptedCredentialBundle
