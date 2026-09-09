@@ -97,11 +97,10 @@ This document specifies extensions to Enrollment over Secure Transport (EST, {{!
 Remote Attestation Procedures (RATS, {{RFC9334}}) are used as an authorization input for workload credential provisioning.
 Two modes are defined:
 
-1. Attested Credential Enrollment Mode: a workload submits a PKCS#10 Certificate Signing Request (CSR) and Remote Attestation Evidence. The EST Server is a conduit to a Verifier and to a Credential Authority acting as RATS Relying Party. That Relying Party authorizes issuance based on Attestation Results. The issued credential is cryptographically bound to the CSR key through proof-of-possession and explicit key-binding.
-2. Attested Credential Retrieval Mode: a workload submits Remote Attestation Evidence that includes an asymmetric Credential Encryption Key (CEK). Upon successful verification and authorization by the Relying Party (a Secret Vault), the EST Server returns an existing shared public credential bundle (e.g., an X.509 certificate, a WIMSE WIC), and a secret, such as an associated signing key, a bearer token, or a preshared key, encrypted to CEKpub.
+1. Enrollment: the Attester submits a PKCS#10 CSR and Evidence. A Credential Authority, as RATS Relying Party, authorizes issuance from Attestation Results and binds the credential to the CSR key.
+2. Retrieval: the Attester submits Evidence that includes a Credential Encryption Key (CEK). A Secret Vault, as RATS Relying Party, releases an existing credential bundle with secrets encrypted to CEKpub.
 
-These extensions add new EST resources, request/response envelopes, processing rules, and security requirements for replay protection, freshness, key-binding, confidentiality, auditability, and key distribution risk management.
-Both modes use a two-leg EST exchange: `attest-initiate`, which returns a Freshness kind and an optional Handle, followed by `attest-enroll` or `attest-retrieve`.
+These extensions add EST resources for a two-leg exchange: `attest-initiate`, then `attest-enroll` or `attest-retrieve`.
 
 --- middle
 
@@ -114,18 +113,12 @@ Additionally, zero trust environments place additional restrictions limiting whi
 This means that EST Clients and servers may not be trusted to handle such restricted information in plaintext.
 
 RATS ({{RFC9334}}) defines an architecture and roles for Remote Attestation.
-This document integrates RATS with EST by making the EST Client and EST Server conduits for credential issuance or credential release based on verified attestation, following TACRA {{TACRA}}.
-The Attester generates keys, Evidence, and CSRs; the EST Client renders those as EST requests, and the EST Server forwards them to the Verifier and the Relying Party.
-EST Server takes responses from the Verifier and the RATS Relying Party and renders them back as EST responses that it sends to the EST Client.
+This document maps TACRA {{TACRA}} onto EST: the Attester generates keys, Evidence, and CSRs; the EST Client and EST Server are conduits that carry them to a Verifier and a Relying Party ({{INTERACTION-MODELS}}, Section 10 of {{RFC9334}}, {{ATTESTATION-FRESHNESS}}).
 
-This document defines two complementary modes:
+Two modes are defined:
 
-1. Enrollment: issuance of fresh credentials bound to a workload-generated Credential Signing Key or CSK (traditional EST semantics)
-2. Retrieval: release of a shared credential bundle to replicated workloads that produce equivalent attestation results, using encryption of secrets to an attester-provided Credential Encryption Key or CEK (credential broker semantics).
-
-In either case, RATS-style Remote Attestation authenticates the workload to the RATS Relying Party.
-The EST Client and EST Server carry the TACRA two-phase sequence: `attest-initiate` followed by `attest-enroll` or `attest-retrieve`.
-The first leg always returns a Freshness kind; it returns a Handle only when that kind requires one ({{INTERACTION-MODELS}}, Section 10 of {{RFC9334}}, {{ATTESTATION-FRESHNESS}}).
+1. Enrollment: issuance of a fresh credential bound to a workload-generated Credential Signing Key (CSK)
+2. Retrieval: release of a shared credential bundle, with secrets encrypted to an attester-provided Credential Encryption Key (CEK)
 
 
 # Conventions and Definitions
@@ -141,10 +134,10 @@ The first leg always returns a Freshness kind; it returns a Handle only when tha
 
 ## EST Entities
 
-* EST Client: the protocol participant that renders Attester payloads as EST requests and EST responses as payloads back to the Attester; the TACRA Credential Acquisition System (CAS) Client for EST. It is a conduit in both directions. It does not generate keys, Evidence, or CSRs, and it does not decrypt retrieved secrets.
-* EST Server: the server exposing EST resources; the TACRA CAS Server for EST. It is a conduit to the Verifier and to a RATS Relying Party (a Credential Authority or a Secret Vault). It forwards Handles, Evidence, Attestation Results, CSRs, and encrypted credential material. It does not originate Freshness, appraise Evidence or Attestation Results, authorize issuance or release, or hold plaintext secrets.
+* EST Client: TACRA Credential Acquisition System (CAS) Client for EST. Renders Attester payloads as EST requests and EST responses as payloads to the Attester.
+* EST Server: TACRA CAS Server for EST. Forwards Handles, Evidence, Attestation Results, CSRs, and encrypted material between the EST Client, the Verifier, and a Relying Party (Credential Authority or Secret Vault).
 
-Both EST Client and EST Server have no RATS role. They MUST NOT appraise Evidence or Attestation Results, MUST NOT mint `present-nonce` or `present-epoch` Handle values, MUST NOT generate Evidence, keys, or CSRs, and MUST NOT substitute their own authorization decision for that of the Relying Party.
+Neither has a RATS role. Both MUST NOT generate keys, Evidence, or CSRs; MUST NOT mint `present-nonce` or `present-epoch` Handles; MUST NOT appraise Evidence or Attestation Results; MUST NOT authorize issuance or release; and MUST NOT hold plaintext secrets.
 
 ## Artifacts
 
@@ -155,71 +148,46 @@ Both EST Client and EST Server have no RATS role. They MUST NOT appraise Evidenc
 * CEK: Credential Encryption Key; when used, CEKpub is carried in Evidence, the response is encrypted to CEKpub
 * Credential Bundle: container that may include an X.509 chain, WIMSE WIC(s), and optionally a signing key and metadata
 * Freshness kind: the recency method returned by `attest-initiate`; can be one of `absent-timestamp`, `absent-none`, `absent-epoch`, `present-nonce`, or `present-epoch` ({{INTERACTION-MODELS}}, Section 10 of {{RFC9334}})
-* Handle: a freshness information element included in Evidence when the Freshness kind is `present-nonce` or `present-epoch` ({{INTERACTION-MODELS}})
-
-The EST Client and EST Server forward a Handle obtained from the Verifier or the RATS Relying Party; they do not generate `present-*` Handle values.
+* Handle: freshness element included in Evidence when the kind is `present-nonce` or `present-epoch` ({{INTERACTION-MODELS}})
 
 
 # Architecture
 
-The mechanisms described below work equally well in both Passport and Background Check RATS modes.
-Only the Passport mode is illustrated.
-Differences between the two modes are immaterial for the EST encoding; they matter for who originates a Handle and who contacts the Verifier to obtain Attestation Results.
+The EST encoding is the same in Passport and Background Check modes; the modes differ in who originates a Freshness Handle and who contacts the Verifier.
+Only Passport mode is illustrated.
+In Background Check, the EST Server forwards Evidence to the Relying Party and need not obtain Attestation Results itself.
 
-Both modes always use two EST legs.
-The first leg is `attest-initiate`.
-The EST Client carries that call; it does not choose the Freshness kind.
-The Attester obtains the Freshness kind and, when the kind is `present-nonce` or `present-epoch`, a Handle, then generates Evidence accordingly.
-It is a RATS challenge/response only for those present kinds.
-For `absent-timestamp`, `absent-none`, and `absent-epoch`, `attest-initiate` still occurs; the response carries no Handle.
+Both modes use two EST legs: `attest-initiate`, then `attest-enroll` or `attest-retrieve` ({{attest-initiate}}).
 
-How that response is obtained through the EST Server is specified in {{attest-initiate}}.
-
-## Attested Enrollment Mode (Credential Authority-mediated issuance)
-
-* Attester, through the EST Client, performs `attest-initiate` and obtains a Freshness kind and, if any, a Handle
-* Attester generates a Credential Signing Key (CSK) keypair and CSR, and produces Evidence bound to the CSR and to the returned Freshness
-* Attester, through the EST Client, submits CSR + Evidence to `attest-enroll`
-* EST Server forwards Evidence to the Verifier and obtains Attestation Results
-* EST Server forwards the CSR and Attestation Results to the Relying Party (Credential Authority), which verifies PoP and authorizes issuance
-* EST Server returns the issued credential in an EST enrollment response
+## Attested Enrollment Mode
 
 ~~~~ ascii-art
 {::include attested_enrollment.txt}
 ~~~~
 {: #fig-enroll title="Attested Enrollment Mode (Passport)"}
 
-1. Attester initiates credential acquisition (`attest-initiate`)
-2. EST Client forwards `attest-initiate` to the EST Server
-3. EST Server obtains the Freshness kind, and a Handle if any, from the Verifier or the Relying Party and forwards that result ({{attest-initiate}}). It MUST NOT generate `present-nonce` or `present-epoch` values. The figure shows the Verifier-originated case. The Freshness kind and Handle (if any) are returned to the Attester via the EST Client
-4. Attester generates Evidence and CSR, bound to the returned Freshness, and sends them to the EST Client
-5. EST Client forwards the Evidence and CSR to the EST Server (`attest-enroll`)
-6. EST Server forwards the Evidence to the Verifier and obtains Attestation Results
-7. EST Server forwards the CSR and Attestation Results to the Credential Authority and returns the newly issued Credential to the Attester via the EST Client
+1. Attester initiates (`attest-initiate`)
+2. EST Client forwards to EST Server
+3. EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client (Verifier-originated Handle shown)
+4. Attester generates CSK, CSR, and Evidence bound to the CSR and Freshness
+5. EST Client POSTs CSR and Evidence (`attest-enroll`)
+6. EST Server forwards Evidence to the Verifier
+7. EST Server forwards CSR and Attestation Results to the Credential Authority, which verifies PoP and authorizes issuance; the credential is returned via the EST Client
 
-## Attested Retrieval Mode (Secret Vault Broker)
-
-* Attester, through the EST Client, performs `attest-initiate` and obtains a Freshness kind and, if any, a Handle
-* Attester generates an asymmetric CEK keypair and produces Evidence that includes CEKpub and is bound to the returned Freshness
-* Attester, through the EST Client, submits Evidence to `attest-retrieve`
-* EST Server forwards the Evidence to the Verifier and obtains Attestation Results, which include CEKpub from the Evidence
-* EST Server forwards the Attestation Results to the Secret Vault (the Relying Party)
-* The Secret Vault identifies the Attester from the Attestation Results, retrieves the matching key or credential, and encrypts it to CEKpub before returning the encrypted blob to the EST Server
-* EST Server returns that result to the EST Client
-* EST Client returns the encrypted credential to the Attester, which decrypts it with CEKpri
+## Attested Retrieval Mode
 
 ~~~~ ascii-art
 {::include attested_retrieval.txt}
 ~~~~
 {: #fig-retrieve title="Attested Retrieval Mode (Passport)"}
 
-1. Attester initiates credential acquisition (`attest-initiate`)
-2. EST Client forwards `attest-initiate` to the EST Server
-3. EST Server obtains the Freshness kind, and a Handle if any, from the Verifier or the Relying Party and forwards that result ({{attest-initiate}}). It MUST NOT generate `present-nonce` or `present-epoch` values. The figure shows the Verifier-originated case. The Freshness kind and Handle (if any) are returned to the Attester via the EST Client
-4. Attester generates Evidence (including CEKpub), bound to the returned Freshness, and sends it to the EST Client
-5. EST Client forwards the Evidence to the EST Server (`attest-retrieve`)
-6. EST Server forwards the Evidence to the Verifier and obtains Attestation Results, which also include CEKpub
-7. EST Server forwards the Attestation Results to the Secret Vault and returns the credentials and associated secrets, encrypted to CEKpub, to the Attester via the EST Client
+1. Attester initiates (`attest-initiate`)
+2. EST Client forwards to EST Server
+3. EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client (Verifier-originated Handle shown)
+4. Attester generates CEK and Evidence including CEKpub, bound to Freshness
+5. EST Client POSTs Evidence (`attest-retrieve`)
+6. EST Server forwards Evidence to the Verifier
+7. EST Server forwards Attestation Results to the Secret Vault, which encrypts the matching credential to CEKpub; the EST Client returns that blob to the Attester, which decrypts with CEKpri
 
 
 # Protocol Overview
@@ -230,77 +198,54 @@ These extensions define new resources under the existing EST “/.well-known/”
 * `/.well-known/est/attest-enroll`
 * `/.well-known/est/attest-retrieve`
 
-These resources are used in addition to, not in place of, existing EST resources.
-They carry TACRA's two-phase sequence over EST: `attest-initiate` corresponds to Initiate-Credential-Acquisition; `attest-enroll` and `attest-retrieve` correspond to Enroll-Credential and Retrieve-Credential {{TACRA}}.
+These resources are used in addition to existing EST resources.
+They carry TACRA Initiate-Credential-Acquisition, Enroll-Credential, and Retrieve-Credential {{TACRA}}.
 EST need not be nonce-based; it MUST be able to carry `attest-initiate`.
 
-All exchanges in this document MUST use HTTPS as required by RFC 7030.
+All exchanges MUST use HTTPS as required by {{RFC7030}}.
 Server authentication via TLS is REQUIRED.
-Attester authentication for purposes of credential acquisition is performed through the remote attestation-driven mechanisms defined herein (and optionally additional mechanisms).
 
 
 # Resources and Methods
 
 ## attest-initiate {#attest-initiate}
 
-The first leg of both Attested Enrollment Mode and Attested Credential Retrieval Mode.
+The first leg of both modes.
 
-When the EST Client's configuration already determines that no Handle is required — Freshness kind `absent-timestamp`, `absent-none`, or `absent-epoch` — the EST Client MAY complete `attest-initiate` locally and MUST NOT send a request to the EST Server.
-Otherwise `attest-initiate` is a GET with no request body and no query parameters.
+If the EST Client is already configured for an absent kind (`absent-timestamp`, `absent-none`, or `absent-epoch`), it MAY complete `attest-initiate` locally and MUST NOT contact the EST Server.
+Otherwise `attest-initiate` is a GET with no body and no query parameters.
+The EST Server obtains the Freshness kind, and a Handle if any, from the configured Verifier or Relying Party and returns that result.
+Absent kinds carry no Handle.
+`present-nonce` and `present-epoch` MUST include a Handle from that party.
 
 The EST Client forwards the response to the Attester.
-The Attester receives whatever Freshness kind, Handle (if any), and constraints the response contains, and acts accordingly: it produces Evidence as that kind requires, then the EST Client POSTs `attest-enroll` or `attest-retrieve` as indicated by the Attester.
-
-The response to `attest-initiate` is a Freshness kind and parameters instructing the Attester on which ciphers, etc. to use.
-It returns a Handle only when the Freshness kind is `present-nonce` or `present-epoch`.
-For `absent-timestamp`, `absent-none`, and `absent-epoch`, the response carries no Handle.
+The Attester produces Evidence as the kind requires.
+The EST Client then POSTs `attest-enroll` or `attest-retrieve` as the Attester indicates.
+If the second leg fails because a `present-epoch` moved or a `present-nonce` is no longer valid, the Attester retries `attest-initiate`.
 
 * Method: GET
 * Success: 200 OK
 * Response: AttestationInitiateResponse
 
-### Obtaining the Freshness kind and Handle
-
-The EST Client does not choose the Freshness kind.
-The EST Server does not originate it either.
-
-The EST Server is a conduit: on GET `attest-initiate` it obtains the Freshness kind, and a Handle if any, from the Verifier or the Relying Party identified by deployment configuration, and returns that result.
-That configuration identifies the Verifier and the Relying Party (Credential Authority or Secret Vault) whose freshness requirements apply.
-The Freshness kind then determines whether a Handle is returned and who originates it:
-
-* `absent-timestamp`, `absent-none`, or `absent-epoch`: the EST Server returns that kind and MUST NOT include a Handle. It need not contact the Verifier or the Relying Party on this leg. An EST Client MAY complete `attest-initiate` locally, without contacting the EST Server, when its own configuration already determines one of these absent kinds.
-* `present-nonce` or `present-epoch`: the EST Server MUST obtain the Handle from the Verifier or the Relying Party, as indicated by that configuration, and MUST return that Handle with the kind. When the Handle is Verifier-originated, the EST Server fetches it from the Verifier and forwards it. When the Handle is Relying-Party-originated, the EST Server fetches it from the Credential Authority or Secret Vault and forwards it. The EST Server MUST NOT generate `present-nonce` or `present-epoch` values itself.
-
-The EST Client always carries `attest-initiate` first — locally when an absent kind is already configured, otherwise as GET — then carries `attest-enroll` or `attest-retrieve` as indicated by the Attester.
-If `attest-enroll` or `attest-retrieve` fails because a `present-epoch` marker has moved, or because a `present-nonce` is no longer valid, the Attester retries from `attest-initiate` through the EST Client.
-
 ## attest-enroll (POST)
 
-Attested enrollment request (CSR + Evidence bound to the Freshness returned by the preceding `attest-initiate`).
-
 * Method: POST
-* Success: 200 OK with an EST enrollment response body, as for simpleenroll in {{RFC7030}}
-* Request: AttestedEnrollmentRequest
+* Request: AttestedEnrollmentRequest (CSR and Evidence)
+* Success: 200 OK, enrollment response as for simpleenroll in {{RFC7030}}
 
 ## attest-retrieve (POST)
 
-Attested credential retrieval request (Evidence includes CEKpub and is bound to the Freshness returned by the preceding `attest-initiate`).
-
 * Method: POST
+* Request: AttestedRetrievalRequest (Evidence including CEKpub)
 * Success: 200 OK
-* Response: CredentialBundle
+* Response: EncryptedCredentialBundle
 
 
 # Media Types and Encodings
 
-This document defines abstract message structures. Implementations MUST support at least one interoperable encoding. Two encoding families are permitted:
-
-* CBOR-based envelopes (recommended for compactness), using a to-be-registered media type ({{iana}}).
-* JSON-based envelopes (for debugging and ecosystems standardized on JOSE), using a to-be-registered media type.
-
-A server MUST indicate supported request and response media types via the HTTP Content-Type and Accept headers. Clients MUST send a supported media type.
-
-Note: Evidence and Endorsements formats are intentionally opaque to this document; they are carried as byte strings.
+Implementations MUST support at least one of CBOR or JSON envelopes, using to-be-registered media types ({{iana}}).
+Servers advertise supported types with Content-Type and Accept; clients MUST send a supported type.
+Evidence and Endorsements are opaque byte strings.
 
 
 # Common Structures
@@ -317,17 +262,16 @@ TODO: validate everything below
     * `absent-epoch`: embed an epoch marker already held locally
     * `present-nonce`: single-use Handle; embed it in Evidence
     * `present-epoch`: current epoch marker as Handle; embed it in Evidence; retry `attest-initiate` if the epoch moved
-* `handle` (bytes): REQUIRED when `freshness_kind` is `present-nonce` or `present-epoch`; MUST be absent otherwise. This is the Handle from {{INTERACTION-MODELS}}, obtained from the Verifier or the Relying Party as specified in {{attest-initiate}}.
+* `handle` (bytes): REQUIRED for `present-nonce` and `present-epoch`; MUST be absent otherwise ({{attest-initiate}})
 * `expires_in` (integer, OPTIONAL): seconds until a `present-nonce` or `present-epoch` Handle is no longer valid
 * `max_age` (integer, OPTIONAL): for `absent-timestamp`, the maximum Evidence age in seconds acceptable to the Verifier or Relying Party
 * `acceptable_evidence` (array): identifiers for evidence formats
 * `required_bindings` (array): required binding mechanisms for the indicated mode
 * `acceptable_cek` (array, only when `mode` is `retrieve`): acceptable CEK algorithms/suites
-* `mode` (string, OPTIONAL): `enroll` or `retrieve`; the Attester produces an enrollment or retrieval payload accordingly, which the EST Client POSTs as `attest-enroll` or `attest-retrieve`
+* `mode` (string, OPTIONAL): `enroll` or `retrieve`
 
-When `freshness_kind` is `present-nonce`, the originator of the Handle MUST ensure uniqueness within a replay window.
-The Handle originator MUST correlate a subsequent `attest-enroll` or `attest-retrieve` with the Handle it returned to `attest-initiate` for this session.
-Appraisal of whether Evidence is bound to a still-valid Handle is performed by the Verifier.
+The Handle originator MUST ensure `present-nonce` uniqueness and MUST correlate the second-leg request with the Handle from this `attest-initiate`.
+The Verifier appraises whether Evidence is bound to a still-valid Handle.
 
 
 # Attested Credential Acquisition Modes
@@ -350,43 +294,35 @@ TODO: validate everything below
 
 ### Response (Success)
 
-On success, the EST Server returns credentials as in EST enrollment, consistent with RFC 7030 for simpleenroll.
-This document does not change the EST enrollment response formats; it only defines new request paths and authorization inputs.
+On success, the EST Server returns the enrollment response produced by the Credential Authority, as for simpleenroll in {{RFC7030}}.
 
 ### Key Binding and PoP Requirements
 
-Attested Enrollment Mode MUST provide:
-
 TODO: validate everything below
 
-1. PoP for CSR Key: The Credential Authority MUST verify that the requester possesses the private key corresponding to the CSR public key, using the CSR’s standard proof mechanisms or an equivalent channel-bound PoP defined by profile.
-2. Evidence-to-CSR Binding: The request MUST include a binding that prevents substitution of a different CSR by an attacker reusing Evidence. The Verifier MUST attest to the integrity of that binding.
-3. Evidence-to-Freshness Binding: Evidence MUST be bound to the Freshness returned by `attest-initiate`: the Handle when `freshness_kind` is `present-nonce` or `present-epoch`; a trusted-clock stamp when `absent-timestamp`; a locally held epoch marker when `absent-epoch`; nothing additional when `absent-none`. The Verifier MUST attest to the integrity of that binding.
+1. PoP: The Credential Authority MUST verify possession of the CSR private key.
+2. Evidence-to-CSR: Evidence MUST bind the CSR so a different CSR cannot be substituted. The Verifier MUST attest to that binding.
+3. Evidence-to-Freshness: Evidence MUST be bound to the Freshness from `attest-initiate` ({{attest-initiate}}). The Verifier MUST attest to that binding.
 
-At least one of the following binding mechanisms MUST be implemented by the Attester (to produce the binding) and verified by the Verifier:
+At least one Evidence-to-CSR mechanism MUST be produced by the Attester and verified by the Verifier:
 
-* CSR Hash Claim Binding: Evidence (as appraised by the Verifier) contains a claim equal to H(csr_der) (hash of the CSR DER), and the verifier attests to its integrity.
-* Public Key Thumbprint Binding: Evidence contains a claim equal to a thumbprint of the CSR SubjectPublicKeyInfo (SPKI).
-* Key Certification Binding (Hardware-backed): Evidence contains a verifiable statement that the CSR key is resident in protected hardware/TEE and corresponds to the CSR public key.
+* CSR Hash: Evidence contains H(csr_der)
+* Public Key Thumbprint: Evidence contains a thumbprint of the CSR SubjectPublicKeyInfo
+* Key Certification: Evidence states that the CSR key is resident in protected hardware/TEE and matches the CSR public key
 
-The binding object MUST indicate which method is used and include any required identifiers (e.g., hash algorithm ID).
+The binding object MUST name the method and any identifiers (e.g., hash algorithm).
 
 ### Enrollment Server Processing
 
 Upon receiving AttestedEnrollmentRequest, the EST Server MUST:
 
-1. Validate message syntax, media type, and size limits.
-2. Correlate the request with the preceding `attest-initiate` for this session: when a Handle was returned, `handle` MUST match it; when `freshness_kind` is `absent-timestamp`, `absent-none`, or `absent-epoch`, no Handle is present.
-3. Forward evidence (+ endorsements if provided) to a Verifier and obtain Attestation Results. The Verifier appraises Evidence, including Freshness and Evidence-to-CSR binding. The EST Server MUST NOT appraise Evidence itself.
-4. Forward the CSR and Attestation Results to the Relying Party (Credential Authority), which verifies PoP and applies authorization policy mapping Attestation Results to:
-    * whether issuance is permitted
-    * issuance profile (subject/SAN constraints, EKU, validity, etc.)
-5. Return the enrollment response produced by the Credential Authority.
+1. Validate syntax, media type, and size limits.
+2. Correlate `handle` with the preceding `attest-initiate` for this session, if a Handle was returned.
+3. Forward Evidence (and endorsements, if any) to the Verifier and obtain Attestation Results.
+4. Forward the CSR and Attestation Results to the Credential Authority, which verifies PoP and authorizes issuance.
+5. Return the Credential Authority's enrollment response.
 
-In the Background Check model, the EST Server forwards Evidence to the Credential Authority and need not obtain Attestation Results itself; the Relying Party contacts the Verifier.
-
-The EST Server MUST NOT appraise, modify, or replace Attestation Results.
-The Credential Authority MUST NOT mint identities (e.g., DNS names) beyond what policy explicitly allows for the attested identity context.
+The Credential Authority MUST NOT mint identities (e.g., DNS names) beyond policy for the attested identity context.
 
 ## Credential Retrieval Mode
 
@@ -407,18 +343,14 @@ TODO: validate everything below
 
 TODO: validate everything below
 
-Evidence, as appraised by the Verifier, MUST integrity-protect:
-
-* the Freshness returned by `attest-initiate`: the Handle when `freshness_kind` is `present-nonce` or `present-epoch`; a trusted-clock stamp when `absent-timestamp`; a locally held epoch marker when `absent-epoch`; nothing additional when `absent-none`, and
-* a claim conveying CEKpub or a stable thumbprint identifier for CEKpub.
-
-The EST Server MUST forward Evidence to the Verifier. The Verifier MUST reject Evidence that does not integrity-protect these bindings, and the Relying Party MUST deny release when Attestation Results do not confirm them.
+Evidence MUST integrity-protect the Freshness from `attest-initiate` ({{attest-initiate}}) and a claim conveying CEKpub or a thumbprint of CEKpub.
+The Verifier MUST reject Evidence that does not, and the Secret Vault MUST deny release when Attestation Results do not confirm these bindings.
 
 ### Credential Group ID Determination
 
 TODO: validate everything below
 
-The holder of the requested credential — the Secret Vault — MUST be able to map the Attestation Results from the Verifier to the credential "group ID" that the Attester is expecting. The mapping MUST be stable for “replica” workloads intended to receive identical credentials and MUST vary across security domains/tenants/profiles. The EST Client and EST Server MUST NOT compute this mapping from raw Evidence, and SHOULD NOT be the party that holds the plaintext secret.
+The Secret Vault MUST map Attestation Results to a credential group ID that is stable for replica workloads and distinct across security domains, tenants, and profiles.
 
 A typical construction is:
 
@@ -452,27 +384,17 @@ TODO: Select exactly one as MUST in the final draft; multiple MAY be supported.
 
 Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 
-1. Validate syntax and size limits, and correlate the request with the preceding `attest-initiate` for this session as in enrollment processing.
-2. Forward Evidence to a Verifier and obtain Attestation Results. The EST Server MUST NOT appraise Evidence itself.
-3. Forward the Attestation Results to the Secret Vault, which:
-    1. Computes group_id using policy.
-    2. Authorizes the requested credential type/profile for group_id.
-    3. Fetches the credential bundle corresponding to (group_id, profile, credential_type).
-    4. Encrypts the bundle to CEKpub with AAD binding including the Handle (if any) and group_id.
+1. Validate syntax and size limits, and correlate `handle` with the preceding `attest-initiate` as in enrollment processing.
+2. Forward Evidence to the Verifier and obtain Attestation Results.
+3. Forward Attestation Results to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub with AAD including group_id and the Handle if any.
 4. Return the EncryptedCredentialBundle produced by the Secret Vault.
 
-In the Background Check model, the EST Server forwards Evidence to the Secret Vault and need not obtain Attestation Results itself; the Relying Party contacts the Verifier.
-
-The EST Server MUST NOT appraise, modify, or replace Attestation Results.
-It MUST NOT mint `present-nonce` or `present-epoch` Handles.
-It SHOULD NOT see the plaintext secret. A deployment in which the EST Server unwraps a vault secret and re-encrypts to CEKpub is possible but discouraged; the Secret Vault remains the Relying Party that authorizes release.
+A deployment in which the EST Server unwraps a vault secret and re-encrypts to CEKpub is possible but discouraged.
 
 
 # Error Handling
 
-Servers SHOULD reuse HTTP status codes consistent with RFC 7030 and provide a machine-readable error body for these resources.
-
-Recommended error conditions:
+Servers SHOULD reuse HTTP status codes from {{RFC7030}} and a machine-readable error body:
 
 * 400 Bad Request: malformed envelope, missing fields
 * 401 Unauthorized: missing/invalid authentication required by deployment policy
@@ -491,17 +413,16 @@ TODO: Validate everything below
 
 ## Common to Both Modes
 
-* Freshness and Replay Protection: `attest-initiate` MUST return a Freshness kind. For `present-nonce`, the Handle originator MUST provide an unpredictable Handle and MUST reject reuse within an enforcement window. For `present-epoch`, the originator MUST reject a Handle that no longer names the current epoch. Evidence MUST be bound to that Handle when one is present, or produced according to the absent kind (`absent-timestamp`, `absent-epoch`, or `absent-none`) when one is not. The EST Server MUST NOT generate `present-nonce` or `present-epoch` values; it forwards a Handle obtained from the Verifier or the Relying Party and correlates the second-leg request with that session.
-* Freshness origin: RFC 9334 Section 10 does not assign a single issuer. A nonce Handle MAY come from the Verifier or from the Relying Party. A timestamp comes from the Attester's trusted clock. An epoch marker MAY already be held locally (`absent-epoch`) or be returned as a Handle (`present-epoch`). The EST Server only conveys the kind; it does not originate it.
-* Verifier Trust: The EST Server does not appraise Evidence. The channel from the EST Server to the Verifier MUST provide integrity, authenticity, and replay protection.
-* Attestation Results SHOULD be audience-restricted to the Relying Party (Credential Authority or Secret Vault), not to the EST Server.
-* DoS Considerations: Evidence appraisal can be expensive; the EST Server SHOULD enforce size limits and rate limits, and MAY cache Verifier results where the Verifier permits and where doing so does not weaken freshness.
-* Downgrade Resistance: If both classic EST and attested resources exist, the Relying Party MUST be able to require attestation and MUST NOT silently fall back to weaker modes. The EST Server MUST NOT substitute a classic EST enrollment or retrieval for an attested request.
+* Freshness: a nonce Handle MAY come from the Verifier or the Relying Party; a timestamp from the Attester's clock; an epoch marker from a local hold or a returned Handle (Section 10 of {{RFC9334}}). Evidence MUST be bound as required by the kind from `attest-initiate`. The originator MUST reject `present-nonce` reuse and a stale `present-epoch`.
+* The channel from EST Server to Verifier MUST provide integrity, authenticity, and replay protection.
+* Attestation Results SHOULD be audience-restricted to the Relying Party, not the EST Server.
+* The EST Server SHOULD enforce size and rate limits on Evidence.
+* If classic EST and attested resources both exist, the Relying Party MUST be able to require attestation. The EST Server MUST NOT substitute a classic EST operation for an attested request.
 
 ## Specific to Attested Enrollment Mode
 
-* Key Substitution: Prevented only if Evidence-to-CSR binding is mandatory and verified by the Verifier, and PoP is verified by the Credential Authority. Implementations MUST NOT treat “attestation success” as sufficient absent key-binding + PoP.
-* Identity Over-Issuance: The Credential Authority's policies must constrain subject/SAN issuance to attested identity context.
+* Key Substitution: attestation success is not sufficient without Evidence-to-CSR binding and PoP.
+* Identity Over-Issuance: Credential Authority policy must constrain subject/SAN to the attested identity context.
 
 ## Specific to Attested Retrieval Mode
 
