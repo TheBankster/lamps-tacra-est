@@ -412,14 +412,13 @@ TODO: Validate everything below
 
 * Freshness: a nonce Handle MAY come from the Verifier or the Relying Party; a timestamp from the Attester's clock; an epoch marker from a local hold or a returned Handle (Section 10 of {{RFC9334}}). Evidence MUST be bound as required by the kind from `attest-initiate`. The originator MUST reject `present-nonce` reuse and a stale `present-epoch`.
 * The channel from EST Server to Verifier MUST provide integrity, authenticity, and replay protection.
-* Attestation Results SHOULD be audience-restricted to the Relying Party, not the EST Server.
 * The EST Server SHOULD enforce size and rate limits on Evidence.
 * If classic EST and attested resources both exist, the Relying Party MUST be able to require attestation. The EST Server MUST NOT substitute a classic EST operation for an attested request.
 
 ## Specific to Attested Enrollment Mode
 
-* Key Substitution: attestation success is not sufficient without Evidence-to-CSR binding and PoP.
-* Identity Over-Issuance: Credential Authority policy must constrain subject/SAN to the attested identity context.
+* Key Substitution: attestation success is not sufficient without Evidence-to-CSR binding and PoP
+* Identity Over-Issuance: Credential Authority policy must constrain subject/SAN to the attested identity context
 
 ## Specific to Attested Retrieval Mode
 
@@ -433,13 +432,13 @@ TODO: Treat as early draft, revisit later
 
 This document requests registrations for:
 
-* New EST well-known paths (if applicable under EST registries).
+* New EST well-known paths (if applicable under EST registries)
 * Media types for:
     * AttestationInitiationResponse
     * AttestedEnrollmentRequest
     * AttestedRetrievalRequest
     * EncryptedCredentialBundle
-* Registry of acceptable_evidence identifiers and credential_type identifiers (if not reused from existing registries).
+* Registry of acceptable_evidence identifiers and credential_type identifiers (if not reused from existing registries)
 
 --- back
 
