@@ -5,10 +5,10 @@
 Limited Additional Mechanisms for PKIX and SMIME                M. Novak
 Internet-Draft                                   J.P. Morgan Chase & Co.
 Intended status: Informational                             M. Richardson
-Expires: 14 March 2027                          Sandelman Software Works
+Expires: 15 March 2027                          Sandelman Software Works
                                                              H. Birkholz
                                                         Fraunhofer Inst.
-                                                       10 September 2026
+                                                       11 September 2026
 
 
                  Remote Attestation Extensions for EST
@@ -69,7 +69,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 March 2027.
+   This Internet-Draft will expire on 15 March 2027.
 
 Copyright Notice
 
@@ -190,10 +190,10 @@ Table of Contents
       as EST requests, and EST Server responses as payloads to the
       Attester.
 
-   *  EST Server: TACRA CAS Server for EST.  Forwards Handles, Evidence,
-      Attestation Results, CSRs, and encrypted material between the EST
-      Client, the Verifier, and a RATS Relying Party (Credential
-      Authority or Secret Vault).
+   *  EST Server: TACRA CAS Server for EST.  Forwards Freshness Handles,
+      Evidence, Attestation Results, CSRs, and encrypted material
+      between the EST Client, the Verifier, and a RATS Relying Party
+      (Credential Authority or Secret Vault).
 
 2.4.  Artifacts
 
@@ -211,6 +211,12 @@ Table of Contents
 
    *  Credential Bundle: container that may include an X.509 chain,
       WIMSE WIC(s), and optionally a signing key and metadata
+
+   *  Credential Hint: optional, implementation-defined information
+      supplied by the Attester about the credential it expects.  The
+      Credential Authority or Secret Vault MAY use the hint, ignore it,
+      or reject the request.  The hint does not authorize issuance or
+      release.
 
    *  Freshness Kind: the recency method returned by attest-initiate;
       can be one of absent-timestamp, absent-none, absent-epoch,
@@ -257,7 +263,7 @@ Table of Contents
 
    2.  EST Client forwards to EST Server (attest-initiate)
 
-   3.  If Freshenss is required: EST Server obtains Freshness from the
+   3.  If Freshness is required: EST Server obtains Freshness from the
        Verifier or Relying Party and returns it via the EST Client
 
    4.  Attester generates CSK, CSR, and Evidence bound to the CSR and
@@ -290,7 +296,7 @@ Table of Contents
 
    2.  EST Client forwards to EST Server (attest-initiate)
 
-   3.  If Freshenss is required: EST Server obtains Freshness from the
+   3.  If Freshness is required: EST Server obtains Freshness from the
        Verifier or Relying Party and returns it via the EST Client
 
    4.  Attester generates CEK and Evidence including CEKpub, bound to
@@ -351,7 +357,7 @@ Table of Contents
       Handle, if any, from the configured Verifier or Relying Party and
       returns that result.
 
-   *  present-nonce and present-epoch MUST include a Freshess Handle
+   *  present-nonce and present-epoch MUST include a Freshness Handle
       from the party chosen by the EST Server. absent-* Freshness Kinds
       carry no Freshness Handle.
 
@@ -417,13 +423,14 @@ Table of Contents
 
       -  absent-epoch: embed an epoch marker already held locally
 
-      -  present-nonce: single-use Handle; embed it in Evidence
+      -  present-nonce: single-use Freshness Handle; embed it in
+         Evidence
 
-      -  present-epoch: current epoch marker as Handle; embed it in
-         Evidence; retry attest-initiate if the epoch moved
+      -  present-epoch: current epoch marker as Freshness Handle; embed
+         it in Evidence; retry attest-initiate if the epoch moved
 
-   *  handle (bytes): REQUIRED for present-nonce and present-epoch; MUST
-      be absent otherwise (Section 5.1)
+   *  handle (bytes): Freshness Handle - REQUIRED for present-nonce and
+      present-epoch; MUST be absent otherwise (Section 5.1)
 
    *  expires_in (integer, OPTIONAL): seconds until a present-nonce or
       present-epoch Handle is no longer valid
@@ -442,10 +449,10 @@ Table of Contents
 
    *  mode (string, REQUIRED): enroll or retrieve
 
-   The Handle originator MUST ensure present-nonce uniqueness and MUST
-   correlate the second-leg request with the Handle from this attest-
-   initiate.  The Verifier appraises whether Evidence is bound to a
-   still-valid Handle.
+   The Freshness Handle originator MUST ensure present-nonce uniqueness
+   and MUST correlate the second-leg request with the Handle from this
+   attest-initiate.  The Verifier appraises whether Evidence is bound to
+   a still-valid Freshness Handle.
 
 8.  Attested Credential Acquisition Modes
 
@@ -460,9 +467,9 @@ Table of Contents
    *  freshness_kind (string, REQUIRED): MUST match the preceding
       attest-initiate response
 
-   *  handle (bytes): REQUIRED when freshness_kind is present-nonce or
-      present-epoch; MUST be absent otherwise.  MUST equal the Handle
-      returned by attest-initiate when present.
+   *  handle (bytes): Freshness Handle - REQUIRED when freshness_kind is
+      present-nonce or present-epoch; MUST be absent otherwise.  MUST
+      equal the Handle returned by attest-initiate when present.
 
    *  csr (bytes, REQUIRED): DER-encoded PKCS#10 CSR
 
@@ -474,7 +481,9 @@ Table of Contents
    *  binding (object, REQUIRED): declares how the CSR key is bound to
       Evidence
 
-   *  profile (string, OPTIONAL): requested issuance profile identifier
+   *  credential_hint (string, OPTIONAL): Credential Hint supplied by
+      the Attester; the Credential Authority MAY use it, ignore it, or
+      reject the request
 
 8.1.2.  Response (Success)
 
@@ -551,7 +560,9 @@ Table of Contents
 
    *  credential_type (string, OPTIONAL): e.g., x509, wimse-wit, bundle
 
-   *  profile (string, OPTIONAL): profile identifier
+   *  credential_hint (string, OPTIONAL): Credential Hint supplied by
+      the Attester; the Secret Vault MAY use it, ignore it, or reject
+      the request
 
 8.2.2.  Evidence-to-CEK Binding
 
@@ -569,11 +580,12 @@ Table of Contents
 
    The Secret Vault MUST map Attestation Results to a credential group
    ID that is stable for replica workloads and distinct across security
-   domains, tenants, and profiles.
+   domains, tenants, and credential selections.
 
    A typical construction is:
 
-   group_id = H(attestation_subject || profile || policy_version)
+   group_id = H(attestation_subject || credential_hint ||
+   policy_version)
 
    Where attestation_subject is derived from Attestation Results (not
    raw Evidence) to avoid nonce/freshness variability.
@@ -599,7 +611,7 @@ Table of Contents
       identifiers
 
    *  (implicit or explicit): associated data binding at least
-      {group_id, handle if any, profile, server_id}
+      {group_id, handle if any, credential_hint, server_id}
 
    Mandatory-to-implement encryption mechanism: The specification MUST
    choose one baseline.
@@ -631,7 +643,7 @@ Table of Contents
 
    A variant in which the EST Server receives a plaintext secret from
    the Vault and re-encrypts to CEKpub is possible but discouraged.
-   TODO: Elsewere there are "MUST NOT" directives against this.
+   TODO: Elsewhere there are "MUST NOT" directives against this.
 
 9.  Error Handling
 

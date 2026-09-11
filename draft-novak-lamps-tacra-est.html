@@ -1060,7 +1060,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Novak, et al.</td>
-<td class="center">Expires 14 March 2027</td>
+<td class="center">Expires 15 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1073,12 +1073,12 @@ svg {
 <dd class="internet-draft">draft-novak-lamps-tacra-est</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-10" class="published">10 September 2026</time>
+<time datetime="2026-09-11" class="published">11 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-14">14 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-15">15 March 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1147,7 +1147,7 @@ Remote Attestation Procedures (RATS) are used as an authorization input for work
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 14 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 15 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1393,7 +1393,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <p id="section-2.3-1.1.1">EST Client: TACRA CAS Client for EST. Renders Attester payloads as EST requests, and EST Server responses as payloads to the Attester.<a href="#section-2.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.3-1.2">
-            <p id="section-2.3-1.2.1">EST Server: TACRA CAS Server for EST. Forwards Handles, Evidence, Attestation Results, CSRs, and encrypted material between the EST Client, the Verifier, and a RATS Relying Party (Credential Authority or Secret Vault).<a href="#section-2.3-1.2.1" class="pilcrow">¶</a></p>
+            <p id="section-2.3-1.2.1">EST Server: TACRA CAS Server for EST. Forwards Freshness Handles, Evidence, Attestation Results, CSRs, and encrypted material between the EST Client, the Verifier, and a RATS Relying Party (Credential Authority or Secret Vault).<a href="#section-2.3-1.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1423,10 +1423,13 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <p id="section-2.4-1.6.1">Credential Bundle: container that may include an X.509 chain, WIMSE WIC(s), and optionally a signing key and metadata<a href="#section-2.4-1.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.4-1.7">
-            <p id="section-2.4-1.7.1">Freshness Kind: the recency method returned by <code>attest-initiate</code>; can be one of <code>absent-timestamp</code>, <code>absent-none</code>, <code>absent-epoch</code>, <code>present-nonce</code>, or <code>present-epoch</code> (<span>[<a href="#INTERACTION-MODELS" class="cite xref">INTERACTION-MODELS</a>]</span>, Section 10 of <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>)<a href="#section-2.4-1.7.1" class="pilcrow">¶</a></p>
+            <p id="section-2.4-1.7.1">Credential Hint: optional, implementation-defined information supplied by the Attester about the credential it expects. The Credential Authority or Secret Vault <span class="bcp14">MAY</span> use the hint, ignore it, or reject the request. The hint does not authorize issuance or release.<a href="#section-2.4-1.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.4-1.8">
-            <p id="section-2.4-1.8.1">Freshness Handle: freshness element included in Evidence when Freshness Kind is <code>present-nonce</code> or <code>present-epoch</code> (<span>[<a href="#INTERACTION-MODELS" class="cite xref">INTERACTION-MODELS</a>]</span>)<a href="#section-2.4-1.8.1" class="pilcrow">¶</a></p>
+            <p id="section-2.4-1.8.1">Freshness Kind: the recency method returned by <code>attest-initiate</code>; can be one of <code>absent-timestamp</code>, <code>absent-none</code>, <code>absent-epoch</code>, <code>present-nonce</code>, or <code>present-epoch</code> (<span>[<a href="#INTERACTION-MODELS" class="cite xref">INTERACTION-MODELS</a>]</span>, Section 10 of <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>)<a href="#section-2.4-1.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.4-1.9">
+            <p id="section-2.4-1.9.1">Freshness Handle: freshness element included in Evidence when Freshness Kind is <code>present-nonce</code> or <code>present-epoch</code> (<span>[<a href="#INTERACTION-MODELS" class="cite xref">INTERACTION-MODELS</a>]</span>)<a href="#section-2.4-1.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1481,7 +1484,7 @@ Both are subject to the following restrictions:
             <p id="section-3.1-2.2.1">EST Client forwards to EST Server (<code>attest-initiate</code>)<a href="#section-3.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-3.1-2.3">
-            <p id="section-3.1-2.3.1">If Freshenss is required: EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client<a href="#section-3.1-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-3.1-2.3.1">If Freshness is required: EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client<a href="#section-3.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-3.1-2.4">
             <p id="section-3.1-2.4.1">Attester generates CSK, CSR, and Evidence bound to the CSR and Freshness<a href="#section-3.1-2.4.1" class="pilcrow">¶</a></p>
@@ -1531,7 +1534,7 @@ Both are subject to the following restrictions:
             <p id="section-3.2-2.2.1">EST Client forwards to EST Server (<code>attest-initiate</code>)<a href="#section-3.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-3.2-2.3">
-            <p id="section-3.2-2.3.1">If Freshenss is required: EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client<a href="#section-3.2-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-3.2-2.3.1">If Freshness is required: EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client<a href="#section-3.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-3.2-2.4">
             <p id="section-3.2-2.4.1">Attester generates CEK and Evidence including CEKpub, bound to Freshness<a href="#section-3.2-2.4.1" class="pilcrow">¶</a></p>
@@ -1607,7 +1610,7 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.1-4.2.1">The EST Server, if contacted, obtains the Freshness Kind and Handle, if any, from the configured Verifier or Relying Party and returns that result.<a href="#section-5.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-4.3">
-            <p id="section-5.1-4.3.1"><code>present-nonce</code> and <code>present-epoch</code> <span class="bcp14">MUST</span> include a Freshess Handle from the party chosen by the EST Server. <code>absent-*</code> Freshness Kinds carry no Freshness Handle.<a href="#section-5.1-4.3.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-4.3.1"><code>present-nonce</code> and <code>present-epoch</code> <span class="bcp14">MUST</span> include a Freshness Handle from the party chosen by the EST Server. <code>absent-*</code> Freshness Kinds carry no Freshness Handle.<a href="#section-5.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-4.4">
             <p id="section-5.1-4.4.1">The EST Client forwards the response to the Attester.<a href="#section-5.1-4.4.1" class="pilcrow">¶</a></p>
@@ -1714,15 +1717,15 @@ Evidence blobs are opaque byte strings.<a href="#section-6-1" class="pilcrow">¶
                 <p id="section-7.1-3.1.2.3.1"><code>absent-epoch</code>: embed an epoch marker already held locally<a href="#section-7.1-3.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-7.1-3.1.2.4">
-                <p id="section-7.1-3.1.2.4.1"><code>present-nonce</code>: single-use Handle; embed it in Evidence<a href="#section-7.1-3.1.2.4.1" class="pilcrow">¶</a></p>
+                <p id="section-7.1-3.1.2.4.1"><code>present-nonce</code>: single-use Freshness Handle; embed it in Evidence<a href="#section-7.1-3.1.2.4.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-7.1-3.1.2.5">
-                <p id="section-7.1-3.1.2.5.1"><code>present-epoch</code>: current epoch marker as Handle; embed it in Evidence; retry <code>attest-initiate</code> if the epoch moved<a href="#section-7.1-3.1.2.5.1" class="pilcrow">¶</a></p>
+                <p id="section-7.1-3.1.2.5.1"><code>present-epoch</code>: current epoch marker as Freshness Handle; embed it in Evidence; retry <code>attest-initiate</code> if the epoch moved<a href="#section-7.1-3.1.2.5.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
           <li class="normal" id="section-7.1-3.2">
-            <p id="section-7.1-3.2.1"><code>handle</code> (bytes): <span class="bcp14">REQUIRED</span> for <code>present-nonce</code> and <code>present-epoch</code>; <span class="bcp14">MUST</span> be absent otherwise (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>)<a href="#section-7.1-3.2.1" class="pilcrow">¶</a></p>
+            <p id="section-7.1-3.2.1"><code>handle</code> (bytes): Freshness Handle - <span class="bcp14">REQUIRED</span> for <code>present-nonce</code> and <code>present-epoch</code>; <span class="bcp14">MUST</span> be absent otherwise (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>)<a href="#section-7.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.1-3.3">
             <p id="section-7.1-3.3.1"><code>expires_in</code> (integer, <span class="bcp14">OPTIONAL</span>): seconds until a <code>present-nonce</code> or <code>present-epoch</code> Handle is no longer valid<a href="#section-7.1-3.3.1" class="pilcrow">¶</a></p>
@@ -1743,8 +1746,8 @@ Evidence blobs are opaque byte strings.<a href="#section-6-1" class="pilcrow">¶
             <p id="section-7.1-3.8.1"><code>mode</code> (string, <span class="bcp14">REQUIRED</span>): <code>enroll</code> or <code>retrieve</code><a href="#section-7.1-3.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.1-4">The Handle originator <span class="bcp14">MUST</span> ensure <code>present-nonce</code> uniqueness and <span class="bcp14">MUST</span> correlate the second-leg request with the Handle from this <code>attest-initiate</code>.
-The Verifier appraises whether Evidence is bound to a still-valid Handle.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
+<p id="section-7.1-4">The Freshness Handle originator <span class="bcp14">MUST</span> ensure <code>present-nonce</code> uniqueness and <span class="bcp14">MUST</span> correlate the second-leg request with the Handle from this <code>attest-initiate</code>.
+The Verifier appraises whether Evidence is bound to a still-valid Freshness Handle.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1771,7 +1774,7 @@ The Verifier appraises whether Evidence is bound to a still-valid Handle.<a href
               <p id="section-8.1.1-3.1.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-8.1.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-3.2">
-              <p id="section-8.1.1-3.2.1">handle (bytes): <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is <code>present-nonce</code> or <code>present-epoch</code>; <span class="bcp14">MUST</span> be absent otherwise. <span class="bcp14">MUST</span> equal the Handle returned by <code>attest-initiate</code> when present.<a href="#section-8.1.1-3.2.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-3.2.1">handle (bytes): Freshness Handle - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is <code>present-nonce</code> or <code>present-epoch</code>; <span class="bcp14">MUST</span> be absent otherwise. <span class="bcp14">MUST</span> equal the Handle returned by <code>attest-initiate</code> when present.<a href="#section-8.1.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-3.3">
               <p id="section-8.1.1-3.3.1">csr (bytes, <span class="bcp14">REQUIRED</span>): DER-encoded PKCS#10 CSR<a href="#section-8.1.1-3.3.1" class="pilcrow">¶</a></p>
@@ -1786,7 +1789,7 @@ The Verifier appraises whether Evidence is bound to a still-valid Handle.<a href
               <p id="section-8.1.1-3.6.1">binding (object, <span class="bcp14">REQUIRED</span>): declares how the CSR key is bound to Evidence<a href="#section-8.1.1-3.6.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-3.7">
-              <p id="section-8.1.1-3.7.1">profile (string, <span class="bcp14">OPTIONAL</span>): requested issuance profile identifier<a href="#section-8.1.1-3.7.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-3.7.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the Credential Authority <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-8.1.1-3.7.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -1888,7 +1891,7 @@ The Verifier appraises whether Evidence is bound to a still-valid Handle.<a href
               <p id="section-8.2.1-3.5.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): e.g., x509, wimse-wit, bundle<a href="#section-8.2.1-3.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.2.1-3.6">
-              <p id="section-8.2.1-3.6.1">profile (string, <span class="bcp14">OPTIONAL</span>): profile identifier<a href="#section-8.2.1-3.6.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.1-3.6.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the Secret Vault <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-8.2.1-3.6.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -1909,9 +1912,9 @@ The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and 
 <a href="#section-8.2.3" class="section-number selfRef">8.2.3. </a><a href="#name-credential-group-id-determi" class="section-name selfRef">Credential Group ID Determination</a>
           </h4>
 <p id="section-8.2.3-1">TODO: validate everything below<a href="#section-8.2.3-1" class="pilcrow">¶</a></p>
-<p id="section-8.2.3-2">The Secret Vault <span class="bcp14">MUST</span> map Attestation Results to a credential group ID that is stable for replica workloads and distinct across security domains, tenants, and profiles.<a href="#section-8.2.3-2" class="pilcrow">¶</a></p>
+<p id="section-8.2.3-2">The Secret Vault <span class="bcp14">MUST</span> map Attestation Results to a credential group ID that is stable for replica workloads and distinct across security domains, tenants, and credential selections.<a href="#section-8.2.3-2" class="pilcrow">¶</a></p>
 <p id="section-8.2.3-3">A typical construction is:<a href="#section-8.2.3-3" class="pilcrow">¶</a></p>
-<p id="section-8.2.3-4">group_id = H(attestation_subject || profile || policy_version)<a href="#section-8.2.3-4" class="pilcrow">¶</a></p>
+<p id="section-8.2.3-4">group_id = H(attestation_subject || credential_hint || policy_version)<a href="#section-8.2.3-4" class="pilcrow">¶</a></p>
 <p id="section-8.2.3-5">Where attestation_subject is derived from Attestation Results (not raw Evidence) to avoid nonce/freshness variability.<a href="#section-8.2.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1944,7 +1947,7 @@ The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and 
               <p id="section-8.2.4-3.3.1">metadata (optional): validity, refresh hints, rotation epoch, key identifiers<a href="#section-8.2.4-3.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.2.4-3.4">
-              <p id="section-8.2.4-3.4.1">(implicit or explicit): associated data binding at least {group_id, handle if any, profile, server_id}<a href="#section-8.2.4-3.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.4-3.4.1">(implicit or explicit): associated data binding at least {group_id, handle if any, credential_hint, server_id}<a href="#section-8.2.4-3.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-8.2.4-4">Mandatory-to-implement encryption mechanism: The specification <span class="bcp14">MUST</span> choose one baseline.<a href="#section-8.2.4-4" class="pilcrow">¶</a></p>
@@ -1982,7 +1985,7 @@ The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and 
               <p id="section-8.2.5-2.4.1">Return the EncryptedCredentialBundle produced by the Secret Vault.<a href="#section-8.2.5-2.4.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-8.2.5-3">A variant in which the EST Server receives a plaintext secret from the Vault and re-encrypts to CEKpub is possible but discouraged. TODO: Elsewere there are "<span class="bcp14">MUST NOT</span>" directives against this.<a href="#section-8.2.5-3" class="pilcrow">¶</a></p>
+<p id="section-8.2.5-3">A variant in which the EST Server receives a plaintext secret from the Vault and re-encrypts to CEKpub is possible but discouraged. TODO: Elsewhere there are "<span class="bcp14">MUST NOT</span>" directives against this.<a href="#section-8.2.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
