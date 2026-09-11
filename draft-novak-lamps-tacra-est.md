@@ -131,6 +131,7 @@ Two modes are defined:
 * PoP: proof-of-possession of the private key corresponding to the CSR public key
 * CEK: Credential Encryption Key; when used, CEKpub is carried in Evidence, the response is encrypted to CEKpub
 * Credential Bundle: container that may include an X.509 chain, WIMSE WIC(s), and optionally a signing key and metadata
+* Credential Hint: optional, implementation-defined information supplied by the Attester about the credential it expects. The Credential Authority or Secret Vault MAY use the hint, ignore it, or reject the request. The hint does not authorize issuance or release.
 * Freshness Kind: the recency method returned by `attest-initiate`; can be one of `absent-timestamp`, `absent-none`, `absent-epoch`, `present-nonce`, or `present-epoch` ({{INTERACTION-MODELS}}, Section 10 of {{RFC9334}})
 * Freshness Handle: freshness element included in Evidence when Freshness Kind is `present-nonce` or `present-epoch` ({{INTERACTION-MODELS}})
 
@@ -159,7 +160,7 @@ Both are subject to the following restrictions:
 
 1. Attester initiates Remote Attestation
 2. EST Client forwards to EST Server (`attest-initiate`)
-3. If Freshenss is required: EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client
+3. If Freshness is required: EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client
 4. Attester generates CSK, CSR, and Evidence bound to the CSR and Freshness
 5. EST Client POSTs CSR and Evidence (`attest-enroll`)
 6. EST Server forwards Evidence to the Verifier
@@ -174,7 +175,7 @@ Both are subject to the following restrictions:
 
 1. Attester initiates Remote Attestation
 2. EST Client forwards to EST Server (`attest-initiate`)
-3. If Freshenss is required: EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client
+3. If Freshness is required: EST Server obtains Freshness from the Verifier or Relying Party and returns it via the EST Client
 4. Attester generates CEK and Evidence including CEKpub, bound to Freshness
 5. EST Client POSTs Evidence (`attest-retrieve`)
 6. EST Server forwards Evidence to the Verifier
@@ -211,7 +212,7 @@ TODO: add additional parameters to the Initiate Response (e.g., acceptable ciphe
 
 * If the EST Client is already configured for an absent Freshness kind (`absent-timestamp`, `absent-none`, or `absent-epoch`), it MAY complete `attest-initiate` locally and, in that case, MUST NOT contact the EST Server. Otherwise, `attest-initiate` is a GET with no body and no query parameters.
 * The EST Server, if contacted, obtains the Freshness Kind and Handle, if any, from the configured Verifier or Relying Party and returns that result.
-* `present-nonce` and `present-epoch` MUST include a Freshess Handle from the party chosen by the EST Server. `absent-*` Freshness Kinds carry no Freshness Handle.
+* `present-nonce` and `present-epoch` MUST include a Freshness Handle from the party chosen by the EST Server. `absent-*` Freshness Kinds carry no Freshness Handle.
 * The EST Client forwards the response to the Attester.
 * The Attester produces Evidence as the Freshness kind requires.
 * The EST Client then POSTs `attest-enroll` or `attest-retrieve` as the Attester indicates.
@@ -286,7 +287,7 @@ Fields:
 * evidence (bytes, REQUIRED): MUST be bound to the Freshness returned by `attest-initiate`, if any
 * endorsements (bytes, OPTIONAL)
 * binding (object, REQUIRED): declares how the CSR key is bound to Evidence
-* profile (string, OPTIONAL): requested issuance profile identifier
+* credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the Credential Authority MAY use it, ignore it, or reject the request
 
 ### Response (Success)
 
@@ -333,7 +334,7 @@ TODO: validate everything below
 * evidence (bytes, REQUIRED) -- MUST include CEKpub; MUST be bound to the Freshness returned by `attest-initiate`, if any
 * endorsements (bytes, OPTIONAL)
 * credential_type (string, OPTIONAL): e.g., x509, wimse-wit, bundle
-* profile (string, OPTIONAL): profile identifier
+* credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the Secret Vault MAY use it, ignore it, or reject the request
 
 ### Evidence-to-CEK Binding
 
@@ -346,11 +347,11 @@ The Verifier MUST reject Evidence that does not, and the Secret Vault MUST deny 
 
 TODO: validate everything below
 
-The Secret Vault MUST map Attestation Results to a credential group ID that is stable for replica workloads and distinct across security domains, tenants, and profiles.
+The Secret Vault MUST map Attestation Results to a credential group ID that is stable for replica workloads and distinct across security domains, tenants, and credential selections.
 
 A typical construction is:
 
-group_id = H(attestation_subject \|\| profile \|\| policy_version)
+group_id = H(attestation_subject \|\| credential_hint \|\| policy_version)
 
 Where attestation_subject is derived from Attestation Results (not raw Evidence) to avoid nonce/freshness variability.
 
@@ -366,7 +367,7 @@ The response MUST be an authenticated-encryption container encrypted to CEKpub. 
     * WIMSE WIT(s) (if requested/authorized)
     * OPTIONAL: a shared signing key (high risk; see {{security}})
 * metadata (optional): validity, refresh hints, rotation epoch, key identifiers
-* (implicit or explicit): associated data binding at least {group_id, handle if any, profile, server_id}
+* (implicit or explicit): associated data binding at least {group_id, handle if any, credential_hint, server_id}
 
 Mandatory-to-implement encryption mechanism: The specification MUST choose one baseline.
 
@@ -385,7 +386,7 @@ Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 3. Forward Attestation Results to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub
 4. Return the EncryptedCredentialBundle produced by the Secret Vault.
 
-A variant in which the EST Server receives a plaintext secret from the Vault and re-encrypts to CEKpub is possible but discouraged. TODO: Elsewere there are "MUST NOT" directives against this.
+A variant in which the EST Server receives a plaintext secret from the Vault and re-encrypts to CEKpub is possible but discouraged. TODO: Elsewhere there are "MUST NOT" directives against this.
 
 
 # Error Handling
