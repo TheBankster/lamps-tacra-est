@@ -121,7 +121,7 @@ Two modes are defined:
 ## EST Entities
 
 * EST Client: TACRA CAS Client for EST. Renders Attester payloads as EST requests, and EST Server responses as payloads to the Attester.
-* EST Server: TACRA CAS Server for EST. Forwards Handles, Evidence, Attestation Results, CSRs, and encrypted material between the EST Client, the Verifier, and a RATS Relying Party (Credential Authority or Secret Vault).
+* EST Server: TACRA CAS Server for EST. Forwards Freshness Handles, Evidence, Attestation Results, CSRs, and encrypted material between the EST Client, the Verifier, and a RATS Relying Party (Credential Authority or Secret Vault).
 
 ## Artifacts
 
@@ -257,9 +257,9 @@ TODO: validate everything below
     * `absent-timestamp`: stamp Evidence from a trusted clock ({{RFC9334}}, Section 10.1)
     * `absent-none`: no freshness claim
     * `absent-epoch`: embed an epoch marker already held locally
-    * `present-nonce`: single-use Handle; embed it in Evidence
-    * `present-epoch`: current epoch marker as Handle; embed it in Evidence; retry `attest-initiate` if the epoch moved
-* `handle` (bytes): REQUIRED for `present-nonce` and `present-epoch`; MUST be absent otherwise ({{attest-initiate}})
+    * `present-nonce`: single-use Freshness Handle; embed it in Evidence
+    * `present-epoch`: current epoch marker as Freshness Handle; embed it in Evidence; retry `attest-initiate` if the epoch moved
+* `handle` (bytes): Freshness Handle - REQUIRED for `present-nonce` and `present-epoch`; MUST be absent otherwise ({{attest-initiate}})
 * `expires_in` (integer, OPTIONAL): seconds until a `present-nonce` or `present-epoch` Handle is no longer valid
 * `max_age` (integer, OPTIONAL): for `absent-timestamp`, the maximum Evidence age in seconds acceptable to the Verifier or Relying Party
 * `acceptable_evidence` (array): identifiers for evidence formats
@@ -267,8 +267,8 @@ TODO: validate everything below
 * `acceptable_cek` (array, only when `mode` is `retrieve`): acceptable CEK algorithms/suites
 * `mode` (string, REQUIRED): `enroll` or `retrieve`
 
-The Handle originator MUST ensure `present-nonce` uniqueness and MUST correlate the second-leg request with the Handle from this `attest-initiate`.
-The Verifier appraises whether Evidence is bound to a still-valid Handle.
+The Freshness Handle originator MUST ensure `present-nonce` uniqueness and MUST correlate the second-leg request with the Handle from this `attest-initiate`.
+The Verifier appraises whether Evidence is bound to a still-valid Freshness Handle.
 
 
 # Attested Credential Acquisition Modes
@@ -282,7 +282,7 @@ TODO: validate everything below
 Fields:
 
 * freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
-* handle (bytes): REQUIRED when `freshness_kind` is `present-nonce` or `present-epoch`; MUST be absent otherwise. MUST equal the Handle returned by `attest-initiate` when present.
+* handle (bytes): Freshness Handle - REQUIRED when `freshness_kind` is `present-nonce` or `present-epoch`; MUST be absent otherwise. MUST equal the Handle returned by `attest-initiate` when present.
 * csr (bytes, REQUIRED): DER-encoded PKCS#10 CSR
 * evidence (bytes, REQUIRED): MUST be bound to the Freshness returned by `attest-initiate`, if any
 * endorsements (bytes, OPTIONAL)
