@@ -2,7 +2,7 @@
 title: Remote Attestation Extensions for EST
 category: info
 
-docname: draft-novak-lamps-tacra-est
+docname: draft-novak-lamps-tacra-est-latest
 submissiontype: IETF
 number:
 date:
