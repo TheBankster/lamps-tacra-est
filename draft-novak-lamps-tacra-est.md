@@ -252,11 +252,11 @@ EST Server authentication via TLS is REQUIRED.
 The first leg of both modes is where the Attester initiates Remote Attestation by invoking the EST Client.
 
 * Method: GET
-* Request: None
+* Request: query parameters `target` and `credential_type`
 * Success: 200 OK
 * Response: AttestationInitiationResponse ({{initiation-response}}): Freshness Kind and Handle, Credential Acquisition Mode (`enroll` or `retrieve`), acceptable CSK or CEK algorithms
 
-* If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (`absent-timestamp`, `absent-none`, or `absent-epoch`), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it MAY complete `attest-initiate` locally and, in that case, MUST NOT contact the EST Server. Otherwise, `attest-initiate` is a GET with no body and no query parameters.
+* If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (`absent-timestamp`, `absent-none`, or `absent-epoch`), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it MAY complete `attest-initiate` locally and, in that case, MUST NOT contact the EST Server. Otherwise, `attest-initiate` is a GET with no body and two query parameters, `target` and `credential_type`, carrying the Target and the Credential Type of Initiate-Credential-Acquisition (Section 5.1 of {{TACRA}}); the EST Server uses them to select the Credential Acquisition Mode, the Freshness Kind and the acceptable algorithms, and associates the Handle it returns with them.
 * The EST Server, if contacted, obtains the Freshness Kind and Handle, if any, from the configured Verifier or Relying Party and returns that result.
 * `present-nonce` and `present-epoch` MUST include a Freshness Handle from the party chosen by the EST Server. `absent-*` Freshness Kinds carry no Freshness Handle.
 * The EST Client forwards the response to the Attester.
@@ -307,8 +307,7 @@ The envelopes are defined in CDDL; in the JSON encoding, `bstr` members carry th
 
 ~~~ cddl
 attestation-initiation-response = {
-  freshness_kind: "absent-timestamp" / "absent-none" / "absent-epoch"
-                / "present-nonce" / "present-epoch",
+  freshness_kind: freshness-kind,
   ? handle: bstr,              ; REQUIRED for present-*, else absent
   server_id: tstr,
   ? expires_in: uint,
@@ -316,6 +315,7 @@ attestation-initiation-response = {
   mode: "enroll" / "retrieve",
   ? acceptable_csk: [+ tstr],  ; when mode is "enroll"
   ? acceptable_cek: [+ tstr],  ; when mode is "retrieve"
+  ? acceptable_evidence: [+ tstr],
 }
 
 binding = {
@@ -323,25 +323,28 @@ binding = {
   hash: "sha512" / "sha384" / "sha256",
 }
 
-evidence = {
-  type: tstr,                  ; e.g. "sev-snp", "tdx", "tpm"
-  * tstr => any,               ; type-specific: report, certs, chain
-}
+freshness-kind = "absent-timestamp" / "absent-none" / "absent-epoch"
+               / "present-nonce" / "present-epoch"
 
-attested-enrollment-request = {
+request-common = (
+  freshness_kind: freshness-kind,
+  target: tstr,                ; the Target (TACRA)
+  credential_type: tstr,
   ? handle: bstr,
-  csr: bstr,                   ; PKCS#10, DER
-  evidence: evidence,
+  evidence: bstr,              ; opaque
+  ? profile: tstr,             ; format of evidence
   binding: binding,
   ? credential_hint: tstr,
+)
+
+attested-enrollment-request = {
+  request-common,
+  csr: bstr,                   ; PKCS#10, DER
 }
 
 attested-retrieval-request = {
-  ? handle: bstr,
+  request-common,
   cek_pub: bstr,               ; SubjectPublicKeyInfo, DER
-  evidence: evidence,
-  binding: binding,
-  ? credential_hint: tstr,
 }
 
 encrypted-credential-bundle = {
@@ -353,6 +356,7 @@ encrypted-credential-bundle = {
   aad: {
     group_id: tstr,
     server_id: tstr,
+    target: tstr,
     ? handle: bstr,
     ? credential_hint: tstr,
   },
@@ -380,10 +384,11 @@ Fields:
 * `mode` (string, REQUIRED): `enroll` or `retrieve`
 * `acceptable_cek` (array, only when `mode` is `retrieve`): acceptable CEK algorithms/suites
 * `acceptable_csk` (array, only when `mode` is `enroll`): acceptable CSK algorithms/suites
+* `acceptable_evidence` (array, OPTIONAL): the Evidence formats the Verifier accepts, as the values of `profile` in the second leg
 
 The Freshness Handle originator MUST ensure `present-nonce` uniqueness and MUST correlate the second-leg request with the Handle from this `attest-initiate`.
 The Verifier appraises whether Evidence is bound to a still-valid Freshness Handle.
-The Attester MUST compare `server_id` with the Target it named in Initiate-Credential-Acquisition (Section 5.1 of {{TACRA}}) and MUST NOT produce Evidence if they differ.
+The Attester MUST compare `server_id` with the EST Server its Credential Acquisition Interface is configured to use for the Target (Credential Acquisition Mechanisms are selected per Target, Design Goal 5 of {{TACRA}}) and MUST NOT produce Evidence if they differ. `server_id` names that EST Server; it is not the Target, which is the RATS-unaware Relying Party for which the Attester seeks credentials (Section 2 of {{TACRA}}).
 
 ### Handle Lifetime {#handle-lifetime}
 
@@ -403,9 +408,12 @@ A second run with the reference implementation confirms the shape {{TACRA-EST-IM
 Fields:
 
 * freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
+* target (string, REQUIRED): the Target; MUST equal the `target` of the preceding `attest-initiate` (Section 5.2 of {{TACRA}})
+* credential_type (string, REQUIRED): the Credential Type; MUST equal the `credential_type` of the preceding `attest-initiate` (Section 5.2 of {{TACRA}})
 * handle (bytes): Freshness Handle - REQUIRED when `freshness_kind` is not `absent-none`; MUST be absent otherwise. MUST equal the Handle returned by `attest-initiate` when present.
 * csr (bytes, REQUIRED): DER-encoded PKCS#10 CSR
-* evidence (bytes, REQUIRED): MUST be bound to the Freshness returned by `attest-initiate`, if any
+* evidence (bytes, REQUIRED): opaque; MUST carry the bindings of {{key-binding}}
+* profile (string, OPTIONAL): identifies the format of `evidence`; one of the `acceptable_evidence` values when those were returned
 * binding (object, REQUIRED): declares how the CSR key is bound to Evidence
 * credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the Credential Authority MAY use it, ignore it, or reject the request
 
@@ -418,7 +426,8 @@ On success, the EST Server returns the enrollment response produced by the Crede
 1. PoP: The Credential Authority MUST verify possession of the CSR private key.
 2. Evidence-to-CSR: Evidence MUST bind the CSR so a different CSR cannot be substituted. The Verifier MUST attest to that binding.
 3. Evidence-to-Freshness: Evidence MUST be bound to the Freshness from `attest-initiate` ({{attest-initiate}}). The Verifier MUST attest to that binding.
-4. Evidence-to-Target: Evidence MUST bind `server_id` ({{initiation-response}}), so that Evidence produced for one EST Server cannot be presented to another. The Verifier MUST attest to that binding, and the Credential Authority MUST recompute it with its own `server_id`.
+4. Evidence-to-Server: Evidence MUST bind `server_id` ({{initiation-response}}), so that Evidence produced for one EST Server cannot be presented to another. The Verifier MUST attest to that binding, and the Credential Authority MUST recompute it with its own `server_id`.
+5. Evidence-to-Target: Evidence MUST bind the Target, so that a credential for one Target cannot be obtained with Evidence produced for another. Sections 5.2 and 5.3 of {{TACRA}} require the Target of the second leg to match the first; the Credential Acquisition System is untrusted (Section 7.2 of {{TACRA}}), so only Evidence can carry that match from the Attester to the Relying Party. The Credential Authority MUST recompute the binding with the Target the Handle was issued for.
 
 At least one Evidence-to-CSR mechanism MUST be produced by the Attester and verified by the Verifier:
 
@@ -446,13 +455,14 @@ Where the Evidence carries the bindings of {{key-binding}} as one digest in a gu
 ~~~
 binding_input = len32(handle)    || handle
              || len32(server_id) || server_id
+             || len32(target)    || target
              || len32(subject)   || subject
 ~~~
 
-`handle` is the Freshness Handle, or empty for the `absent-*` Freshness Kinds; `server_id` is the UTF-8 encoding of the `server_id` string; `subject` is the DER encoding of the CSR (Enrollment) or the DER-encoded SubjectPublicKeyInfo of CEKpub (Retrieval).
+`handle` is the Freshness Handle, or empty for the `absent-*` Freshness Kinds; `server_id` is the UTF-8 encoding of the `server_id` string; `target` is the UTF-8 encoding of the Target; `subject` is the DER encoding of the CSR (Enrollment) or the DER-encoded SubjectPublicKeyInfo of CEKpub (Retrieval).
 The digest is SHA-512 where the field is 64 octets, as REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are; a Platform Plug-in for a shorter field uses the hash the platform prescribes, and the Verifier reports which one was used.
-The length prefixes make the input unambiguous: no choice of `server_id` and `subject` can produce the same octet string as another.
-The Credential Authority (Enrollment) or the Secret Vault (Retrieval) recomputes `binding_input` from its own `server_id`, the Handle it issued and the CSR or CEKpub it received, and refuses the request unless the Attestation Results report that value from the Evidence.
+The length prefixes make the input unambiguous: no choice of `server_id`, `target` and `subject` can produce the same octet string as another.
+The Credential Authority (Enrollment) or the Secret Vault (Retrieval) recomputes `binding_input` from its own `server_id`, the Handle it issued, the Target it issued that Handle for and the CSR or CEKpub it received, and refuses the request unless the Attestation Results report that value from the Evidence.
 {{test-vector}} gives a worked example.
 
 ### Enrollment Server Processing
@@ -460,9 +470,9 @@ The Credential Authority (Enrollment) or the Secret Vault (Retrieval) recomputes
 Upon receiving AttestedEnrollmentRequest, the EST Server MUST:
 
 1. Validate syntax, media type, and size limits.
-2. Correlate `handle` with the preceding `attest-initiate` for this session, if a Freshness Handle was returned.
+2. Correlate `handle` with the preceding `attest-initiate` for this session, if a Freshness Handle was returned, and refuse the request unless `target` and `credential_type` equal those of that `attest-initiate`.
 3. Forward Evidence (and endorsements, if any) to the Verifier and obtain Attestation Results.
-4. Forward the CSR and Attestation Results to the Credential Authority, which recomputes the binding input ({{binding-input}}) from its own `server_id`, the Handle and the CSR, refuses issuance unless the Attestation Results report that value from the Evidence, verifies PoP and authorizes issuance.
+4. Forward the CSR and Attestation Results to the Credential Authority, which recomputes the binding input ({{binding-input}}) from its own `server_id`, the Handle, the Target and the CSR, refuses issuance unless the Attestation Results report that value from the Evidence, verifies PoP and authorizes issuance.
 5. Return the Credential Authority's enrollment response.
 
 The Credential Authority MUST NOT mint identities (e.g., DNS names) beyond policy for the attested identity context.
@@ -475,11 +485,14 @@ Fields:
 
 * freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
 * handle (bytes): Freshness Handle - REQUIRED when `freshness_kind` is not `absent-none`; MUST be absent otherwise. MUST equal the Handle returned by `attest-initiate` when present.
-* evidence (bytes, REQUIRED) -- MUST include CEKpub; MUST be bound to the Freshness returned by `attest-initiate`, if any
-* credential_type (string, OPTIONAL): e.g., x509, wimse-wit
+* target (string, REQUIRED): the Target; MUST equal the `target` of the preceding `attest-initiate` (Section 5.3 of {{TACRA}})
+* credential_type (string, REQUIRED): the Credential Type, e.g., x509, wimse-wit; MUST equal the `credential_type` of the preceding `attest-initiate` (Section 5.3 of {{TACRA}})
+* cek_pub (bytes, REQUIRED): DER-encoded SubjectPublicKeyInfo of CEKpub
+* evidence (bytes, REQUIRED): opaque; MUST carry the bindings of {{evidence-to-cek}}
+* profile (string, OPTIONAL): identifies the format of `evidence`; one of the `acceptable_evidence` values when those were returned
 * credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) MAY use it, ignore it, or reject the request
 
-### Evidence-to-CEK Binding
+### Evidence-to-CEK Binding {#evidence-to-cek}
 
 Evidence MUST integrity-protect the Freshness from `attest-initiate` ({{attest-initiate}}) and a claim conveying CEKpub or a thumbprint of CEKpub.
 The Verifier MUST reject Evidence that does not, and the Secret Vault MUST deny release when Attestation Results do not confirm these bindings.
@@ -504,7 +517,7 @@ The response MUST be an authenticated-encryption container encrypted to CEKpub. 
     * WIMSE WIT(s) or WIC(s) (if requested/authorized)
     * a shared signing key (high risk; see {{security}})
 * metadata (optional): validity, refresh hints, rotation epoch, key identifiers
-* (implicit or explicit): associated data binding at least {group_id, handle if any, credential_hint, server_id}
+* (implicit or explicit): associated data binding at least {group_id, handle if any, credential_hint, server_id, target}
 
 Mandatory-to-implement encryption mechanism: The specification MUST choose one baseline.
 
@@ -527,9 +540,9 @@ TODO: Ensure that TACRA architecture can carry these and other encryption mechan
 
 Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 
-1. Validate syntax and size limits, and correlate `handle` with the preceding `attest-initiate` as in enrollment processing
+1. Validate syntax and size limits, correlate `handle` with the preceding `attest-initiate`, and refuse the request unless `target` and `credential_type` equal those of that `attest-initiate`, as in enrollment processing
 2. (Passport mode only, Background Check mode achieved by reversing the order) Forward Evidence to the Verifier and obtain Attestation Results
-3. Forward Attestation Results to the Secret Vault, which recomputes the binding input ({{binding-input}}) from its own `server_id`, the Handle and CEKpub, refuses release unless the Attestation Results report that value from the Evidence, computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub
+3. Forward Attestation Results to the Secret Vault, which recomputes the binding input ({{binding-input}}) from its own `server_id`, the Handle, the Target and CEKpub, refuses release unless the Attestation Results report that value from the Evidence, computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub
 4. Return the EncryptedCredentialBundle produced by the Secret Vault
 
 A variant in which the EST Server receives a plaintext secret from the Secret Vault and re-encrypts to CEKpub is possible but discouraged.
@@ -539,7 +552,7 @@ A variant in which the EST Server receives a plaintext secret from the Secret Va
 Upon receiving an EncryptedCredentialBundle, the Attester MUST, before using any secret it contains:
 
 1. Verify the origin of the container under the Secret Vault's trust anchor ({{bundle}}).
-2. Verify that `server_id` in the associated data equals the `server_id` it bound into Evidence ({{binding-input}}), and that `handle`, if present, equals the Handle it embedded.
+2. Verify that `server_id` and `target` in the associated data equal those it bound into Evidence ({{binding-input}}), and that `handle`, if present, equals the Handle it embedded.
 3. Decrypt with CEKpri and verify that `group_id` and `credential_hint` are the ones it requested.
 
 A container that fails any of these checks MUST be discarded.
@@ -579,7 +592,8 @@ Readers are advised to note that other implementations may exist.
 
 * Key Substitution: attestation success is not sufficient without Evidence-to-CSR binding and PoP
 * Identity Over-Issuance: Credential Authority policy must constrain subject/SAN to the attested identity context
-* Server substitution by the conduit: without the Evidence-to-Target binding, an EST Client acting as the Attester's conduit can carry a genuine CSR and Evidence to a different EST Server and Credential Authority, which would then certify the Attester's attested identity without the Attester having chosen it. The `server_id` binding of {{key-binding}} closes this; the same consideration applies to Retrieval ({{retrieval-attester}}).
+* Server substitution by the conduit: without the Evidence-to-Server binding, an EST Client acting as the Attester's conduit can carry a genuine CSR and Evidence to a different EST Server and Credential Authority, which would then certify the Attester's attested identity without the Attester having chosen it. The `server_id` binding of {{key-binding}} closes this; the same consideration applies to Retrieval ({{retrieval-attester}}).
+* Target substitution by the conduit: the conduit initiates, at the EST Server the Attester intends, for a Target of its own choosing, and presents the Attester's request under that Target; without the Evidence-to-Target binding the Credential Authority issues, or the Secret Vault releases, a credential for a Target the Attester did not ask for. The Target in the binding input closes this. Binding `server_id` alone does not: the request then goes to the right server with the wrong Target.
 * Linking identity and proof of possession: Section 3.5 of {{RFC7030}} links the two by placing the tls-unique value of the TLS session in the CSR's challenge-password. That mechanism is not available here: tls-unique is not defined for TLS 1.3 ({{RFC9266}}), and the TLS peer of the EST Server is the EST Client, which SHOULD be outside the Attester's trust boundary ({{TACRA}}). The bindings of {{key-binding}} take its place. Where the Attester is itself the EST Client, it MAY additionally place the tls-exporter value of {{RFC9266}} in the challenge-password, which is the TLS 1.3 form of Section 3.5 of {{RFC7030}}.
 
 ## Specific to Attested Retrieval Mode
@@ -602,7 +616,7 @@ The following lists, for each role of the exchange, what it holds, what it can d
 "Conduit" is the EST Client and the EST Server together: neither has a RATS role, and {{TACRA}} trusts neither.
 
 * Attester: holds CSKpri or CEKpri and the Attesting Environment; can produce Evidence over any value it chooses and can choose its Target. Bounded by the fact that Evidence names the launch measurement and the platform, and that the Credential Authority and the Secret Vault decide by policy.
-* Conduit: holds every message in transit, including CEKpub and the Evidence; can delay, replay and reorder, obtain a Handle from any server, carry a request to a different server, and replace a response. Bounded by the single-use Handle, the Evidence-to-Target binding ({{key-binding}}), the origin authentication of the bundle and the Attester's checks ({{bundle}}, {{retrieval-attester}}), and TLS server authentication where the Attester is itself the TLS peer.
+* Conduit: holds every message in transit, including CEKpub and the Evidence; can delay, replay and reorder, obtain a Handle from any server, carry a request to a different server, and replace a response. Bounded by the single-use Handle, the Evidence-to-Server and Evidence-to-Target bindings ({{key-binding}}), the origin authentication of the bundle and the Attester's checks ({{bundle}}, {{retrieval-attester}}), and TLS server authentication where the Attester is itself the TLS peer.
 * Verifier: holds reference values and vendor roots; appraises Evidence and reports the binding value, the platform form and the identifiers. It does not decide issuance or release; its results are one input to the Relying Party.
 * Credential Authority: holds its signing key and issuance policy; issues for a CSR. Bounded by recomputing the binding with its own `server_id`, verifying proof of possession, and constraining identities to the attested context.
 * Secret Vault: holds the group's secrets and its origin key; releases to a CEKpub. Bounded by recomputing the binding with CEKpub, authenticating its bundle, and deriving `group_id` from Attestation Results rather than from Evidence.
@@ -611,11 +625,12 @@ Which check closes which attack:
 
 * Key substitution, a different CSR or CEKpub than the Evidence was produced for: the Evidence-to-CSR and Evidence-to-CEK bindings, recomputed by the Relying Party.
 * Replay of a request: the single-use Handle ({{initiation-response}}); a second use is answered 409.
-* Server substitution, a genuine CSR and Evidence carried to a server the Attester did not choose: the Evidence-to-Target binding; the recomputation fails at every server but the one the Attester named.
+* Server substitution, a genuine CSR and Evidence carried to a server the Attester did not choose: the Evidence-to-Server binding; the recomputation fails at every server but the one the Attester is configured to use.
+* Target substitution, a credential obtained at the right server for a Target the Attester did not ask for: the Evidence-to-Target binding; the recomputation fails for every Target but the one the Attester named.
 * Bundle substitution, a container encrypted to CEKpub by someone other than the Vault: origin authentication and the Attester's checks of `server_id` and `handle`.
 * Stale Evidence: `expires_in` and the Handle lifetime floor ({{handle-lifetime}}).
 
-The server substitution and the bundle substitution were confirmed to be reachable against the text of -00 and unreachable against this text, in a ProVerif model of the exchange and in a reference implementation of it {{TACRA-EST-IMPL}}.
+The server substitution, the target substitution and the bundle substitution were confirmed to be reachable against the text of -00 and unreachable against this text, in a ProVerif model of the exchange and in a reference implementation of it {{TACRA-EST-IMPL}}; the same model shows that binding `server_id` without the Target leaves the target substitution open.
 
 
 # IANA Considerations {#iana}
@@ -642,6 +657,8 @@ handle (32 octets) =
 
 server_id (23 octets) = "https://est.example.com"
 
+target (22 octets) = "https://db.example.com"
+
 subject = CSR DER (223 octets) =
   3081dc3081830201003021311f301d06035504030c16776f726b6c6f61642e
   74616372612e6578616d706c653059301306072a8648ce3d020106082a8648
@@ -654,12 +671,13 @@ subject = CSR DER (223 octets) =
 
 binding_input = 00000020 || handle
              || 00000017 || server_id
-             || 000000df || subject        (290 octets)
+             || 00000016 || target
+             || 000000df || subject        (316 octets)
 
 SHA-512(binding_input) =
-  bb515f3f08c5d1d903e3a9098af603f93cc4c0e1db035f3ec394e511c44824
-  9bb840ecd91342168ecfc5ee1ce2c7aa6b3323867927b4377ce4d3fe4683df
-  4e5f
+  abbb77e8a8ba5285872c53ef6aa2db0dfe273b6ca84e02099f6f737684c375
+  b628b7f7fcdebc23abb094f73b4768c965a163a071338e912bec3aa4dce187
+  af01
 ~~~
 
 # Example Exchange {#examples}
