@@ -84,6 +84,13 @@ informative:
       - ins: S. Nikolaichuk
         name: Serhii Nikolaichuk
     date: September 2026
+  TACRA-EST-IMPL:
+    target: https://github.com/nikolaichuk7/tacra-est
+    title: tacra-est - a reference implementation, ProVerif model and hardware measurements for draft-novak-lamps-tacra-est
+    author:
+      - ins: S. Nikolaichuk
+        name: Serhii Nikolaichuk
+    date: September 2026
   TWISIGReq:
     -: TWISIGReq
     target: https://github.com/confidential-computing/twi/blob/main/TWI_Requirements.md
@@ -500,6 +507,27 @@ Error bodies MUST NOT leak sensitive attestation details. Servers MAY provide a 
 * The channel from EST Server to Verifier MUST provide integrity, authenticity, and replay protection.
 * The EST Server SHOULD enforce size and rate limits on Evidence.
 * If classic EST and attested resources both exist, the Relying Party MUST be able to require attestation. The EST Server MUST NOT substitute a classic EST operation for an attested request.
+
+## Analysis by Role {#by-role}
+
+The following lists, for each role of the exchange, what it holds, what it can do on its own, and the check that bounds it.
+"Conduit" is the EST Client and the EST Server together: neither has a RATS role, and {{TACRA}} trusts neither.
+
+* Attester: holds CSKpri or CEKpri and the Attesting Environment; can produce Evidence over any value it chooses and can choose its Target. Bounded by the fact that Evidence names the launch measurement and the platform, and that the Credential Authority and the Secret Vault decide by policy.
+* Conduit: holds every message in transit, including CEKpub and the Evidence; can delay, replay and reorder, obtain a Handle from any server, carry a request to a different server, and replace a response. Bounded by the single-use Handle, the Evidence-to-Target binding ({{key-binding}}), the origin authentication of the bundle and the Attester's checks ({{bundle}}, {{retrieval-attester}}), and TLS server authentication where the Attester is itself the TLS peer.
+* Verifier: holds reference values and vendor roots; appraises Evidence and reports the binding value, the platform form and the identifiers. It does not decide issuance or release; its results are one input to the Relying Party.
+* Credential Authority: holds its signing key and issuance policy; issues for a CSR. Bounded by recomputing the binding with its own `server_id`, verifying proof of possession, and constraining identities to the attested context.
+* Secret Vault: holds the group's secrets and its origin key; releases to a CEKpub. Bounded by recomputing the binding with CEKpub, authenticating its bundle, and deriving `group_id` from Attestation Results rather than from Evidence.
+
+Which check closes which attack:
+
+* Key substitution, a different CSR or CEKpub than the Evidence was produced for: the Evidence-to-CSR and Evidence-to-CEK bindings, recomputed by the Relying Party.
+* Replay of a request: the single-use Handle ({{initiation-response}}); a second use is answered 409.
+* Server substitution, a genuine CSR and Evidence carried to a server the Attester did not choose: the Evidence-to-Target binding; the recomputation fails at every server but the one the Attester named.
+* Bundle substitution, a container encrypted to CEKpub by someone other than the Vault: origin authentication and the Attester's checks of `server_id` and `handle`.
+* Stale Evidence: `expires_in` and the Handle lifetime floor ({{handle-lifetime}}).
+
+The server substitution and the bundle substitution were confirmed to be reachable against the text of -00 and unreachable against this text, in a ProVerif model of the exchange and in a reference implementation of it {{TACRA-EST-IMPL}}.
 
 
 # IANA Considerations {#iana}
