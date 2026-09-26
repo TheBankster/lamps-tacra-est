@@ -376,6 +376,7 @@ Producing hardware Evidence is fast but not always available on demand.
 Measured on a Google Cloud AMD SEV-SNP guest, a report took 7.7 ms (median of 45 consecutive requests), but every tenth request stalled for about 10.2 s, because the host throttles guest requests and the Linux guest driver retries every 2 s for up to 60 s before failing {{SNP-COST}}.
 An Attester that also attests for other purposes can therefore need more than ten seconds to produce the Evidence that carries the Handle.
 A Handle valid for a few seconds fails such an Attester about one time in ten; 60 s covers one stall with margin, and the 600 s of the example in {{ATTESTATION-FRESHNESS}} is adequate.
+A second run with the reference implementation confirms the shape {{TACRA-EST-IMPL}}: with the extended report that also returns the host's certificate table, a report took 163 ms (median of 180 unstalled requests) and every tenth of 200 requests stalled for 10.4 s, so that 200 reports took 235 s.
 
 
 # Attested Credential Acquisition Modes
