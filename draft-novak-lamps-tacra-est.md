@@ -210,7 +210,7 @@ The first leg of both modes is where the Attester initiates Remote Attestation b
 * Method: GET
 * Request: None
 * Success: 200 OK
-* Response: Freshness kind, Credential Acquisition Mode (`enroll` or `retrieve`), acceptable ciphers
+* Response: AttestationInitiationResponse ({{initiation-response}}): Freshness Kind and Handle, Credential Acquisition Mode (`enroll` or `retrieve`), acceptable CSK or CEK algorithms
 
 * If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (`absent-timestamp`, `absent-none`, or `absent-epoch`), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it MAY complete `attest-initiate` locally and, in that case, MUST NOT contact the EST Server. Otherwise, `attest-initiate` is a GET with no body and no query parameters.
 * The EST Server, if contacted, obtains the Freshness Kind and Handle, if any, from the configured Verifier or Relying Party and returns that result.
@@ -219,10 +219,6 @@ The first leg of both modes is where the Attester initiates Remote Attestation b
 * The Attester produces Evidence as the Freshness Kind requires.
 * The EST Client then POSTs `attest-enroll` or `attest-retrieve` as the Attester indicates.
 * If the second leg fails because a `present-epoch` moved or a `present-nonce` is no longer valid, the Attester retries `attest-initiate`.
-
-* Method: GET
-* Success: 200 OK
-* Response: AttestationInitiationResponse
 
 ## attest-enroll {#attest-enroll}
 
@@ -248,7 +244,7 @@ Evidence blobs are opaque byte strings.
 
 # Common Structures
 
-## AttestationInitiationResponse
+## AttestationInitiationResponse {#initiation-response}
 
 Fields:
 
@@ -288,7 +284,7 @@ Fields:
 
 On success, the EST Server returns the enrollment response produced by the Credential Authority, as for simpleenroll in {{RFC7030}}.
 
-### Key Binding and PoP Requirements
+### Key Binding and PoP Requirements {#key-binding}
 
 1. PoP: The Credential Authority MUST verify possession of the CSR private key.
 2. Evidence-to-CSR: Evidence MUST bind the CSR so a different CSR cannot be substituted. The Verifier MUST attest to that binding.
@@ -341,7 +337,7 @@ group_id = H(attestation_subject \|\| credential_hint \|\| policy_version)
 
 Where attestation_subject is derived from Attestation Results (not raw Evidence) to avoid nonce/freshness variability.
 
-### Response: EncryptedCredentialBundle
+### Response: EncryptedCredentialBundle {#bundle}
 
 The response MUST be an authenticated-encryption container encrypted to CEKpub. It contains:
 
