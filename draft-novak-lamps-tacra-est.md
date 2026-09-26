@@ -324,7 +324,7 @@ Fields:
 * handle (bytes): Freshness Handle - REQUIRED when `freshness_kind` is not `absent-none`; MUST be absent otherwise. MUST equal the Handle returned by `attest-initiate` when present.
 * evidence (bytes, REQUIRED) -- MUST include CEKpub; MUST be bound to the Freshness returned by `attest-initiate`, if any
 * credential_type (string, OPTIONAL): e.g., x509, wimse-wit
-* credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credenital Authority) MAY use it, ignore it, or reject the request
+* credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) MAY use it, ignore it, or reject the request
 
 ### Evidence-to-CEK Binding
 
@@ -359,7 +359,7 @@ Mandatory-to-implement encryption mechanism: The specification MUST choose one b
 * HPKE (RFC 9180) with a specific required ciphersuite, or
 * COSE_Encrypt0 with a required AEAD suite.
 
-TODO: Ensure that TACRA architecture can carry these and other encryption mechanisms to the Attester in a predicatble format.
+TODO: Ensure that TACRA architecture can carry these and other encryption mechanisms to the Attester in a predictable format.
 
 ### Retrieval Server Processing
 
