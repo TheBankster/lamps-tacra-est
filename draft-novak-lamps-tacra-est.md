@@ -667,12 +667,12 @@ This document requests registrations for:
 
 # Test Vector for the Binding Input {#test-vector}
 
-Enrollment, direct form, SHA-512. The values are those of the enrollment in {{examples}} (run 20260926T185426Z); the SHA-512 digest of binding_input equals REPORT_DATA of the attestation report in that Evidence. The CSR is ECDSA P-256 with subject CN=workload.tacra.example.
+Enrollment, direct form, SHA-512. The values are those of the enrollment in {{examples}} (run 20260926T203701Z); the SHA-512 digest of binding_input equals REPORT_DATA of the attestation report in that Evidence. The CSR is ECDSA P-256 with subject CN=workload.tacra.example.
 
 ~~~
 handle (32 octets) =
-  972a059f2d4c7d21f54efba2cff279cb7c6504abad93d3656ec96865d09ba2
-  a9
+  74066a0c1551e4e5cb191cd8757e45cc21f05e1100f8ca32bc8040fe3fe34b
+  4f
 
 server_id (24 octets) = "https://s1.tacra.example"
 
@@ -681,12 +681,12 @@ target (24 octets) = "https://db.tacra.example"
 subject = CSR DER (223 octets) =
   3081dc3081830201003021311f301d06035504030c16776f726b6c6f61642e
   74616372612e6578616d706c653059301306072a8648ce3d020106082a8648
-  ce3d030107034200049f1c1c852652c173a0444576a3634ee19b111b984c9f
-  cd7febca225b4357a551047d591f96fdf18b3623e556b2e4ba5568159718e2
-  b8aa8bf6b887cd1bc43c9ba000300a06082a8648ce3d040302034800304502
-  2100fed23aed33012f78cc625df71369346b12fc684755efc1babdd6e349da
-  5a8336022074fd3b6d5a3388b0a0b1438761c8f4c2ea231a6510ca227f0983
-  d085efae91bd
+  ce3d03010703420004be1d57b8fed874f8e2902ccce02b2b1e25ea58506beb
+  d7f6e0012f5ac9658f1d2de7a7a4b030e8b3fcc6091edf6664eb3e49dce674
+  1180484bb82358a77f2428a000300a06082a8648ce3d040302034800304502
+  2023862a82a39cca69c97a75b4457b51bf9b64a6c6505260791ce97680a277
+  b4b3022100cb08868a84b7abca890dea925f1fe275a705bc69cd9c1abef443
+  75c77304d396
 
 binding_input = 00000020 || handle
              || 00000018 || server_id
@@ -694,14 +694,14 @@ binding_input = 00000020 || handle
              || 000000df || subject        (319 octets)
 
 SHA-512(binding_input) =
-  2b355e4b7fb2704bcd02fcba48f9e6072f9a40ae3674857a71db615d0e3ab9
-  3818db5c9c1390233f7c2e99673e866503286c4f84d6afe65ee74d7fd176a0
-  b37c
+  51ea8d38a4b0fd68c015554dda3e532df7fd64d668ac7aeff998af73f5e477
+  54718bcddf5e78e933bc833f4ff2977a3a27dff2a9b46ec3aca28c18747d77
+  704d
 ~~~
 
 # Example Exchange {#examples}
 
-Messages of one enrollment and one retrieval as produced by the reference implementation {{TACRA-EST-IMPL}} with a live AMD SEV-SNP Attester (run 20260926T185426Z, code d2f8aa4de167). Byte strings longer than 40 characters are shown as their length and SHA-256; the full messages are in the repository.
+Messages of one enrollment and one retrieval as produced by the reference implementation {{TACRA-EST-IMPL}} with a live AMD SEV-SNP Attester (run 20260926T203701Z, code 9850c7dfe79e). Byte strings longer than 40 characters are shown as their length and SHA-256; the full messages are in the repository.
 
 ## Enrollment: attest-initiate
 
@@ -718,7 +718,7 @@ The EST Client sends `GET /.well-known/est/attest-initiate` with the query param
   ],
   "expires_in": 300,
   "freshness_kind": "present-nonce",
-  "handle": "lyoFny1MfSH1Tvuiz_J5y3xlBKutk9NlbsloZdCboqk",
+  "handle": "dAZqDBVR5OXLGRzYdX5FzCHwXhEA-MoyvIBA_j_jS08",
   "mode": "enroll",
   "server_id": "https://s1.tacra.example"
 }
@@ -734,10 +734,10 @@ The EST Client sends `GET /.well-known/est/attest-initiate` with the query param
   },
   "credential_hint": "workload.tacra.example",
   "credential_type": "x509",
-  "csr": "<223 octets, SHA-256 9e3e60a509e94b8b>",
-  "evidence": "<12583 octets, SHA-256 3f870ff278e2d473>",
+  "csr": "<223 octets, SHA-256 bba1421a1e107993>",
+  "evidence": "<12583 octets, SHA-256 b509fe3e02c4bf44>",
   "freshness_kind": "present-nonce",
-  "handle": "lyoFny1MfSH1Tvuiz_J5y3xlBKutk9NlbsloZdCboqk",
+  "handle": "dAZqDBVR5OXLGRzYdX5FzCHwXhEA-MoyvIBA_j_jS08",
   "profile": "urn:tacra-est:evidence:sev-snp-json:1",
   "target": "https://db.tacra.example"
 }
@@ -754,7 +754,7 @@ The byte string in `evidence`, decoded; `profile` names its format, the JSON obj
   },
   "chain": "<4602 octets, SHA-256 22e62f8d2c21a156>",
   "platform_form": "direct",
-  "report": "<1184 octets, SHA-256 5157dc194609c275>",
+  "report": "<1184 octets, SHA-256 597b2f3280a2e38c>",
   "type": "sev-snp"
 }
 ~~~
@@ -774,7 +774,7 @@ The EST Client sends `GET /.well-known/est/attest-initiate` with the query param
   ],
   "expires_in": 300,
   "freshness_kind": "present-nonce",
-  "handle": "91e23RRc7i_QoGpKNkNztct5_2xOgrFw-T-rffzaqvE",
+  "handle": "RTM9C89kxywBFP6Quu9d3xpYpI2I8pS9W-efsme00d0",
   "mode": "retrieve",
   "server_id": "https://s1.tacra.example"
 }
@@ -788,12 +788,12 @@ The EST Client sends `GET /.well-known/est/attest-initiate` with the query param
     "hash": "sha512",
     "method": "binding-input"
   },
-  "cek_pub": "<44 octets, SHA-256 9a07041cc1c0a526>",
+  "cek_pub": "<44 octets, SHA-256 4f3b7de94293b0ff>",
   "credential_hint": "workload.tacra.example",
   "credential_type": "x509",
-  "evidence": "<12583 octets, SHA-256 386b8891d6195620>",
+  "evidence": "<12583 octets, SHA-256 e93c93b5ab865f1d>",
   "freshness_kind": "present-nonce",
-  "handle": "91e23RRc7i_QoGpKNkNztct5_2xOgrFw-T-rffzaqvE",
+  "handle": "RTM9C89kxywBFP6Quu9d3xpYpI2I8pS9W-efsme00d0",
   "profile": "urn:tacra-est:evidence:sev-snp-json:1",
   "target": "https://ledger.tacra.example"
 }
@@ -806,14 +806,14 @@ The EST Client sends `GET /.well-known/est/attest-initiate` with the query param
   "aad": {
     "credential_hint": "workload.tacra.example",
     "group_id": "663a1ffc68869632... (64 hex digits)",
-    "handle": "91e23RRc7i_QoGpKNkNztct5_2xOgrFw-T-rffzaqvE",
+    "handle": "RTM9C89kxywBFP6Quu9d3xpYpI2I8pS9W-efsme00d0",
     "server_id": "https://s1.tacra.example",
     "target": "https://ledger.tacra.example"
   },
-  "ciphertext": "<402 octets, SHA-256 66e4edb92996913c>",
+  "ciphertext": "<402 octets, SHA-256 030ce3e56462f3ce>",
   "container": "hpke-auth",
-  "enc": "<32 octets, SHA-256 22e8bf1338dcc4ec>",
-  "sender_pub": "<44 octets, SHA-256 a2837efb077debe8>",
+  "enc": "<32 octets, SHA-256 e4c3cc9f9577a17e>",
+  "sender_pub": "<44 octets, SHA-256 0a56d54c3c59dea1>",
   "suite": {
     "aead": "AES-256-GCM",
     "kdf": "HKDF-SHA256",
