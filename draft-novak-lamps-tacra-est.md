@@ -286,6 +286,65 @@ Implementations MUST support at least one of CBOR or JSON envelopes, using to-be
 Servers advertise supported types with Content-Type and Accept; clients MUST send a supported type.
 Evidence blobs are opaque byte strings.
 
+## Envelope Definitions {#cddl}
+
+The envelopes are defined in CDDL; in the JSON encoding, `bstr` members carry the unpadded base64url encoding of the octets, as in Section 5.1 of {{ATTESTATION-FRESHNESS}}.
+
+~~~ cddl
+attestation-initiation-response = {
+  freshness_kind: "absent-timestamp" / "absent-none" / "absent-epoch"
+                / "present-nonce" / "present-epoch",
+  ? handle: bstr,              ; REQUIRED for present-*, else absent
+  server_id: tstr,
+  ? expires_in: uint,
+  ? max_age: uint,
+  mode: "enroll" / "retrieve",
+  ? acceptable_csk: [+ tstr],  ; when mode is "enroll"
+  ? acceptable_cek: [+ tstr],  ; when mode is "retrieve"
+}
+
+binding = {
+  method: "binding-input",
+  hash: "sha512" / "sha384" / "sha256",
+}
+
+evidence = {
+  type: tstr,                  ; e.g. "sev-snp", "tdx", "tpm"
+  * tstr => any,               ; type-specific: report, certs, chain
+}
+
+attested-enrollment-request = {
+  ? handle: bstr,
+  csr: bstr,                   ; PKCS#10, DER
+  evidence: evidence,
+  binding: binding,
+  ? credential_hint: tstr,
+}
+
+attested-retrieval-request = {
+  ? handle: bstr,
+  cek_pub: bstr,               ; SubjectPublicKeyInfo, DER
+  evidence: evidence,
+  binding: binding,
+  ? credential_hint: tstr,
+}
+
+encrypted-credential-bundle = {
+  container: "hpke-auth" / "cms-signed-enveloped"
+           / "cose-sign1-encrypt0",
+  ? suite: { kem: tstr, kdf: tstr, aead: tstr },
+  ? enc: bstr,                 ; HPKE encapsulated key
+  ciphertext: bstr,
+  aad: {
+    group_id: tstr,
+    server_id: tstr,
+    ? handle: bstr,
+    ? credential_hint: tstr,
+  },
+  ? sender_pub: bstr,          ; identifies the Vault's origin key; the trust anchor is provisioned
+}
+~~~
+
 
 # Common Structures
 
