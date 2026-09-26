@@ -74,6 +74,18 @@ informative:
     author:
       org: Advanced Micro Devices
     date: August 2026
+  GHCB:
+    target: https://docs.amd.com/api/khub/documents/oJly8EPzLO1Bt7ncrkCytw/content
+    title: SEV-ES Guest-Hypervisor Communication Block Standardization, Publication 56421, Revision 2.04
+    author:
+      org: Advanced Micro Devices
+    date: January 2025
+  LINUX-SEV:
+    target: https://github.com/torvalds/linux/blob/v7.0/arch/x86/coco/sev/core.c
+    title: "Linux 7.0: __handle_guest_request in arch/x86/coco/sev/core.c, with SNP_REQ_RETRY_DELAY and SNP_REQ_MAX_RETRY_DURATION in arch/x86/include/asm/sev.h"
+    author:
+      org: The Linux kernel developers
+    date: April 2026
   TDX-ABI:
     target: https://cdrdv2.intel.com/v1/dl/getContent/733579
     title: Intel TDX Module Application Binary Interface (ABI) Reference Specification, 348551-008US
@@ -393,10 +405,14 @@ The Attester MUST compare `server_id` with the EST Server its Credential Acquisi
 ### Handle Lifetime {#handle-lifetime}
 
 Producing hardware Evidence is fast but not always available on demand.
-Measured on a Google Cloud AMD SEV-SNP guest, a report took 7.7 ms (median of 45 consecutive requests), but every tenth request stalled for about 10.2 s, because the host throttles guest requests and the Linux guest driver retries every 2 s for up to 60 s before failing {{SNP-COST}}.
-An Attester that also attests for other purposes can therefore need more than ten seconds to produce the Evidence that carries the Handle.
-A Handle valid for a few seconds fails such an Attester about one time in ten; 60 s covers one stall with margin, and the 600 s of the example in {{ATTESTATION-FRESHNESS}} is adequate.
-A second run with the reference implementation confirms the shape {{TACRA-EST-IMPL}}: with the extended report that also returns the host's certificate table, a report took 163 ms (median of 180 unstalled requests) and every tenth of 200 requests stalled for 10.4 s, so that 200 reports took 235 s.
+On AMD SEV-SNP, a report is a request to the SNP firmware through the hypervisor, and access to that firmware is "a sequential and synchronous operation"; to protect it, Section 4.1.7 of {{GHCB}} recommends that the hypervisor rate-limit a guest that issues many requests, and defines the answer that tells the guest to retry.
+The Linux guest driver meets that answer by sleeping 2 s and retrying, and stops retrying once 60 s have passed since the first attempt {{LINUX-SEV}}.
+On Google Cloud SEV-SNP guests the limit is reached quickly: in four runs on four hosts, every tenth report requested back to back waited about 10.2 s, five such retries, which holds a guest to about one report per second {{SNP-COST}} {{TACRA-EST-IMPL}}.
+Unthrottled, the report itself took a median of 7.7 ms to 8.2 ms on the three hosts where it was timed alone.
+An Attester that has requested other reports shortly before, for this or any other purpose, can therefore need more than ten seconds to produce the Evidence that carries the Handle, and a Handle valid for less expires while it waits.
+A floor of 60 s covers the longest wait measured for one report, 10.4 s, more than five times over.
+It does not cover the driver's own limit: a report can still succeed at a retry made about 62 s after the first attempt, and a deployment whose Attesters are throttled that long sets a longer lifetime.
+The example in Section 5.1 of {{ATTESTATION-FRESHNESS}} uses 600 s, and the TWI SIG implementation ({{impl-status}}) 300 s.
 
 
 # Attested Credential Acquisition Modes
@@ -584,7 +600,7 @@ Readers are advised to note that other implementations may exist.
 
 * tacra-est {{TACRA-EST-IMPL}}: a reference implementation of this document in Python, by Serhii Nikolaichuk, covering `attest-initiate`, `attest-enroll` and `attest-retrieve` in Passport mode with the JSON envelopes of {{cddl}}, an Attester on AMD SEV-SNP (and a mock), a Verifier for SEV-SNP, a Credential Authority, and a Secret Vault with the HPKE `mode_auth` container. Not covered: Background Check mode, the CMS and COSE containers, Intel TDX and AWS Nitro Attesters. Maturity: prototype, used to produce the examples of {{examples}} and the measurements of {{handle-lifetime}}. Licence: open source. Contact: nikolaichuk.s.f@gmail.com. Last updated September 2026.
 
-* A second, independent implementation is maintained by the Trustworthy Workload Identity SIG (a Go fork of the GlobalSign EST server), covering the same three resources with an EAT COSE_Sign1 Evidence format and a mock TEE. Interop between the two confirms the happy path (both use a present-nonce Handle, embed it in Evidence, verify proof of possession and refuse a replayed Handle) and, run against that implementation, reproduces the server-substitution and bundle-substitution cases that Section 11.4 and {{TACRA-EST-IMPL}} describe.
+* A second, independent implementation is maintained by the Trustworthy Workload Identity SIG (a Go fork of the GlobalSign EST server), covering the same three resources with an EAT COSE_Sign1 Evidence format and a mock TEE. Both carry the Target and the Credential Type in the `target` and `credential_type` query parameters of `attest-initiate`, and both choose the Credential Acquisition Mode, Enrollment or Retrieval, by the server's policy for the Target (Section 4.4 of {{TACRA}}). Interop between the two confirms the happy path (both use a present-nonce Handle, embed it in Evidence, verify proof of possession and refuse a replayed Handle) and, run against that implementation, reproduces the server-substitution and bundle-substitution cases that {{by-role}} and {{TACRA-EST-IMPL}} describe.
 
 # Security Considerations {#security}
 
@@ -649,51 +665,58 @@ This document requests registrations for:
 
 # Test Vector for the Binding Input {#test-vector}
 
-Enrollment, direct form, SHA-512. The Handle and the CSR are those of an enrollment run on an AMD SEV-SNP guest (Google Cloud, 12 September 2026); the CSR is ECDSA P-256 with subject CN=workload.tacra.example.
+Enrollment, direct form, SHA-512. The values are those of the enrollment in {{examples}} (run 20260926T185426Z); the SHA-512 digest of binding_input equals REPORT_DATA of the attestation report in that Evidence. The CSR is ECDSA P-256 with subject CN=workload.tacra.example.
 
 ~~~
 handle (32 octets) =
-  c456ed0cc3b9379313a47beb9b0d6f7aff3bb5c9f6e4745cda9c3f6c6cb11b1f
+  972a059f2d4c7d21f54efba2cff279cb7c6504abad93d3656ec96865d09ba2
+  a9
 
-server_id (23 octets) = "https://est.example.com"
+server_id (24 octets) = "https://s1.tacra.example"
 
-target (22 octets) = "https://db.example.com"
+target (24 octets) = "https://db.tacra.example"
 
 subject = CSR DER (223 octets) =
   3081dc3081830201003021311f301d06035504030c16776f726b6c6f61642e
   74616372612e6578616d706c653059301306072a8648ce3d020106082a8648
-  ce3d03010703420004d7a07787a429d424c288172b564acdbbd6e16872e4b1
-  0dcd8ee7b2be07e42b9e368cf36caeb130b0aaf6d5c998b74dcb86d30b7db8
-  6bda85d64a5f080d01cb64a000300a06082a8648ce3d040302034800304502
-  206af6c73e02c80fef59d6ab75f5572a04537a294288d796070d69a47899d7
-  cfff022100c054ae5070c5852487d4cb8f486a2462a507404d3ab68099b2e8
-  c592e8e14327
+  ce3d030107034200049f1c1c852652c173a0444576a3634ee19b111b984c9f
+  cd7febca225b4357a551047d591f96fdf18b3623e556b2e4ba5568159718e2
+  b8aa8bf6b887cd1bc43c9ba000300a06082a8648ce3d040302034800304502
+  2100fed23aed33012f78cc625df71369346b12fc684755efc1babdd6e349da
+  5a8336022074fd3b6d5a3388b0a0b1438761c8f4c2ea231a6510ca227f0983
+  d085efae91bd
 
 binding_input = 00000020 || handle
-             || 00000017 || server_id
-             || 00000016 || target
-             || 000000df || subject        (316 octets)
+             || 00000018 || server_id
+             || 00000018 || target
+             || 000000df || subject        (319 octets)
 
 SHA-512(binding_input) =
-  abbb77e8a8ba5285872c53ef6aa2db0dfe273b6ca84e02099f6f737684c375
-  b628b7f7fcdebc23abb094f73b4768c965a163a071338e912bec3aa4dce187
-  af01
+  2b355e4b7fb2704bcd02fcba48f9e6072f9a40ae3674857a71db615d0e3ab9
+  3818db5c9c1390233f7c2e99673e866503286c4f84d6afe65ee74d7fd176a0
+  b37c
 ~~~
 
 # Example Exchange {#examples}
 
-Messages of one enrollment and one retrieval as produced by the reference implementation [TACRA-EST-IMPL] with a live AMD SEV-SNP Attester (run 20260926T165938Z). Byte strings longer than 40 characters are shown as their length and SHA-256; the full messages are in the repository.
+Messages of one enrollment and one retrieval as produced by the reference implementation {{TACRA-EST-IMPL}} with a live AMD SEV-SNP Attester (run 20260926T185426Z, code d2f8aa4de167). Byte strings longer than 40 characters are shown as their length and SHA-256; the full messages are in the repository.
 
-## Enrollment: AttestationInitiationResponse
+## Enrollment: attest-initiate
+
+The EST Client sends `GET /.well-known/est/attest-initiate` with the query parameters `target=https://db.tacra.example` and `credential_type=x509`, percent-encoded. The EST Server's policy provisions this Target by Enrollment; its AttestationInitiationResponse:
 
 ~~~ json
 {
   "acceptable_csk": [
     "ecdsa-p256-sha256"
   ],
+  "acceptable_evidence": [
+    "urn:tacra-est:evidence:sev-snp-json:1",
+    "urn:tacra-est:evidence:mock-json:1"
+  ],
   "expires_in": 300,
   "freshness_kind": "present-nonce",
-  "handle": "mJxsfVWxw84M2ehbhTeTbv5ElUfPzK-LzTcSQPwQTts",
+  "handle": "lyoFny1MfSH1Tvuiz_J5y3xlBKutk9NlbsloZdCboqk",
   "mode": "enroll",
   "server_id": "https://s1.tacra.example"
 }
@@ -708,32 +731,48 @@ Messages of one enrollment and one retrieval as produced by the reference implem
     "method": "binding-input"
   },
   "credential_hint": "workload.tacra.example",
-  "csr": "<222 octets, SHA-256 c7befa8548535d26>",
-  "evidence": {
-    "certs": {
-      "ARK": "<1639 octets, SHA-256 69d063b45344d26a>",
-      "ASK": "<1677 octets, SHA-256 67d303bd3905fd38>",
-      "VCEK": "<1351 octets, SHA-256 5410d5f84d9fac09>"
-    },
-    "chain": "<4602 octets, SHA-256 22e62f8d2c21a156>",
-    "platform_form": "direct",
-    "report": "<1184 octets, SHA-256 fa6d4249b6b60211>",
-    "type": "sev-snp"
-  },
-  "handle": "mJxsfVWxw84M2ehbhTeTbv5ElUfPzK-LzTcSQPwQTts"
+  "credential_type": "x509",
+  "csr": "<223 octets, SHA-256 9e3e60a509e94b8b>",
+  "evidence": "<12583 octets, SHA-256 3f870ff278e2d473>",
+  "freshness_kind": "present-nonce",
+  "handle": "lyoFny1MfSH1Tvuiz_J5y3xlBKutk9NlbsloZdCboqk",
+  "profile": "urn:tacra-est:evidence:sev-snp-json:1",
+  "target": "https://db.tacra.example"
 }
 ~~~
 
-## Retrieval: AttestationInitiationResponse
+The byte string in `evidence`, decoded; `profile` names its format, the JSON object the Attesting Environment produced, with the attestation report and the certificates of its signing key:
+
+~~~ json
+{
+  "certs": {
+    "ARK": "<1639 octets, SHA-256 69d063b45344d26a>",
+    "ASK": "<1677 octets, SHA-256 67d303bd3905fd38>",
+    "VCEK": "<1351 octets, SHA-256 b30131068cea9153>"
+  },
+  "chain": "<4602 octets, SHA-256 22e62f8d2c21a156>",
+  "platform_form": "direct",
+  "report": "<1184 octets, SHA-256 5157dc194609c275>",
+  "type": "sev-snp"
+}
+~~~
+
+## Retrieval: attest-initiate
+
+The EST Client sends `GET /.well-known/est/attest-initiate` with the query parameters `target=https://ledger.tacra.example` and `credential_type=x509`, percent-encoded. The EST Server's policy provisions this Target by Retrieval; its AttestationInitiationResponse:
 
 ~~~ json
 {
   "acceptable_cek": [
     "<34 octets, SHA-256 2aed5b1b762cd7a0>"
   ],
+  "acceptable_evidence": [
+    "urn:tacra-est:evidence:sev-snp-json:1",
+    "urn:tacra-est:evidence:mock-json:1"
+  ],
   "expires_in": 300,
   "freshness_kind": "present-nonce",
-  "handle": "KkJ7erYJS-5zlbZGXhCCD1t4E5vxg4P3E4n47NZdSZg",
+  "handle": "91e23RRc7i_QoGpKNkNztct5_2xOgrFw-T-rffzaqvE",
   "mode": "retrieve",
   "server_id": "https://s1.tacra.example"
 }
@@ -747,20 +786,14 @@ Messages of one enrollment and one retrieval as produced by the reference implem
     "hash": "sha512",
     "method": "binding-input"
   },
-  "cek_pub": "<44 octets, SHA-256 d33247baa08e6cd3>",
+  "cek_pub": "<44 octets, SHA-256 9a07041cc1c0a526>",
   "credential_hint": "workload.tacra.example",
-  "evidence": {
-    "certs": {
-      "ARK": "<1639 octets, SHA-256 69d063b45344d26a>",
-      "ASK": "<1677 octets, SHA-256 67d303bd3905fd38>",
-      "VCEK": "<1351 octets, SHA-256 5410d5f84d9fac09>"
-    },
-    "chain": "<4602 octets, SHA-256 22e62f8d2c21a156>",
-    "platform_form": "direct",
-    "report": "<1184 octets, SHA-256 2786ee3eba863caa>",
-    "type": "sev-snp"
-  },
-  "handle": "KkJ7erYJS-5zlbZGXhCCD1t4E5vxg4P3E4n47NZdSZg"
+  "credential_type": "x509",
+  "evidence": "<12583 octets, SHA-256 386b8891d6195620>",
+  "freshness_kind": "present-nonce",
+  "handle": "91e23RRc7i_QoGpKNkNztct5_2xOgrFw-T-rffzaqvE",
+  "profile": "urn:tacra-est:evidence:sev-snp-json:1",
+  "target": "https://ledger.tacra.example"
 }
 ~~~
 
@@ -771,13 +804,14 @@ Messages of one enrollment and one retrieval as produced by the reference implem
   "aad": {
     "credential_hint": "workload.tacra.example",
     "group_id": "663a1ffc68869632... (64 hex digits)",
-    "handle": "KkJ7erYJS-5zlbZGXhCCD1t4E5vxg4P3E4n47NZdSZg",
-    "server_id": "https://s1.tacra.example"
+    "handle": "91e23RRc7i_QoGpKNkNztct5_2xOgrFw-T-rffzaqvE",
+    "server_id": "https://s1.tacra.example",
+    "target": "https://ledger.tacra.example"
   },
-  "ciphertext": "<402 octets, SHA-256 5c6adb23205295d5>",
+  "ciphertext": "<402 octets, SHA-256 66e4edb92996913c>",
   "container": "hpke-auth",
-  "enc": "<32 octets, SHA-256 2ea5aa9997797d16>",
-  "sender_pub": "<44 octets, SHA-256 109adcd699923644>",
+  "enc": "<32 octets, SHA-256 22e8bf1338dcc4ec>",
+  "sender_pub": "<44 octets, SHA-256 a2837efb077debe8>",
   "suite": {
     "aead": "AES-256-GCM",
     "kdf": "HKDF-SHA256",
