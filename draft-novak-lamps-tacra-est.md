@@ -331,8 +331,9 @@ attestation-initiation-response = {
 }
 
 binding = {
-  method: "binding-input",
-  hash: "sha512" / "sha384" / "sha256",
+  method: tstr,                ; "binding-input", or an Evidence-to-CSR
+                               ; method such as "csr-hash", "cek-thumbprint"
+  ? hash: tstr,                ; digest algorithm, when the method uses one
 }
 
 freshness-kind = "absent-timestamp" / "absent-none" / "absent-epoch"
@@ -426,7 +427,7 @@ Fields:
 * freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
 * target (string, REQUIRED): the Target; MUST equal the `target` of the preceding `attest-initiate` (Section 5.2 of {{TACRA}})
 * credential_type (string, REQUIRED): the Credential Type; MUST equal the `credential_type` of the preceding `attest-initiate` (Section 5.2 of {{TACRA}})
-* handle (bytes): Freshness Handle - REQUIRED when `freshness_kind` is not `absent-none`; MUST be absent otherwise. MUST equal the Handle returned by `attest-initiate` when present.
+* handle (bytes): the freshness element - REQUIRED for `present-nonce`, `present-epoch` and `absent-epoch` (the Freshness Handle for the first two, the locally-held epoch marker for the third); MUST be absent for `absent-none` and `absent-timestamp`. When it is a Handle returned by `attest-initiate`, it MUST equal that Handle.
 * csr (bytes, REQUIRED): DER-encoded PKCS#10 CSR
 * evidence (bytes, REQUIRED): opaque; MUST carry the bindings of {{key-binding}}
 * profile (string, OPTIONAL): identifies the format of `evidence`; one of the `acceptable_evidence` values when those were returned
@@ -475,10 +476,10 @@ binding_input = len32(handle)    || handle
              || len32(subject)   || subject
 ~~~
 
-`handle` is the Freshness Handle, or empty for the `absent-*` Freshness Kinds; `server_id` is the UTF-8 encoding of the `server_id` string; `target` is the UTF-8 encoding of the Target; `subject` is the DER encoding of the CSR (Enrollment) or the DER-encoded SubjectPublicKeyInfo of CEKpub (Retrieval).
+`handle` is the freshness element the request carries in its `handle` field: the Freshness Handle for `present-nonce` and `present-epoch`, and the locally-held epoch marker for `absent-epoch`; it is empty for `absent-none`, and for `absent-timestamp`, whose freshness is a timestamp the Verifier checks against `max_age` rather than a value in `handle`. `server_id` is the UTF-8 encoding of the `server_id` string; `target` is the UTF-8 encoding of the Target; `subject` is the DER encoding of the CSR (Enrollment) or the DER-encoded SubjectPublicKeyInfo of CEKpub (Retrieval).
 The digest is SHA-512 where the field is 64 octets, as REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are; a Platform Plug-in for a shorter field uses the hash the platform prescribes, and the Verifier reports which one was used.
 The length prefixes make the input unambiguous: no choice of `server_id`, `target` and `subject` can produce the same octet string as another.
-The Credential Authority (Enrollment) or the Secret Vault (Retrieval) recomputes `binding_input` from its own `server_id`, the Handle it issued, the Target it issued that Handle for and the CSR or CEKpub it received, and refuses the request unless the Attestation Results report that value from the Evidence.
+The Credential Authority (Enrollment) or the Secret Vault (Retrieval) recomputes `binding_input` from its own `server_id`, the Handle from the corresponding `attest-initiate`, the Target that initiation named, and the CSR or CEKpub it received, and refuses the request unless the Attestation Results report that value from the Evidence.
 {{test-vector}} gives a worked example.
 
 ### Enrollment Server Processing
@@ -500,7 +501,7 @@ The Credential Authority MUST NOT mint identities (e.g., DNS names) beyond polic
 Fields:
 
 * freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
-* handle (bytes): Freshness Handle - REQUIRED when `freshness_kind` is not `absent-none`; MUST be absent otherwise. MUST equal the Handle returned by `attest-initiate` when present.
+* handle (bytes): the freshness element - REQUIRED for `present-nonce`, `present-epoch` and `absent-epoch` (the Freshness Handle for the first two, the locally-held epoch marker for the third); MUST be absent for `absent-none` and `absent-timestamp`. When it is a Handle returned by `attest-initiate`, it MUST equal that Handle.
 * target (string, REQUIRED): the Target; MUST equal the `target` of the preceding `attest-initiate` (Section 5.3 of {{TACRA}})
 * credential_type (string, REQUIRED): the Credential Type, e.g., x509, wimse-wit; MUST equal the `credential_type` of the preceding `attest-initiate` (Section 5.3 of {{TACRA}})
 * cek_pub (bytes, REQUIRED): DER-encoded SubjectPublicKeyInfo of CEKpub
@@ -510,8 +511,9 @@ Fields:
 
 ### Evidence-to-CEK Binding {#evidence-to-cek}
 
-Evidence MUST integrity-protect the Freshness from `attest-initiate` ({{attest-initiate}}) and a claim conveying CEKpub or a thumbprint of CEKpub.
-The Verifier MUST reject Evidence that does not, and the Secret Vault MUST deny release when Attestation Results do not confirm these bindings.
+Evidence MUST integrity-protect the Freshness from `attest-initiate` ({{attest-initiate}}), a claim conveying CEKpub or a thumbprint of CEKpub, `server_id`, and the Target, exactly as Enrollment binds the CSR ({{key-binding}}, items 3 to 5).
+The binding input of {{binding-input}} covers all four with CEKpub as its `subject`.
+The Verifier MUST reject Evidence that does not carry these bindings, and the Secret Vault MUST deny release when Attestation Results do not confirm them, recomputing the binding with its own `server_id` and the Target the Handle was issued for.
 
 ### Credential Group ID Determination
 
@@ -561,7 +563,7 @@ Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 3. Forward Attestation Results to the Secret Vault, which recomputes the binding input ({{binding-input}}) from its own `server_id`, the Handle, the Target and CEKpub, refuses release unless the Attestation Results report that value from the Evidence, computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub
 4. Return the EncryptedCredentialBundle produced by the Secret Vault
 
-A variant in which the EST Server receives a plaintext secret from the Secret Vault and re-encrypts to CEKpub is possible but discouraged.
+This profile does not permit a variant in which the EST Server receives a plaintext secret and re-encrypts it to CEKpub: origin authentication ({{bundle}}) requires the Secret Vault to produce the container, and re-encryption would make the untrusted conduit its origin and expose the secret to the CAS, which TACRA Goal 10 forbids.
 
 ### Attester Processing {#retrieval-attester}
 
@@ -569,7 +571,7 @@ Upon receiving an EncryptedCredentialBundle, the Attester MUST, before using any
 
 1. Verify the origin of the container under the Secret Vault's trust anchor ({{bundle}}).
 2. Verify that `server_id` and `target` in the associated data equal those it bound into Evidence ({{binding-input}}), and that `handle`, if present, equals the Handle it embedded.
-3. Decrypt with CEKpri and verify that `group_id` and `credential_hint` are the ones it requested.
+3. Decrypt with CEKpri and verify that `credential_hint`, if present in the associated data, is the one it requested. The `group_id` in the associated data is authenticated by the container and names the credential group; the Attester did not choose it and has nothing to compare it against.
 
 A container that fails any of these checks MUST be discarded.
 
@@ -581,7 +583,7 @@ Servers SHOULD reuse HTTP status codes from {{RFC7030}} and a machine-readable e
 * 400 Bad Request: malformed envelope, missing fields
 * 401 Unauthorized: missing/invalid authentication required by deployment policy
 * 403 Forbidden: attestation failed or policy denies enrollment/retrieval
-* 409 Conflict: Freshness Handle replay detected, or `present-epoch` marker has moved
+* 409 Conflict: Freshness Handle replay detected, a `present-nonce` is no longer valid, or a `present-epoch` marker has moved. On any of these the Attester retries `attest-initiate` (Section 5.4 of {{TACRA}}).
 * 415 Unsupported Media Type: unsupported encoding
 * 429 Too Many Requests: rate limiting
 * 500/503: verifier unavailable or internal error
@@ -598,9 +600,9 @@ Furthermore, no effort has been spent to verify the information presented here t
 This is not intended as, and must not be construed to be, a catalog of available implementations or their features.
 Readers are advised to note that other implementations may exist.
 
-* tacra-est {{TACRA-EST-IMPL}}: a reference implementation of this document in Python, by Serhii Nikolaichuk, covering `attest-initiate`, `attest-enroll` and `attest-retrieve` in Passport mode with the JSON envelopes of {{cddl}}, an Attester on AMD SEV-SNP (and a mock), a Verifier for SEV-SNP, a Credential Authority, and a Secret Vault with the HPKE `mode_auth` container. Not covered: Background Check mode, the CMS and COSE containers, Intel TDX and AWS Nitro Attesters. Maturity: prototype, used to produce the examples of {{examples}} and the measurements of {{handle-lifetime}}. Licence: open source. Contact: nikolaichuk.s.f@gmail.com. Last updated September 2026.
+* tacra-est {{TACRA-EST-IMPL}}: a reference implementation of this document in Python, by Serhii Nikolaichuk, covering `attest-initiate`, `attest-enroll` and `attest-retrieve` in Passport mode with the JSON envelopes of {{cddl}}, an Attester on AMD SEV-SNP (and a mock), a Verifier for SEV-SNP, a Credential Authority, and a Secret Vault with the HPKE `mode_auth` container. Not covered: Background Check mode, the CMS and COSE containers, Intel TDX and AWS Nitro Attesters, and every Freshness Kind but `present-nonce`. Maturity: prototype, used to produce the examples of {{examples}} and the measurements of {{handle-lifetime}}. Licence: open source. Contact: nikolaichuk.s.f@gmail.com. Last updated September 2026.
 
-* A second, independent implementation is maintained by the Trustworthy Workload Identity SIG (a Go fork of the GlobalSign EST server), covering the same three resources with an EAT COSE_Sign1 Evidence format and a mock TEE. Both carry the Target and the Credential Type in the `target` and `credential_type` query parameters of `attest-initiate`, and both choose the Credential Acquisition Mode, Enrollment or Retrieval, by the server's policy for the Target (Section 4.4 of {{TACRA}}). Interop between the two confirms the happy path (both use a present-nonce Handle, embed it in Evidence, verify proof of possession and refuse a replayed Handle) and, run against that implementation, reproduces the server-substitution and bundle-substitution cases that {{by-role}} and {{TACRA-EST-IMPL}} describe.
+* A second, independent implementation is maintained by the Trustworthy Workload Identity SIG (a Go fork of the GlobalSign EST server), covering the same three resources with an EAT COSE_Sign1 Evidence format and a mock TEE. Both carry the Target and the Credential Type in the `target` and `credential_type` query parameters of `attest-initiate`, and both choose the Credential Acquisition Mode, Enrollment or Retrieval, by the server's policy for the Target (Section 4.4 of {{TACRA}}). Interop between the two confirms behaviour, not yet the wire format: both use a present-nonce Handle, embed it in Evidence, verify proof of possession and refuse a replayed Handle, and, run against that implementation, reproduce the server-substitution and bundle-substitution cases that {{by-role}} and {{TACRA-EST-IMPL}} describe. Their JSON envelopes still differ in about a dozen places, among them base64 padding, the presence of `server_id`, the shape of the `binding` object and of the Evidence and bundle formats, and which values the Evidence binds. Reconciling the two envelopes, so that the same message validates against both, is future work this document should drive; {{cddl}} is one input to it.
 
 # Security Considerations {#security}
 
@@ -634,8 +636,8 @@ The following lists, for each role of the exchange, what it holds, what it can d
 * Attester: holds CSKpri or CEKpri and the Attesting Environment; can produce Evidence over any value it chooses and can choose its Target. Bounded by the fact that Evidence names the launch measurement and the platform, and that the Credential Authority and the Secret Vault decide by policy.
 * Conduit: holds every message in transit, including CEKpub and the Evidence; can delay, replay and reorder, obtain a Handle from any server, carry a request to a different server, and replace a response. Bounded by the single-use Handle, the Evidence-to-Server and Evidence-to-Target bindings ({{key-binding}}), the origin authentication of the bundle and the Attester's checks ({{bundle}}, {{retrieval-attester}}), and TLS server authentication where the Attester is itself the TLS peer.
 * Verifier: holds reference values and vendor roots; appraises Evidence and reports the binding value, the platform form and the identifiers. It does not decide issuance or release; its results are one input to the Relying Party.
-* Credential Authority: holds its signing key and issuance policy; issues for a CSR. Bounded by recomputing the binding with its own `server_id`, verifying proof of possession, and constraining identities to the attested context.
-* Secret Vault: holds the group's secrets and its origin key; releases to a CEKpub. Bounded by recomputing the binding with CEKpub, authenticating its bundle, and deriving `group_id` from Attestation Results rather than from Evidence.
+* Credential Authority: holds its signing key and issuance policy; issues for a CSR. Bounded by recomputing the binding with its own `server_id` and the Target the Handle was issued for, verifying proof of possession, and constraining identities to the attested context.
+* Secret Vault: holds the group's secrets and its origin key; releases to a CEKpub. Bounded by recomputing the binding with its own `server_id`, the Target the Handle was issued for and CEKpub, authenticating its bundle, and deriving `group_id` from Attestation Results rather than from Evidence.
 
 Which check closes which attack:
 
@@ -643,7 +645,7 @@ Which check closes which attack:
 * Replay of a request: the single-use Handle ({{initiation-response}}); a second use is answered 409.
 * Server substitution, a genuine CSR and Evidence carried to a server the Attester did not choose: the Evidence-to-Server binding; the recomputation fails at every server but the one the Attester is configured to use.
 * Target substitution, a credential obtained at the right server for a Target the Attester did not ask for: the Evidence-to-Target binding; the recomputation fails for every Target but the one the Attester named.
-* Bundle substitution, a container encrypted to CEKpub by someone other than the Vault: origin authentication and the Attester's checks of `server_id` and `handle`.
+* Bundle substitution, a container encrypted to CEKpub by someone other than the Vault: origin authentication and the Attester's checks of `server_id`, `target` and `handle`.
 * Stale Evidence: `expires_in` and the Handle lifetime floor ({{handle-lifetime}}).
 
 The server substitution, the target substitution and the bundle substitution were confirmed to be reachable against the text of -00 and unreachable against this text, in a ProVerif model of the exchange and in a reference implementation of it {{TACRA-EST-IMPL}}; the same model shows that binding `server_id` without the Target leaves the target substitution open.
