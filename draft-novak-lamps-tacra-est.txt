@@ -5,10 +5,10 @@
 Limited Additional Mechanisms for PKIX and SMIME                M. Novak
 Internet-Draft                                   J.P. Morgan Chase & Co.
 Intended status: Informational                             M. Richardson
-Expires: 26 March 2027                          Sandelman Software Works
+Expires: 30 March 2027                          Sandelman Software Works
                                                              H. Birkholz
                                                         Fraunhofer Inst.
-                                                       22 September 2026
+                                                       26 September 2026
 
 
                  Remote Attestation Extensions for EST
@@ -73,7 +73,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 26 March 2027.
+   This Internet-Draft will expire on 30 March 2027.
 
 Copyright Notice
 
@@ -553,7 +553,7 @@ Table of Contents
    *  credential_type (string, OPTIONAL): e.g., x509, wimse-wit
 
    *  credential_hint (string, OPTIONAL): Credential Hint supplied by
-      the Attester; the RATS Relying Party (Secret Vault or Credenital
+      the Attester; the RATS Relying Party (Secret Vault or Credential
       Authority) MAY use it, ignore it, or reject the request
 
 8.2.2.  Evidence-to-CEK Binding
@@ -609,7 +609,7 @@ Table of Contents
    *  COSE_Encrypt0 with a required AEAD suite.
 
    TODO: Ensure that TACRA architecture can carry these and other
-   encryption mechanisms to the Attester in a predicatble format.
+   encryption mechanisms to the Attester in a predictable format.
 
 8.2.5.  Retrieval Server Processing
 
