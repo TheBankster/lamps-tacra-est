@@ -341,7 +341,7 @@ encrypted-credential-bundle = {
     ? handle: bstr,
     ? credential_hint: tstr,
   },
-  ? sender_pub: bstr,          ; identifies the Vault's origin key; the trust anchor is provisioned
+  ? sender_pub: bstr,          ; names the Vault's origin key
 }
 ~~~
 
@@ -604,7 +604,6 @@ This document requests registrations for:
 --- back
 
 # Test Vector for the Binding Input {#test-vector}
-{:numbered="false"}
 
 Enrollment, direct form, SHA-512. The Handle and the CSR are those of an enrollment run on an AMD SEV-SNP guest (Google Cloud, 12 September 2026); the CSR is ECDSA P-256 with subject CN=workload.tacra.example.
 
@@ -632,6 +631,112 @@ SHA-512(binding_input) =
   bb515f3f08c5d1d903e3a9098af603f93cc4c0e1db035f3ec394e511c44824
   9bb840ecd91342168ecfc5ee1ce2c7aa6b3323867927b4377ce4d3fe4683df
   4e5f
+~~~
+
+# Example Exchange {#examples}
+
+Messages of one enrollment and one retrieval as produced by the reference implementation [TACRA-EST-IMPL] with a live AMD SEV-SNP Attester (run 20260926T165938Z). Byte strings longer than 40 characters are shown as their length and SHA-256; the full messages are in the repository.
+
+## Enrollment: AttestationInitiationResponse
+
+~~~ json
+{
+  "acceptable_csk": [
+    "ecdsa-p256-sha256"
+  ],
+  "expires_in": 300,
+  "freshness_kind": "present-nonce",
+  "handle": "mJxsfVWxw84M2ehbhTeTbv5ElUfPzK-LzTcSQPwQTts",
+  "mode": "enroll",
+  "server_id": "https://s1.tacra.example"
+}
+~~~
+
+## Enrollment: AttestedEnrollmentRequest
+
+~~~ json
+{
+  "binding": {
+    "hash": "sha512",
+    "method": "binding-input"
+  },
+  "credential_hint": "workload.tacra.example",
+  "csr": "<222 octets, SHA-256 c7befa8548535d26>",
+  "evidence": {
+    "certs": {
+      "ARK": "<1639 octets, SHA-256 69d063b45344d26a>",
+      "ASK": "<1677 octets, SHA-256 67d303bd3905fd38>",
+      "VCEK": "<1351 octets, SHA-256 5410d5f84d9fac09>"
+    },
+    "chain": "<4602 octets, SHA-256 22e62f8d2c21a156>",
+    "platform_form": "direct",
+    "report": "<1184 octets, SHA-256 fa6d4249b6b60211>",
+    "type": "sev-snp"
+  },
+  "handle": "mJxsfVWxw84M2ehbhTeTbv5ElUfPzK-LzTcSQPwQTts"
+}
+~~~
+
+## Retrieval: AttestationInitiationResponse
+
+~~~ json
+{
+  "acceptable_cek": [
+    "<34 octets, SHA-256 2aed5b1b762cd7a0>"
+  ],
+  "expires_in": 300,
+  "freshness_kind": "present-nonce",
+  "handle": "KkJ7erYJS-5zlbZGXhCCD1t4E5vxg4P3E4n47NZdSZg",
+  "mode": "retrieve",
+  "server_id": "https://s1.tacra.example"
+}
+~~~
+
+## Retrieval: AttestedRetrievalRequest
+
+~~~ json
+{
+  "binding": {
+    "hash": "sha512",
+    "method": "binding-input"
+  },
+  "cek_pub": "<44 octets, SHA-256 d33247baa08e6cd3>",
+  "credential_hint": "workload.tacra.example",
+  "evidence": {
+    "certs": {
+      "ARK": "<1639 octets, SHA-256 69d063b45344d26a>",
+      "ASK": "<1677 octets, SHA-256 67d303bd3905fd38>",
+      "VCEK": "<1351 octets, SHA-256 5410d5f84d9fac09>"
+    },
+    "chain": "<4602 octets, SHA-256 22e62f8d2c21a156>",
+    "platform_form": "direct",
+    "report": "<1184 octets, SHA-256 2786ee3eba863caa>",
+    "type": "sev-snp"
+  },
+  "handle": "KkJ7erYJS-5zlbZGXhCCD1t4E5vxg4P3E4n47NZdSZg"
+}
+~~~
+
+## Retrieval: EncryptedCredentialBundle
+
+~~~ json
+{
+  "aad": {
+    "credential_hint": "workload.tacra.example",
+    "group_id": "663a1ffc68869632... (64 hex digits)",
+    "handle": "KkJ7erYJS-5zlbZGXhCCD1t4E5vxg4P3E4n47NZdSZg",
+    "server_id": "https://s1.tacra.example"
+  },
+  "ciphertext": "<402 octets, SHA-256 5c6adb23205295d5>",
+  "container": "hpke-auth",
+  "enc": "<32 octets, SHA-256 2ea5aa9997797d16>",
+  "sender_pub": "<44 octets, SHA-256 109adcd699923644>",
+  "suite": {
+    "aead": "AES-256-GCM",
+    "kdf": "HKDF-SHA256",
+    "kem": "DHKEM(X25519, HKDF-SHA256)"
+  }
+}
 ~~~
 
 # Acknowledgments
