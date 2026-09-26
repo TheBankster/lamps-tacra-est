@@ -408,8 +408,8 @@ The Attester MUST compare `server_id` with the EST Server its Credential Acquisi
 Producing hardware Evidence is fast but not always available on demand.
 On AMD SEV-SNP, a report is a request to the SNP firmware through the hypervisor, and access to that firmware is "a sequential and synchronous operation"; to protect it, Section 4.1.7 of {{GHCB}} recommends that the hypervisor rate-limit a guest that issues many requests, and defines the answer that tells the guest to retry.
 The Linux guest driver meets that answer by sleeping 2 s and retrying, and stops retrying once 60 s have passed since the first attempt {{LINUX-SEV}}.
-On Google Cloud SEV-SNP guests the limit is reached quickly: in four runs on four hosts, every tenth report requested back to back waited about 10.2 s, five such retries, which holds a guest to about one report per second {{SNP-COST}} {{TACRA-EST-IMPL}}.
-Unthrottled, the report itself took a median of 7.7 ms to 8.2 ms on the three hosts where it was timed alone.
+On every Google Cloud SEV-SNP guest measured, the limit is reached quickly: every tenth report requested back to back waited about 10.2 s, five such retries, which holds a guest to about one report per second {{SNP-COST}} {{TACRA-EST-IMPL}}.
+Unthrottled, the report itself took a median of 7.7 ms to 8.2 ms wherever it was timed alone.
 An Attester that has requested other reports shortly before, for this or any other purpose, can therefore need more than ten seconds to produce the Evidence that carries the Handle, and a Handle valid for less expires while it waits.
 A floor of 60 s covers the longest wait measured for one report, 10.4 s, more than five times over.
 It does not cover the driver's own limit: a report can still succeed at a retry made about 62 s after the first attempt, and a deployment whose Attesters are throttled that long sets a longer lifetime.
