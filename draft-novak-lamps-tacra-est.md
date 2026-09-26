@@ -48,6 +48,9 @@ informative:
   ATTESTATION-FRESHNESS: I-D.ietf-lamps-attestation-freshness
   CSR-ATTEST: I-D.ietf-lamps-csr-attestation
   RFC9266: Channel Binding for TLS 1.3
+  RFC9180: HPKE
+  RFC5652: CMS
+  RFC9052: COSE
   TACRA:
     target: https://TheBankster.github.io/rats-tacra/draft-novak-rats-tacra.html
     title: Trustworthy Acquisition of Credentials via Remote Attestation
@@ -409,9 +412,18 @@ The response MUST be an authenticated-encryption container encrypted to CEKpub. 
 
 Mandatory-to-implement encryption mechanism: The specification MUST choose one baseline.
 
-* CMS EnvelopedData (aligned with EST’s CMS usage), OR
-* HPKE (RFC 9180) with a specific required ciphersuite, or
-* COSE_Encrypt0 with a required AEAD suite.
+* CMS EnvelopedData ({{RFC5652}}, aligned with EST’s CMS usage), OR
+* HPKE ({{RFC9180}}) with a specific required ciphersuite, or
+* COSE_Encrypt0 ({{RFC9052}}) with a required AEAD suite.
+
+Whichever container is chosen, the response MUST authenticate its origin to the Attester.
+CEKpub is not a secret: it travels in Evidence through the EST Client and the EST Server, which are untrusted conduits ({{TACRA}}), so any party that has seen it can produce a well-formed container encrypted to it, and an Attester that decrypts such a container would use whatever key it holds.
+Origin authentication is provided by one of:
+
+* HPKE in `mode_auth` (Section 5.1.3 of {{RFC9180}}), with the Secret Vault's static KEM key as the sender key and `server_id` and `handle` in the `info` parameter, which binds the ciphertext to the sender's identity as that section recommends; or
+* a signature by the Secret Vault over the container and its associated data: for CMS, a SignedData that encloses the EnvelopedData ({{RFC5652}}); for COSE, a COSE_Sign1 over the COSE_Encrypt0 ({{RFC9052}}).
+
+The Attester MUST hold a trust anchor for the Secret Vault's origin key, provisioned as its trust in the Credential Authority is provisioned, which is out of scope for this document.
 
 TODO: Ensure that TACRA architecture can carry these and other encryption mechanisms to the Attester in a predictable format.
 
@@ -425,6 +437,16 @@ Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 4. Return the EncryptedCredentialBundle produced by the Secret Vault
 
 A variant in which the EST Server receives a plaintext secret from the Secret Vault and re-encrypts to CEKpub is possible but discouraged.
+
+### Attester Processing {#retrieval-attester}
+
+Upon receiving an EncryptedCredentialBundle, the Attester MUST, before using any secret it contains:
+
+1. Verify the origin of the container under the Secret Vault's trust anchor ({{bundle}}).
+2. Verify that `server_id` in the associated data equals the `server_id` it bound into Evidence ({{binding-input}}), and that `handle`, if present, equals the Handle it embedded.
+3. Decrypt with CEKpri and verify that `group_id` and `credential_hint` are the ones it requested.
+
+A container that fails any of these checks MUST be discarded.
 
 
 # Error Handling
@@ -456,6 +478,7 @@ Error bodies MUST NOT leak sensitive attestation details. Servers MAY provide a 
 * Shared Signing Key distribution: If the credential bundle includes a private signing key shared across replicas, compromise of one replica compromises the group. This mode SHOULD be restricted to environments where unwrap and key use are strongly protected.
 * Non-Exportability Requirements: Deployments that transport a signing key SHOULD require Evidence to attest that CEKpri is non-exportable and that decryption/unwrapping occurs only within an approved protected environment (e.g., TEE/TPM-sealed key usage). On AMD SEV-SNP and Intel TDX such a claim can only be made by a second Attesting Environment inside the guest, as noted for Key Certification in {{key-binding}}.
 * Attribution: Shared keys eliminate per-instance attribution. If accountability is required, consider per-instance keys with identical identity claims, or a centralized signing service.
+* Bundle substitution: a conduit can return a container produced by a Secret Vault of its choosing, or by anyone who has seen CEKpub. Without origin authentication the Attester cannot tell, and would sign with a key the attacker chose. See {{bundle}} and {{retrieval-attester}}.
 
 ## Common to Both Modes
 
