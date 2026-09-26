@@ -46,6 +46,7 @@ normative:
 informative:
   INTERACTION-MODELS: I-D.ietf-rats-reference-interaction-models
   ATTESTATION-FRESHNESS: I-D.ietf-lamps-attestation-freshness
+  CSR-ATTEST: I-D.ietf-lamps-csr-attestation
   TACRA:
     target: https://TheBankster.github.io/rats-tacra/draft-novak-rats-tacra.html
     title: Trustworthy Acquisition of Credentials via Remote Attestation
@@ -233,6 +234,22 @@ The first leg of both modes is where the Attester initiates Remote Attestation b
 * Request: AttestedRetrievalRequest (Evidence including CEKpub)
 * Success: 200 OK
 * Response: EncryptedCredentialBundle
+
+
+# Relationship to Other LAMPS Work {#relationship}
+
+Two LAMPS documents cover parts of the exchange defined here.
+
+{{ATTESTATION-FRESHNESS}} defines a nonce request and response for certificate management protocols, including an EST resource at `/.well-known/est/nonce` (GET, or POST with `application/est-attestation-freshness+json`) whose response carries a `nonce` of 8 to 64 bytes and an OPTIONAL `expiry` in seconds (Section 5.1 of {{ATTESTATION-FRESHNESS}}).
+`attest-initiate` ({{attest-initiate}}) covers the same first leg for the `present-nonce` Freshness Kind and, in addition, returns the Freshness Kind itself, the Credential Acquisition Mode, the identity of the server the Handle was issued for ({{initiation-response}}), and the acceptable CSK or CEK algorithms, none of which the nonce resource carries.
+A `present-nonce` Handle is a nonce in the sense of {{ATTESTATION-FRESHNESS}}, and the requirement of Section 5.1 of that document that the server associate the nonce with the subsequent request applies to `attest-initiate` and its second leg alike.
+An EST Server MAY offer both resources.
+
+{{CSR-ATTEST}} conveys Evidence inside the CSR, in the `id-aa-attestation` attribute, and makes the CA/RA responsible for validating the binding between the attestations and the CSR's public key (Section 6.1 of {{CSR-ATTEST}}).
+This document conveys Evidence beside the CSR, in the AttestedEnrollmentRequest envelope, and binds the two through the Evidence itself ({{key-binding}}): the Evidence is produced over a digest of the finished CSR, so it cannot travel inside it.
+The two are not exclusive.
+An Attester whose platform can also make claims about the CSR key MAY place such attestations in the CSR per {{CSR-ATTEST}}, and a Credential Authority MAY require either or both.
+Carrying Evidence beside the CSR is required in any case for Retrieval mode, which has no CSR.
 
 
 # Media Types and Encodings
