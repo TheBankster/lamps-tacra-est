@@ -63,6 +63,16 @@ informative:
     title: Trustworthy Workload Identity (TWI) Special Interest Group — Definitions
     author:
       org: Confidential Computing Consortium Trustworthy Workload Identity SIG
+  AMD-SNP-ABI:
+    target: https://www.amd.com/content/dam/amd/en/documents/epyc-technical-docs/specifications/56860.pdf
+    title: SEV Secure Nested Paging Firmware ABI Specification (Publication 56860)
+    author:
+      org: Advanced Micro Devices
+  TDX-ABI:
+    target: https://www.intel.com/content/www/us/en/developer/tools/trust-domain-extensions/documentation.html
+    title: Intel Trust Domain Extensions (Intel TDX) Module Architecture Application Binary Interface (ABI) Reference Specification
+    author:
+      org: Intel Corporation
   TWISIGReq:
     -: TWISIGReq
     target: https://github.com/confidential-computing/twi/blob/main/TWI_Requirements.md
@@ -311,7 +321,7 @@ At least one Evidence-to-CSR mechanism MUST be produced by the Attester and veri
 
 * CSR Hash: Evidence contains H(csr_der)
 * Public Key Thumbprint: Evidence contains a thumbprint of the CSR SubjectPublicKeyInfo
-* Key Certification: Evidence states that the CSR key is resident in protected hardware/TEE and matches the CSR public key
+* Key Certification: Evidence states that the CSR key is resident in protected hardware/TEE and matches the CSR public key. This mechanism is available only from an Attesting Environment that makes claims about keys, such as a TPM or an enclave key-attestation service. The hardware Evidence of a confidential VM does not: an AMD SEV-SNP attestation report {{AMD-SNP-ABI}} and an Intel TDX TDREPORT {{TDX-ABI}} carry no claim about keys the guest generates (the SEV-SNP report's key digests describe the launch identity keys, and its KEY_INFO field the report's own signing key), and the only guest-chosen content of each is a 64-octet field. On such platforms Key Certification can come only from a second Attesting Environment inside the guest, such as a vTPM or measured software, whose own measurement is then part of what the Verifier appraises.
 
 The binding object MUST name the method and any identifiers (e.g., hash algorithm).
 
@@ -422,7 +432,7 @@ Error bodies MUST NOT leak sensitive attestation details. Servers MAY provide a 
 ## Specific to Attested Retrieval Mode
 
 * Shared Signing Key distribution: If the credential bundle includes a private signing key shared across replicas, compromise of one replica compromises the group. This mode SHOULD be restricted to environments where unwrap and key use are strongly protected.
-* Non-Exportability Requirements: Deployments that transport a signing key SHOULD require Evidence to attest that CEKpri is non-exportable and that decryption/unwrapping occurs only within an approved protected environment (e.g., TEE/TPM-sealed key usage).
+* Non-Exportability Requirements: Deployments that transport a signing key SHOULD require Evidence to attest that CEKpri is non-exportable and that decryption/unwrapping occurs only within an approved protected environment (e.g., TEE/TPM-sealed key usage). On AMD SEV-SNP and Intel TDX such a claim can only be made by a second Attesting Environment inside the guest, as noted for Key Certification in {{key-binding}}.
 * Attribution: Shared keys eliminate per-instance attribution. If accountability is required, consider per-instance keys with identical identity claims, or a centralized signing service.
 
 ## Common to Both Modes
