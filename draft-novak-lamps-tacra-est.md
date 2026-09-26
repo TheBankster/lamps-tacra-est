@@ -69,15 +69,29 @@ informative:
     author:
       org: Confidential Computing Consortium Trustworthy Workload Identity SIG
   AMD-SNP-ABI:
-    target: https://www.amd.com/content/dam/amd/en/documents/epyc-technical-docs/specifications/56860.pdf
-    title: SEV Secure Nested Paging Firmware ABI Specification (Publication 56860)
+    target: https://docs.amd.com/api/khub/documents/NJQrpYY7KZGtlxDEdBGtzA/content
+    title: SEV Secure Nested Paging Firmware ABI Specification, Publication 56860, Revision 1.59
     author:
       org: Advanced Micro Devices
+    date: August 2026
   TDX-ABI:
-    target: https://www.intel.com/content/www/us/en/developer/tools/trust-domain-extensions/documentation.html
-    title: Intel Trust Domain Extensions (Intel TDX) Module Architecture Application Binary Interface (ABI) Reference Specification
+    target: https://cdrdv2.intel.com/v1/dl/getContent/733579
+    title: Intel TDX Module Application Binary Interface (ABI) Reference Specification, 348551-008US
     author:
       org: Intel Corporation
+    date: May 2026
+  TDX-BASE:
+    target: https://cdrdv2.intel.com/v1/dl/getContent/733575
+    title: Intel TDX Module Base Architecture Specification, 348549-008US
+    author:
+      org: Intel Corporation
+    date: May 2026
+  TDX-DCAP:
+    target: https://download.01.org/intel-sgx/latest/dcap-latest/linux/docs/Intel_TDX_DCAP_Quoting_Library_API.pdf
+    title: Intel Trust Domain Extensions (Intel TDX) Data Center Attestation Primitives (DCAP) - Quote Library API
+    author:
+      org: Intel Corporation
+    date: September 2026
   SNP-COST:
     target: https://github.com/nikolaichuk7/hatls/blob/v0.3.0/docs/RUNTIME-COST.md
     title: What runtime attestation costs, measured - SEV-SNP against TDX, and end to end (evidence directory runtime-cost-20260922T153300Z)
@@ -410,7 +424,7 @@ At least one Evidence-to-CSR mechanism MUST be produced by the Attester and veri
 
 * CSR Hash: Evidence contains H(csr_der)
 * Public Key Thumbprint: Evidence contains a thumbprint of the CSR SubjectPublicKeyInfo
-* Key Certification: Evidence states that the CSR key is resident in protected hardware/TEE and matches the CSR public key. This mechanism is available only from an Attesting Environment that makes claims about keys, such as a TPM or an enclave key-attestation service. The hardware Evidence of a confidential VM does not: an AMD SEV-SNP attestation report {{AMD-SNP-ABI}} and an Intel TDX TDREPORT {{TDX-ABI}} carry no claim about keys the guest generates (the SEV-SNP report's key digests describe the launch identity keys, and its KEY_INFO field the report's own signing key), and the only guest-chosen content of each is a 64-octet field. On such platforms Key Certification can come only from a second Attesting Environment inside the guest, such as a vTPM or measured software, whose own measurement is then part of what the Verifier appraises.
+* Key Certification: Evidence states that the CSR key is resident in protected hardware/TEE and matches the CSR public key. This mechanism is available only from an Attesting Environment that makes claims about keys, such as a TPM or an enclave key-attestation service. The hardware Evidence of a confidential VM does not: an AMD SEV-SNP attestation report (Table 27 of {{AMD-SNP-ABI}}) and an Intel TDX TDREPORT (Tables 3.46 to 3.52 of {{TDX-ABI}}) carry no claim about keys the guest generates. The SEV-SNP report's ID_KEY_DIGEST and AUTHOR_KEY_DIGEST describe the keys that signed the launch identity block, and its SIGNING_KEY field names the key that signed the report. The only free-form content the guest chooses is a 64-octet field, REPORT_DATA and REPORTDATA respectively; on TDX the guest can also extend the run-time measurement registers RTMR0 to RTMR3 (Section 5.5.10 of {{TDX-ABI}}) and assign signer-based identities (Table 12.1 of {{TDX-BASE}}), neither of which states where a key resides. On such platforms Key Certification can come only from a second Attesting Environment inside the guest, such as a vTPM or measured software, whose own measurement is then part of what the Verifier appraises.
 
 The binding object MUST name the method and any identifiers (e.g., hash algorithm).
 
@@ -418,9 +432,9 @@ The binding object MUST name the method and any identifiers (e.g., hash algorith
 
 How the binding value reaches the Evidence is platform-specific, and producing it is the responsibility of the Platform Plug-in of {{TACRA}}:
 
-* Direct: the Attesting Environment writes the value into a guest-chosen field of the hardware Evidence, such as REPORT_DATA of an AMD SEV-SNP report, REPORTDATA of an Intel TDX quote, or the user data of an AWS Nitro attestation document.
+* Direct: the Attesting Environment writes the value into a guest-chosen field of the hardware Evidence, such as REPORT_DATA of an AMD SEV-SNP report (Table 26 of {{AMD-SNP-ABI}}: guest-provided, not interpreted by the firmware), REPORTDATA of an Intel TDX quote (the TD Quote Body of {{TDX-DCAP}}), or the user data of an AWS Nitro attestation document.
 * Nested: a lower layer owns that field, and the value travels through a nested attestation whose report data the guest controls, such as a vTPM quote. On Azure confidential VMs the paravisor fixes REPORT_DATA at boot, so the SEV-SNP report itself cannot carry a per-request value.
-* Provider-scoped: the Evidence is signed by a key shared across a provider's fleet and identifies the provider's key domain rather than a machine. On AWS SEV-SNP instances in shared tenancy the report is signed by a VLEK and its CHIP_ID is zero.
+* Provider-scoped: the Evidence is signed by a key shared across a provider's fleet and identifies the provider's key domain rather than a machine. On AWS SEV-SNP instances in shared tenancy the report is signed by a VLEK and its CHIP_ID is zero, which the hypervisor selects with MASK_CHIP_ID in SNP_CONFIG (Section 8.7, Table 51 of {{AMD-SNP-ABI}}). A report produced with MASK_CHIP_KEY set is not signed at all (Section 3.6 of {{AMD-SNP-ABI}}) and is not Evidence in any of these forms.
 
 An EST Server and a Credential Authority MUST NOT assume the direct form.
 The Verifier reports in the Attestation Results which form it appraised, so that a Credential Authority whose policy requires a per-machine identity can refuse provider-scoped Evidence.
