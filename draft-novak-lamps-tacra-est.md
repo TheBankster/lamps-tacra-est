@@ -315,6 +315,17 @@ At least one Evidence-to-CSR mechanism MUST be produced by the Attester and veri
 
 The binding object MUST name the method and any identifiers (e.g., hash algorithm).
 
+### Platform Forms of the Binding {#platform-forms}
+
+How the binding value reaches the Evidence is platform-specific, and producing it is the responsibility of the Platform Plug-in of {{TACRA}}:
+
+* Direct: the Attesting Environment writes the value into a guest-chosen field of the hardware Evidence, such as REPORT_DATA of an AMD SEV-SNP report, REPORTDATA of an Intel TDX quote, or the user data of an AWS Nitro attestation document.
+* Nested: a lower layer owns that field, and the value travels through a nested attestation whose report data the guest controls, such as a vTPM quote. On Azure confidential VMs the paravisor fixes REPORT_DATA at boot, so the SEV-SNP report itself cannot carry a per-request value.
+* Provider-scoped: the Evidence is signed by a key shared across a provider's fleet and identifies the provider's key domain rather than a machine. On AWS SEV-SNP instances in shared tenancy the report is signed by a VLEK and its CHIP_ID is zero.
+
+An EST Server and a Credential Authority MUST NOT assume the direct form.
+The Verifier reports in the Attestation Results which form it appraised, so that a Credential Authority whose policy requires a per-machine identity can refuse provider-scoped Evidence.
+
 ### Enrollment Server Processing
 
 Upon receiving AttestedEnrollmentRequest, the EST Server MUST:
