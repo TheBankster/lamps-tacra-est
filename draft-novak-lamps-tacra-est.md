@@ -77,6 +77,13 @@ informative:
     title: Intel Trust Domain Extensions (Intel TDX) Module Architecture Application Binary Interface (ABI) Reference Specification
     author:
       org: Intel Corporation
+  SNP-COST:
+    target: https://github.com/nikolaichuk7/hatls/blob/v0.3.0/docs/RUNTIME-COST.md
+    title: What runtime attestation costs, measured - SEV-SNP against TDX, and end to end (evidence directory runtime-cost-20260922T153300Z)
+    author:
+      - ins: S. Nikolaichuk
+        name: Serhii Nikolaichuk
+    date: September 2026
   TWISIGReq:
     -: TWISIGReq
     target: https://github.com/confidential-computing/twi/blob/main/TWI_Requirements.md
@@ -287,7 +294,7 @@ Fields:
     * `present-epoch`: current epoch marker as Freshness Handle; embed it in Evidence; retry `attest-initiate` if the epoch moved
 * `handle` (bytes): Freshness Handle - REQUIRED for `present-nonce` and `present-epoch`; MUST be absent otherwise ({{attest-initiate}})
 * `server_id` (string, REQUIRED): the identity of the EST Server on whose behalf the response is given, as the Attester binds it into Evidence ({{binding-input}}): the origin of the EST Server's URI (scheme, host and port), unless a deployment profile specifies another identifier. When `attest-initiate` is completed locally, `server_id` is the configured identity of the intended EST Server.
-* `expires_in` (integer, OPTIONAL): seconds until a `present-nonce` or `present-epoch` Handle is no longer valid
+* `expires_in` (integer, OPTIONAL): seconds until a `present-nonce` or `present-epoch` Handle is no longer valid. A Handle originator SHOULD NOT set `expires_in` below 60; see {{handle-lifetime}}.
 * `max_age` (integer, OPTIONAL): for `absent-timestamp`, the maximum Evidence age in seconds acceptable to the Verifier or Relying Party
 * `mode` (string, REQUIRED): `enroll` or `retrieve`
 * `acceptable_cek` (array, only when `mode` is `retrieve`): acceptable CEK algorithms/suites
@@ -296,6 +303,13 @@ Fields:
 The Freshness Handle originator MUST ensure `present-nonce` uniqueness and MUST correlate the second-leg request with the Handle from this `attest-initiate`.
 The Verifier appraises whether Evidence is bound to a still-valid Freshness Handle.
 The Attester MUST compare `server_id` with the Target it named in Initiate-Credential-Acquisition (Section 5.1 of {{TACRA}}) and MUST NOT produce Evidence if they differ.
+
+### Handle Lifetime {#handle-lifetime}
+
+Producing hardware Evidence is fast but not always available on demand.
+Measured on a Google Cloud AMD SEV-SNP guest, a report took 7.7 ms (median of 45 consecutive requests), but every tenth request stalled for about 10.2 s, because the host throttles guest requests and the Linux guest driver retries every 2 s for up to 60 s before failing {{SNP-COST}}.
+An Attester that also attests for other purposes can therefore need more than ten seconds to produce the Evidence that carries the Handle.
+A Handle valid for a few seconds fails such an Attester about one time in ten; 60 s covers one stall with margin, and the 600 s of the example in {{ATTESTATION-FRESHNESS}} is adequate.
 
 
 # Attested Credential Acquisition Modes
