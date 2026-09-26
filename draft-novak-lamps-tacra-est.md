@@ -557,6 +557,8 @@ Readers are advised to note that other implementations may exist.
 
 * tacra-est {{TACRA-EST-IMPL}}: a reference implementation of this document in Python, by Serhii Nikolaichuk, covering `attest-initiate`, `attest-enroll` and `attest-retrieve` in Passport mode with the JSON envelopes of {{cddl}}, an Attester on AMD SEV-SNP (and a mock), a Verifier for SEV-SNP, a Credential Authority, and a Secret Vault with the HPKE `mode_auth` container. Not covered: Background Check mode, the CMS and COSE containers, Intel TDX and AWS Nitro Attesters. Maturity: prototype, used to produce the examples of {{examples}} and the measurements of {{handle-lifetime}}. Licence: open source. Contact: nikolaichuk.s.f@gmail.com. Last updated September 2026.
 
+* A second, independent implementation is maintained by the Trustworthy Workload Identity SIG (a Go fork of the GlobalSign EST server), covering the same three resources with an EAT COSE_Sign1 Evidence format and a mock TEE. Interop between the two confirms the happy path (both use a present-nonce Handle, embed it in Evidence, verify proof of possession and refuse a replayed Handle) and, run against that implementation, reproduces the server-substitution and bundle-substitution cases that Section 11.4 and {{TACRA-EST-IMPL}} describe.
+
 # Security Considerations {#security}
 
 ## Specific to Attested Enrollment Mode
