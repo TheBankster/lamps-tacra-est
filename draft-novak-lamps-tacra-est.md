@@ -41,6 +41,7 @@ author:
 
 normative:
   RFC7030: EST
+  RFC8610: CDDL
   RFC9334: RATS
 
 informative:
@@ -94,6 +95,11 @@ informative:
       org: Intel Corporation
     date: September 2026
   TACRA-EST-IMPL:
+    target: https://github.com/TWI-Unified-Model/tacra
+    title: TACRA joint implementation
+    author:
+      org: Confidential Computing Consortium Trustworthy Workload Identity SIG
+  TACRA-EST-REF:
     target: https://github.com/nikolaichuk7/tacra-est
     title: tacra-est - a reference implementation, ProVerif model and hardware measurements for draft-novak-lamps-tacra-est
     author:
@@ -297,7 +303,7 @@ Evidence blobs are opaque byte strings.
 
 ## Envelope Definitions {#cddl}
 
-The envelopes are defined in CDDL; in the JSON encoding, `bstr` members carry the unpadded base64url encoding of the octets, as in Section 5.1 of {{ATTESTATION-FRESHNESS}}.
+The envelopes are defined in CDDL ({{RFC8610}}); in the JSON encoding, `bstr` members carry the unpadded base64url encoding of the octets, as in Section 5.1 of {{ATTESTATION-FRESHNESS}}.
 
 ~~~ cddl
 attestation-initiation-response = {
@@ -401,7 +407,7 @@ When `attest-initiate` is completed locally, all of it is held.
 ### Handle Lifetime {#handle-lifetime}
 
 Producing hardware Evidence can be delayed: a platform may rate-limit attestation requests, so an Attester can wait several seconds for the report that carries the Handle.
-A Handle originator SHOULD NOT set `expires_in` below 60 s; the measurements that motivate the value are in {{TACRA-EST-IMPL}}.
+A Handle originator SHOULD NOT set `expires_in` below 60 s; the measurements that motivate the value are in {{TACRA-EST-REF}}.
 
 
 # Attested Credential Acquisition Modes
@@ -415,7 +421,10 @@ Fields:
 * freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
 * target (string, REQUIRED): the Target; MUST equal the `target` of the preceding `attest-initiate` (Section 5.2 of {{TACRA}})
 * credential_type (string, REQUIRED): the Credential Type; MUST equal the `credential_type` of the preceding `attest-initiate` (Section 5.2 of {{TACRA}})
-* handle (bytes): the freshness element - REQUIRED unless `freshness_kind` is `absent-none`, and absent then: the Freshness Handle for `present-nonce` and `present-epoch`, the locally held epoch marker for `absent-epoch`, and, for `absent-timestamp`, the Attester's timestamp as an 8-octet big-endian unsigned count of seconds since 1970-01-01T00:00:00Z (the NumericDate of {{RFC7519}}, as an integer). When it is a Handle returned by `attest-initiate`, it MUST equal that Handle.
+* handle (bytes): the freshness element. It is absent when `freshness_kind` is `absent-none`, and REQUIRED otherwise:
+  * for `present-nonce` and `present-epoch`, the Freshness Handle; when it was returned by `attest-initiate`, it MUST equal that Handle;
+  * for `absent-epoch`, the epoch marker the Attester holds;
+  * for `absent-timestamp`, the Attester's timestamp: an 8-octet big-endian unsigned count of seconds since 1970-01-01T00:00:00Z (the NumericDate of {{RFC7519}}, as an integer).
 * csr (bytes, REQUIRED): DER-encoded PKCS#10 CSR
 * evidence (bytes, REQUIRED): opaque; MUST carry the binding input of {{binding-input}}, which meets the requirements of {{key-binding}}
 * profile (string, OPTIONAL): identifies the format of `evidence`; one of the `acceptable_evidence` values when those were returned
@@ -454,12 +463,12 @@ How the binding value reaches the Evidence is platform-specific, and producing i
 * Nested: a lower layer owns that field, and the value travels through a nested attestation whose report data the guest controls, such as a vTPM quote. On Azure confidential VMs the paravisor fixes REPORT_DATA at boot, so the SEV-SNP report itself cannot carry a per-request value.
 * Provider-scoped: the Evidence is signed by a key shared across a provider's fleet and identifies the provider's key domain rather than a machine. On AWS SEV-SNP instances in shared tenancy the report is signed by a VLEK and its CHIP_ID is zero, which the hypervisor selects with MASK_CHIP_ID in SNP_CONFIG (Section 8.7, Table 51 of {{AMD-SNP-ABI}}). A report produced with MASK_CHIP_KEY set is not signed at all (Section 3.6 of {{AMD-SNP-ABI}}) and is not Evidence in any of these forms.
 
-An EST Server and a Credential Authority MUST NOT assume the direct form.
-The Verifier reports in the Attestation Results which form it appraised, so that a Credential Authority whose policy requires a per-machine identity can refuse provider-scoped Evidence.
+An EST Server and a Credential Authority MUST NOT assume the Direct form.
+The Verifier reports in the Attestation Results which form it appraised, so that a Credential Authority whose policy requires a per-machine identity can refuse Provider-scoped Evidence.
 
 ### Binding Input {#binding-input}
 
-The Evidence carries the bindings of {{key-binding}} as one digest of the following octet string, in a field whose content the Attester chooses: in the direct form of {{platform-forms}}, that of the hardware Evidence; in the nested form, that of the nested attestation. `len32(x)` is the length of `x` in octets as a 32-bit big-endian unsigned integer:
+The Evidence carries the bindings of {{key-binding}} as one digest of the following octet string, in a field whose content the Attester chooses: in the Direct form of {{platform-forms}}, that of the hardware Evidence; in the nested form, that of the nested attestation. `len32(x)` is the length of `x` in octets as a 32-bit big-endian unsigned integer:
 
 ~~~
 binding_input = len32(handle)  || handle
@@ -494,7 +503,10 @@ The Credential Authority MUST NOT mint identities (e.g., DNS names) beyond polic
 Fields:
 
 * freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
-* handle (bytes): the freshness element - REQUIRED unless `freshness_kind` is `absent-none`, and absent then: the Freshness Handle for `present-nonce` and `present-epoch`, the locally held epoch marker for `absent-epoch`, and, for `absent-timestamp`, the Attester's timestamp as an 8-octet big-endian unsigned count of seconds since 1970-01-01T00:00:00Z (the NumericDate of {{RFC7519}}, as an integer). When it is a Handle returned by `attest-initiate`, it MUST equal that Handle.
+* handle (bytes): the freshness element. It is absent when `freshness_kind` is `absent-none`, and REQUIRED otherwise:
+  * for `present-nonce` and `present-epoch`, the Freshness Handle; when it was returned by `attest-initiate`, it MUST equal that Handle;
+  * for `absent-epoch`, the epoch marker the Attester holds;
+  * for `absent-timestamp`, the Attester's timestamp: an 8-octet big-endian unsigned count of seconds since 1970-01-01T00:00:00Z (the NumericDate of {{RFC7519}}, as an integer).
 * target (string, REQUIRED): the Target; MUST equal the `target` of the preceding `attest-initiate` (Section 5.3 of {{TACRA}})
 * credential_type (string, REQUIRED): the Credential Type, e.g., x509, wimse-wit; MUST equal the `credential_type` of the preceding `attest-initiate` (Section 5.3 of {{TACRA}})
 * cek_pub (bytes, REQUIRED): DER-encoded SubjectPublicKeyInfo of CEKpub
@@ -590,9 +602,9 @@ Furthermore, no effort has been spent to verify the information presented here t
 This is not intended as, and must not be construed to be, a catalog of available implementations or their features.
 Readers are advised to note that other implementations may exist.
 
-* tacra-est {{TACRA-EST-IMPL}}: a reference implementation of this document in Python, by Serhii Nikolaichuk, covering `attest-initiate`, `attest-enroll` and `attest-retrieve` in Passport mode with the JSON envelopes of {{cddl}}, all five Freshness Kinds, `attest-initiate` completed locally, an Attester on AMD SEV-SNP (and a mock), a Verifier for SEV-SNP, a Credential Authority, and a Secret Vault with the HPKE `mode_auth` container. Not covered: Background Check mode, the CMS and COSE containers, and Intel TDX and AWS Nitro Attesters. Maturity: prototype, used to produce the examples of {{examples}} and the measurements behind {{handle-lifetime}}. Licence: open source. Contact: nikolaichuk.s.f@gmail.com. Last updated September 2026.
+* tacra-est {{TACRA-EST-REF}}: a reference implementation of this document in Python, by Serhii Nikolaichuk, covering `attest-initiate`, `attest-enroll` and `attest-retrieve` in Passport mode with the JSON envelopes of {{cddl}}, all five Freshness Kinds, `attest-initiate` completed locally, an Attester on AMD SEV-SNP (and a mock), a Verifier for SEV-SNP, a Credential Authority, and a Secret Vault with the HPKE `mode_auth` container. Not covered: Background Check mode, the CMS and COSE containers, and Intel TDX and AWS Nitro Attesters. Maturity: prototype, used to produce the examples of {{examples}} and the measurements behind {{handle-lifetime}}. Licence: open source. Contact: nikolaichuk.s.f@gmail.com. Last updated September 2026.
 
-* A second, independent implementation is maintained by the Trustworthy Workload Identity SIG (a Go fork of the GlobalSign EST server), covering the same three resources with an EAT COSE_Sign1 Evidence format and a mock TEE. Both carry the Target and the Credential Type in the `target` and `credential_type` query parameters of `attest-initiate`, and both choose the Credential Acquisition Mode, Enrollment or Retrieval, by the server's policy for the Target (Section 4.4 of {{TACRA}}). Interop between the two confirms behaviour, not yet the wire format: both use a present-nonce Handle, embed it in Evidence, verify proof of possession and refuse a replayed Handle, and, run against that implementation, reproduce the key-substitution and bundle-substitution cases that {{by-role}} and {{TACRA-EST-IMPL}} describe. Their JSON envelopes still differ in about a dozen places, among them base64 padding, the presence of the RRP identifier, the shape of the `binding` object and of the Evidence and bundle formats, and which values the Evidence binds. Reconciling the two envelopes, so that the same message validates against both, is future work this document should drive; {{cddl}} is one input to it.
+* A second, independent implementation is maintained by the Trustworthy Workload Identity SIG {{TACRA-EST-IMPL}} (a Go fork of the GlobalSign EST server), covering the same three resources with an EAT COSE_Sign1 Evidence format and a mock TEE. Both carry the Target and the Credential Type in the `target` and `credential_type` query parameters of `attest-initiate`, and both choose the Credential Acquisition Mode, Enrollment or Retrieval, by the server's policy for the Target (Section 4.4 of {{TACRA}}). Interop between the two confirms behaviour, not yet the wire format: both use a present-nonce Handle, embed it in Evidence, verify proof of possession and refuse a replayed Handle, and, run against that implementation, reproduce the key-substitution and bundle-substitution cases that {{by-role}} and {{TACRA-EST-REF}} describe. Their JSON envelopes still differ in about a dozen places, among them base64 padding, the presence of the RRP identifier, the shape of the `binding` object and of the Evidence and bundle formats, and which values the Evidence binds. Reconciling the two envelopes, so that the same message validates against both, is future work this document should drive; {{cddl}} is one input to it.
 
 # Security Considerations {#security}
 
@@ -600,9 +612,9 @@ Readers are advised to note that other implementations may exist.
 
 * Key Substitution: attestation success is not sufficient without Evidence-to-CSR binding and PoP
 * Identity Over-Issuance: Credential Authority policy must constrain subject/SAN to the attested identity context
-* RRP substitution by the conduit: without the Evidence-to-RRP binding, the conduit can carry a genuine CSR and Evidence to a different Credential Authority, which would then certify the Attester's attested identity although the Evidence was produced for another. The RRP identifier in the binding input closes this when the Attester holds the identifier. When the identifier comes from the `attest-initiate` response, the binding keeps the Evidence to one RRP, but the CAS chooses which; the ProVerif model and the drills of {{TACRA-EST-IMPL}} show both. The same consideration applies to Retrieval ({{retrieval-attester}}).
+* RRP substitution by the conduit: without the Evidence-to-RRP binding, the conduit can carry a genuine CSR and Evidence to a different Credential Authority, which would then certify the Attester's attested identity although the Evidence was produced for another. The RRP identifier in the binding input closes this when the Attester holds the identifier. When the identifier comes from the `attest-initiate` response, the binding keeps the Evidence to one RRP, but the CAS chooses which; the ProVerif model and the drills of {{TACRA-EST-REF}} show both. The same consideration applies to Retrieval ({{retrieval-attester}}).
 * Target substitution by the conduit: the conduit initiates, at the EST Server the Attester intends, for a Target of its own choosing, and presents the Attester's request under that Target; without the Evidence-to-Target binding the Credential Authority issues, or the Secret Vault releases, a credential for a Target the Attester did not ask for. The Target in the binding input closes this. Binding the RRP identifier alone does not: the request then goes to the right RRP with the wrong Target.
-* Linking identity and proof of possession: Section 3.5 of {{RFC7030}} links the two by placing the tls-unique value of the TLS session in the CSR's challenge-password. That mechanism is not available here: tls-unique is not defined for TLS 1.3 ({{RFC9266}}), and the TLS peer of the EST Server is the EST Client, which SHOULD be outside the Attester's trust boundary ({{TACRA}}). The bindings of {{key-binding}} take its place. Where the Attester is itself the EST Client, it MAY additionally place the tls-exporter value of {{RFC9266}} in the challenge-password, which is the TLS 1.3 form of Section 3.5 of {{RFC7030}}.
+* Linking identity and proof of possession: Section 3.5 of {{RFC7030}} links the two by placing the tls-unique value of the TLS session in the CSR's challenge-password. That mechanism is not available here: tls-unique is not defined for TLS 1.3 ({{RFC9266}}), and the TLS peer of the EST Server is the EST Client, which MUST be outside the Attester's trust boundary, since it is not attested as part of the Attester ({{TACRA}}). The bindings of {{key-binding}} take its place.
 
 ## Specific to Attested Retrieval Mode
 
@@ -614,7 +626,7 @@ Readers are advised to note that other implementations may exist.
 ## Common to Both Modes
 
 * Freshness: a nonce Handle MAY come from the Verifier or the Relying Party; a timestamp from the Attester's clock; an epoch marker from a local hold or a returned Handle (Section 10 of {{RFC9334}}). Evidence MUST be bound as required by the kind from `attest-initiate`. The originator MUST reject `present-nonce` reuse and a stale `present-epoch`; the RRP MUST reject an `absent-epoch` marker that is not current and an `absent-timestamp` outside `max_age`.
-* Freshness that is not single-use: `present-epoch`, `absent-epoch` and `absent-timestamp` Evidence, and a Handle that more than one RRP accepts, can be presented again while the epoch or `max_age` lasts. Within that time the same request is accepted again by the same RRP, and only the RRP identifier in the binding input keeps it from being accepted by another ({{TACRA-EST-IMPL}}). A deployment that needs single use chooses `present-nonce`.
+* Freshness that is not single-use: `present-epoch`, `absent-epoch` and `absent-timestamp` Evidence, and a Handle that more than one RRP accepts, can be presented again while the epoch or `max_age` lasts. Within that time the same request is accepted again by the same RRP, and only the RRP identifier in the binding input keeps it from being accepted by another ({{TACRA-EST-REF}}). A deployment that needs single use chooses `present-nonce`.
 * An `absent-timestamp` is only as fresh as the Attester's clock. Where the host can influence that clock, as it can the clock of a confidential VM's guest unless the platform protects it, a deployment uses `present-nonce` or a protected time source.
 * The channel from EST Server to Verifier MUST provide integrity, authenticity, and replay protection.
 * The EST Server SHOULD enforce size and rate limits on Evidence.
@@ -640,7 +652,7 @@ Which check closes which attack:
 * Bundle substitution, a container encrypted to CEKpub by someone other than the Vault: origin authentication and the Attester's checks of `rrp_id`, `target` and `handle`.
 * Stale Evidence: `expires_in` and the Handle lifetime floor ({{handle-lifetime}}); `max_age` for `absent-timestamp`.
 
-The RRP substitution, the target substitution and the bundle substitution were confirmed to be reachable against the text of -00 and unreachable against this text, in a ProVerif model of the exchange and in a reference implementation of it {{TACRA-EST-IMPL}}. The same model shows that binding the RRP identifier without the Target leaves the target substitution open; that an identifier taken from the `attest-initiate` response keeps the Evidence to one RRP without making it the intended one; and that with freshness not tied to one RRP's session (an epoch, a Handle that several RRPs accept, a timestamp), the same Evidence is accepted by two RRPs unless an RRP identifier is bound.
+The RRP substitution, the target substitution and the bundle substitution were confirmed to be reachable against the text of -00 and unreachable against this text, in a ProVerif model of the exchange and in a reference implementation of it {{TACRA-EST-REF}}. The same model shows that binding the RRP identifier without the Target leaves the target substitution open; that an identifier taken from the `attest-initiate` response keeps the Evidence to one RRP without making it the intended one; and that with freshness not tied to one RRP's session (an epoch, a Handle that several RRPs accept, a timestamp), the same Evidence is accepted by two RRPs unless an RRP identifier is bound.
 
 
 # IANA Considerations {#iana}
@@ -659,7 +671,7 @@ This document requests registrations for:
 
 # Test Vector for the Binding Input {#test-vector}
 
-Enrollment, direct form, SHA-512. The values are those of the enrollment in {{examples}} (run 20260930T172002Z); the SHA-512 digest of binding_input equals REPORT_DATA of the attestation report in that Evidence. The CSR is ECDSA P-256 with subject CN=workload.tacra.example.
+Enrollment, Direct form, SHA-512. The values are those of the enrollment in {{examples}} (run 20260930T172002Z); the SHA-512 digest of binding_input equals REPORT_DATA of the attestation report in that Evidence. The CSR is ECDSA P-256 with subject CN=workload.tacra.example.
 
 ~~~
 handle (32 octets) =
@@ -693,7 +705,7 @@ SHA-512(binding_input) =
 
 # Example Exchange {#examples}
 
-Messages of two enrollments, with `present-nonce` and with `absent-timestamp`, and one retrieval, as produced by the reference implementation {{TACRA-EST-IMPL}} with a live AMD SEV-SNP Attester (run 20260930T172002Z, code d3234a1f2b3b). Byte strings longer than 40 characters are shown as their length and SHA-256; the full messages are in the repository.
+Messages of two enrollments, with `present-nonce` and with `absent-timestamp`, and one retrieval, as produced by the reference implementation {{TACRA-EST-REF}} with a live AMD SEV-SNP Attester (run 20260930T172002Z, code d3234a1f2b3b). Byte strings longer than 40 characters are shown as their length and SHA-256; the full messages are in the repository.
 
 ## Enrollment: attest-initiate
 
