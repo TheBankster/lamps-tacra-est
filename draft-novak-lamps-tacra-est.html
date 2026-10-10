@@ -31,18 +31,18 @@ It is not a completed interoperability specification.
 <meta content="draft-novak-lamps-tacra-est-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.34.1
-    Python 3.14.7
-    ConfigArgParse 1.7.7
+    Python 3.14.8
+    ConfigArgParse 1.8.0
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.11.10
+    platformdirs 4.12.2
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.8.4
+    wcwidth 0.9.1
 -->
 <link href="draft-novak-lamps-tacra-est.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1058,11 +1058,11 @@ svg {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">Remote Attestation Extensions for EST</td>
-<td class="right">September 2026</td>
+<td class="right">October 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Novak, et al.</td>
-<td class="center">Expires 30 March 2027</td>
+<td class="center">Expires 13 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1075,12 +1075,12 @@ svg {
 <dd class="internet-draft">draft-novak-lamps-tacra-est-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-26" class="published">26 September 2026</time>
+<time datetime="2026-10-10" class="published">10 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-30">30 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-13">13 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1151,7 +1151,7 @@ It is not a completed interoperability specification.<a href="#section-abstract-
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 30 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 13 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1230,6 +1230,11 @@ It is not a completed interoperability specification.<a href="#section-abstract-
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
             <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-media-types-and-encodings" class="internal xref">Media Types and Encodings</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-message-definitions" class="internal xref">Message Definitions</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
             <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-common-structures" class="internal xref">Common Structures</a></p>
@@ -1300,6 +1305,20 @@ It is not a completed interoperability specification.<a href="#section-abstract-
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
             <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1">
+                <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="auto internal xref">11.1</a>.  <a href="#name-application-est-attest-init" class="internal xref">application/est-attest-initiate+json</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.2">
+                <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref">11.2</a>.  <a href="#name-application-est-attest-enro" class="internal xref">application/est-attest-enroll+json</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.3">
+                <p id="section-toc.1-1.11.2.3.1"><a href="#section-11.3" class="auto internal xref">11.3</a>.  <a href="#name-application-est-attest-retr" class="internal xref">application/est-attest-retrieve+json</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.4">
+                <p id="section-toc.1-1.11.2.4.1"><a href="#section-11.4" class="auto internal xref">11.4</a>.  <a href="#name-application-est-attest-bund" class="internal xref">application/est-attest-bundle+json</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
             <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-references" class="internal xref">References</a></p>
@@ -1603,7 +1622,7 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.1-2.3.1">Success: 200 OK<a href="#section-5.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.4">
-            <p id="section-5.1-2.4.1">Response: Freshness kind, Credential Acquisition Mode (<code>enroll</code> or <code>retrieve</code>), acceptable ciphers<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-2.4.1">Response: AttestationInitiationResponse (<a href="#initiation-response" class="auto internal xref">Section 7.1</a>): Freshness kind, Credential Acquisition Mode (<code>enroll</code> or <code>retrieve</code>), acceptable ciphers<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.5">
             <p id="section-5.1-2.5.1">If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (<code>absent-timestamp</code>, <code>absent-none</code>, or <code>absent-epoch</code>), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it <span class="bcp14">MAY</span> complete <code>attest-initiate</code> locally and, in that case, <span class="bcp14">MUST NOT</span> contact the EST Server. Otherwise, <code>attest-initiate</code> is a GET with no body and no query parameters.<a href="#section-5.1-2.5.1" class="pilcrow">¶</a></p>
@@ -1626,15 +1645,6 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
           <li class="normal" id="section-5.1-2.11">
             <p id="section-5.1-2.11.1">If the second leg fails because a <code>present-epoch</code> moved or a <code>present-nonce</code> is no longer valid, the Attester retries <code>attest-initiate</code>.<a href="#section-5.1-2.11.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.1-2.12">
-            <p id="section-5.1-2.12.1">Method: GET<a href="#section-5.1-2.12.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-5.1-2.13">
-            <p id="section-5.1-2.13.1">Success: 200 OK<a href="#section-5.1-2.13.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-5.1-2.14">
-            <p id="section-5.1-2.14.1">Response: AttestationInitiationResponse<a href="#section-5.1-2.14.1" class="pilcrow">¶</a></p>
-</li>
         </ul>
 </section>
 </div>
@@ -1648,13 +1658,13 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.2-1.1.1">Method: POST<a href="#section-5.2-1.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.2-1.2">
-            <p id="section-5.2-1.2.1">Request: AttestedEnrollmentRequest (CSR and Evidence)<a href="#section-5.2-1.2.1" class="pilcrow">¶</a></p>
+            <p id="section-5.2-1.2.1">Request: AttestedEnrollmentRequest (<a href="#enrollment-request" class="auto internal xref">Section 8.1.1</a>): CSR and Evidence<a href="#section-5.2-1.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.2-1.3">
             <p id="section-5.2-1.3.1">Success: 200 OK<a href="#section-5.2-1.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.2-1.4">
-            <p id="section-5.2-1.4.1">Response: enrollment response as for simpleenroll in <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span><a href="#section-5.2-1.4.1" class="pilcrow">¶</a></p>
+            <p id="section-5.2-1.4.1">Response: enrollment response as for simpleenroll (Section 4.2.3 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>)<a href="#section-5.2-1.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1669,27 +1679,152 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.3-1.1.1">Method: POST<a href="#section-5.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.3-1.2">
-            <p id="section-5.3-1.2.1">Request: AttestedRetrievalRequest (Evidence including CEKpub)<a href="#section-5.3-1.2.1" class="pilcrow">¶</a></p>
+            <p id="section-5.3-1.2.1">Request: AttestedRetrievalRequest (<a href="#retrieval-request" class="auto internal xref">Section 8.2.1</a>): CEKpub and Evidence<a href="#section-5.3-1.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.3-1.3">
             <p id="section-5.3-1.3.1">Success: 200 OK<a href="#section-5.3-1.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.3-1.4">
-            <p id="section-5.3-1.4.1">Response: EncryptedCredentialBundle<a href="#section-5.3-1.4.1" class="pilcrow">¶</a></p>
+            <p id="section-5.3-1.4.1">Response: EncryptedCredentialBundle (<a href="#bundle" class="auto internal xref">Section 8.2.4</a>)<a href="#section-5.3-1.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 </section>
 </div>
-<div id="media-types-and-encodings">
+<div id="media-types">
 <section id="section-6">
       <h2 id="name-media-types-and-encodings">
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-media-types-and-encodings" class="section-name selfRef">Media Types and Encodings</a>
       </h2>
-<p id="section-6-1">Implementations <span class="bcp14">MUST</span> support at least one of CBOR or JSON envelopes, using to-be-registered media types (<a href="#iana" class="auto internal xref">Section 11</a>).
-Servers advertise supported types with Content-Type and Accept; clients <span class="bcp14">MUST</span> send a supported type.
-Evidence blobs are opaque byte strings.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-1">The messages of the <code>attest-*</code> resources are JSON (<span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span>), as defined in CDDL (<span>[<a href="#RFC8610" class="cite xref">RFC8610</a>]</span>) in <a href="#cddl" class="auto internal xref">Section 6.1</a>; implementations <span class="bcp14">MUST</span> support this encoding.
+A CBOR encoding, for EST over secure CoAP (<span>[<a href="#RFC9148" class="cite xref">RFC9148</a>]</span>), is left for future work.
+Evidence is an opaque byte string.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-2">As each EST message type has its own media type (Section 3.2.4 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>), so does each JSON message of the <code>attest-*</code> resources (<a href="#iana" class="auto internal xref">Section 11</a>):<a href="#section-6-2" class="pilcrow">¶</a></p>
+<span id="name-media-types-of-the-attest-m"></span><table class="center" id="table-1">
+        <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-media-types-of-the-attest-m" class="selfRef">Media types of the attest-* messages</a>
+        </caption>
+<thead>
+          <tr>
+            <th class="text-left" rowspan="1" colspan="1">Resource</th>
+            <th class="text-left" rowspan="1" colspan="1">Request</th>
+            <th class="text-left" rowspan="1" colspan="1">Response</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>attest-initiate</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">none: a GET, no body</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>application/est-attest-initiate+json</code>
+</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>attest-enroll</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>application/est-attest-enroll+json</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>application/pkcs7-mime; smime-type=certs-only</code>, as simpleenroll</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>attest-retrieve</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>application/est-attest-retrieve+json</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>application/est-attest-bundle+json</code>
+</td>
+          </tr>
+        </tbody>
+      </table>
+<p id="section-6-4">A client <span class="bcp14">MUST</span> send a request of the resource's media type.
+An EST Server responds to a request of another media type with 415 (Unsupported Media Type) and <span class="bcp14">SHOULD</span> name the resource's media type in an Accept header field (Section 15.5.16 of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>).<a href="#section-6-4" class="pilcrow">¶</a></p>
+<div id="cddl">
+<section id="section-6.1">
+        <h3 id="name-message-definitions">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-message-definitions" class="section-name selfRef">Message Definitions</a>
+        </h3>
+<p id="section-6.1-1">In the definitions below, a byte string is carried as a text string holding its unpadded base64url encoding (Section 5 of <span>[<a href="#RFC4648" class="cite xref">RFC4648</a>]</span>), as the control operator <code>.b64u</code> defines it (Section 2.1 of <span>[<a href="#RFC9741" class="cite xref">RFC9741</a>]</span>): only characters of the base64url alphabet, no padding, and the bits that encode no octet set to zero.
+The group choices tie each member to the Freshness Kinds and modes its description below names: in a response, <code>handle</code> and <code>expires_in</code> to <code>present-nonce</code> and <code>present-epoch</code>, <code>max_age</code> to <code>absent-timestamp</code>, <code>acceptable_csk</code> to <code>enroll</code> and <code>acceptable_cek</code> to <code>retrieve</code>; in a request, <code>handle</code> to every Freshness Kind but <code>absent-none</code>.
+The EncryptedCredentialBundle is not defined here (<a href="#bundle" class="auto internal xref">Section 8.2.4</a>).<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<div class="breakable lang-cddl sourcecode" id="section-6.1-2">
+<pre>
+; The JSON messages of the attest-* resources (RFC 8610; RFC 8259).
+; A byte string is carried as a text string holding its unpadded
+; base64url encoding (RFC 4648, Section 5), as the control .b64u of
+; RFC 9741 defines.
+
+attestation-initiation-response = {
+  initiation-freshness,
+  initiation-mode,
+  ? acceptable_evidence: [+ text],
+}
+
+initiation-freshness = (
+  freshness_kind: "present-nonce" / "present-epoch",
+  handle: text .b64u bytes,
+  ? expires_in: uint,
+//
+  freshness_kind: "absent-timestamp",
+  ? max_age: uint,
+//
+  freshness_kind: "absent-epoch" / "absent-none",
+)
+
+initiation-mode = (
+  mode: "enroll",
+  ? acceptable_csk: [+ text],
+//
+  mode: "retrieve",
+  ? acceptable_cek: [+ text],
+)
+
+attested-enrollment-request = {
+  request-common,
+  request-freshness,
+  csr: text .b64u bytes,
+}
+
+attested-retrieval-request = {
+  request-common,
+  request-freshness,
+  cek_pub: text .b64u bytes,
+}
+
+request-common = (
+  target: text,
+  ? credential_type: text,
+  evidence: text .b64u bytes,
+  ? profile: text,
+  binding: binding,
+  ? credential_hint: text,
+)
+
+request-freshness = (
+  freshness_kind: "absent-none"
+//
+  freshness_kind: "absent-timestamp" / "absent-epoch"
+                / "present-nonce" / "present-epoch",
+  handle: text .b64u bytes,
+)
+
+binding = {
+  method: text,
+  ? hash: text,
+}
+</pre><a href="#section-6.1-2" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
 </section>
 </div>
 <div id="common-structures">
@@ -1697,7 +1832,7 @@ Evidence blobs are opaque byte strings.<a href="#section-6-1" class="pilcrow">¶
       <h2 id="name-common-structures">
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-common-structures" class="section-name selfRef">Common Structures</a>
       </h2>
-<div id="attestationinitiationresponse">
+<div id="initiation-response">
 <section id="section-7.1">
         <h3 id="name-attestationinitiationrespon">
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-attestationinitiationrespon" class="section-name selfRef">AttestationInitiationResponse</a>
@@ -1742,6 +1877,9 @@ Evidence blobs are opaque byte strings.<a href="#section-6-1" class="pilcrow">¶
           <li class="normal" id="section-7.1-2.7">
             <p id="section-7.1-2.7.1"><code>acceptable_csk</code> (array, only when <code>mode</code> is <code>enroll</code>): acceptable CSK algorithms/suites<a href="#section-7.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
+          <li class="normal" id="section-7.1-2.8">
+            <p id="section-7.1-2.8.1"><code>acceptable_evidence</code> (array, <span class="bcp14">OPTIONAL</span>): the Evidence formats the EST Server accepts; a request of the second leg names the format of its Evidence in <code>profile</code><a href="#section-7.1-2.8.1" class="pilcrow">¶</a></p>
+</li>
         </ul>
 <p id="section-7.1-3">The Freshness Handle originator <span class="bcp14">MUST</span> ensure <code>present-nonce</code> uniqueness and <span class="bcp14">MUST</span> correlate the second-leg request with the Handle from this <code>attest-initiate</code>.
 The Verifier appraises whether Evidence is bound to a still-valid Freshness Handle.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
@@ -1759,7 +1897,7 @@ The Verifier appraises whether Evidence is bound to a still-valid Freshness Hand
         <h3 id="name-credential-enrollment-mode">
 <a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-credential-enrollment-mode" class="section-name selfRef">Credential Enrollment Mode</a>
         </h3>
-<div id="request-attestedenrollmentrequest">
+<div id="enrollment-request">
 <section id="section-8.1.1">
           <h4 id="name-request-attestedenrollmentr">
 <a href="#section-8.1.1" class="section-number selfRef">8.1.1. </a><a href="#name-request-attestedenrollmentr" class="section-name selfRef">Request: AttestedEnrollmentRequest</a>
@@ -1767,22 +1905,31 @@ The Verifier appraises whether Evidence is bound to a still-valid Freshness Hand
 <p id="section-8.1.1-1">Fields:<a href="#section-8.1.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.1.1-2.1">
-              <p id="section-8.1.1-2.1.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-8.1.1-2.1.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-2.1.1">target (string, <span class="bcp14">REQUIRED</span>): the Target of Enroll-Credential (Section 5.2 of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>)<a href="#section-8.1.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-2.2">
-              <p id="section-8.1.1-2.2.1">handle (bytes): Freshness Handle - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is not <code>absent-none</code>; <span class="bcp14">MUST</span> be absent otherwise. <span class="bcp14">MUST</span> equal the Handle returned by <code>attest-initiate</code> when present.<a href="#section-8.1.1-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-2.2.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-8.1.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-2.3">
-              <p id="section-8.1.1-2.3.1">csr (bytes, <span class="bcp14">REQUIRED</span>): DER-encoded PKCS#10 CSR<a href="#section-8.1.1-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-2.3.1">handle (bytes): Freshness Handle - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is not <code>absent-none</code>; <span class="bcp14">MUST</span> be absent otherwise. <span class="bcp14">MUST</span> equal the Handle returned by <code>attest-initiate</code> when present.<a href="#section-8.1.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-2.4">
-              <p id="section-8.1.1-2.4.1">evidence (bytes, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> be bound to the Freshness returned by <code>attest-initiate</code>, if any<a href="#section-8.1.1-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-2.4.1">csr (bytes, <span class="bcp14">REQUIRED</span>): DER-encoded PKCS#10 CSR<a href="#section-8.1.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-2.5">
-              <p id="section-8.1.1-2.5.1">binding (object, <span class="bcp14">REQUIRED</span>): declares how the CSR key is bound to Evidence<a href="#section-8.1.1-2.5.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-2.5.1">evidence (bytes, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> be bound to the Freshness returned by <code>attest-initiate</code>, if any<a href="#section-8.1.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.1-2.6">
-              <p id="section-8.1.1-2.6.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the Credential Authority <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-8.1.1-2.6.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.1-2.6.1">profile (string, <span class="bcp14">OPTIONAL</span>): the format of <code>evidence</code>, one of <code>acceptable_evidence</code><a href="#section-8.1.1-2.6.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.1-2.7">
+              <p id="section-8.1.1-2.7.1">binding (object, <span class="bcp14">REQUIRED</span>): declares how the CSR key is bound to Evidence<a href="#section-8.1.1-2.7.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.1-2.8">
+              <p id="section-8.1.1-2.8.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): e.g., x509, wimse-wit<a href="#section-8.1.1-2.8.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.1-2.9">
+              <p id="section-8.1.1-2.9.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the Credential Authority <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-8.1.1-2.9.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -1840,10 +1987,10 @@ The Verifier appraises whether Evidence is bound to a still-valid Freshness Hand
               <p id="section-8.1.4-2.2.1">Correlate <code>handle</code> with the preceding <code>attest-initiate</code> for this session, if a Freshness Handle was returned.<a href="#section-8.1.4-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-8.1.4-2.3">
-              <p id="section-8.1.4-2.3.1">Forward Evidence (and endorsements, if any) to the Verifier and obtain Attestation Results.<a href="#section-8.1.4-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.4-2.3.1">Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Credential Authority obtains Attestation Results itself.<a href="#section-8.1.4-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-8.1.4-2.4">
-              <p id="section-8.1.4-2.4.1">Forward the CSR and Attestation Results to the Credential Authority, which verifies PoP and authorizes issuance.<a href="#section-8.1.4-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.4-2.4.1">Forward the CSR and Attestation Results (Passport) or the CSR and Evidence (Background Check) to the Credential Authority, which verifies PoP and authorizes issuance.<a href="#section-8.1.4-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-8.1.4-2.5">
               <p id="section-8.1.4-2.5.1">Return the Credential Authority's enrollment response.<a href="#section-8.1.4-2.5.1" class="pilcrow">¶</a></p>
@@ -1859,7 +2006,7 @@ The Verifier appraises whether Evidence is bound to a still-valid Freshness Hand
         <h3 id="name-credential-retrieval-mode">
 <a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-credential-retrieval-mode" class="section-name selfRef">Credential Retrieval Mode</a>
         </h3>
-<div id="request-attestedretrievalrequest">
+<div id="retrieval-request">
 <section id="section-8.2.1">
           <h4 id="name-request-attestedretrievalre">
 <a href="#section-8.2.1" class="section-number selfRef">8.2.1. </a><a href="#name-request-attestedretrievalre" class="section-name selfRef">Request: AttestedRetrievalRequest</a>
@@ -1867,19 +2014,31 @@ The Verifier appraises whether Evidence is bound to a still-valid Freshness Hand
 <p id="section-8.2.1-1">Fields:<a href="#section-8.2.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.2.1-2.1">
-              <p id="section-8.2.1-2.1.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-8.2.1-2.1.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.1-2.1.1">target (string, <span class="bcp14">REQUIRED</span>): the Target of Retrieve-Credential (Section 5.3 of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>)<a href="#section-8.2.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.2.1-2.2">
-              <p id="section-8.2.1-2.2.1">handle (bytes): Freshness Handle - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is not <code>absent-none</code>; <span class="bcp14">MUST</span> be absent otherwise. <span class="bcp14">MUST</span> equal the Handle returned by <code>attest-initiate</code> when present.<a href="#section-8.2.1-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.1-2.2.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-8.2.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.2.1-2.3">
-              <p id="section-8.2.1-2.3.1">evidence (bytes, <span class="bcp14">REQUIRED</span>) -- <span class="bcp14">MUST</span> include CEKpub; <span class="bcp14">MUST</span> be bound to the Freshness returned by <code>attest-initiate</code>, if any<a href="#section-8.2.1-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.1-2.3.1">handle (bytes): Freshness Handle - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is not <code>absent-none</code>; <span class="bcp14">MUST</span> be absent otherwise. <span class="bcp14">MUST</span> equal the Handle returned by <code>attest-initiate</code> when present.<a href="#section-8.2.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.2.1-2.4">
-              <p id="section-8.2.1-2.4.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): e.g., x509, wimse-wit<a href="#section-8.2.1-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.1-2.4.1">evidence (bytes, <span class="bcp14">REQUIRED</span>) -- <span class="bcp14">MUST</span> include CEKpub; <span class="bcp14">MUST</span> be bound to the Freshness returned by <code>attest-initiate</code>, if any<a href="#section-8.2.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.2.1-2.5">
-              <p id="section-8.2.1-2.5.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-8.2.1-2.5.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.1-2.5.1">cek_pub (bytes, <span class="bcp14">REQUIRED</span>): CEKpub, to which the Secret Vault encrypts<a href="#section-8.2.1-2.5.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.2.1-2.6">
+              <p id="section-8.2.1-2.6.1">profile (string, <span class="bcp14">OPTIONAL</span>): the format of <code>evidence</code>, one of <code>acceptable_evidence</code><a href="#section-8.2.1-2.6.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.2.1-2.7">
+              <p id="section-8.2.1-2.7.1">binding (object, <span class="bcp14">REQUIRED</span>): declares how CEKpub is bound to Evidence<a href="#section-8.2.1-2.7.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.2.1-2.8">
+              <p id="section-8.2.1-2.8.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): e.g., x509, wimse-wit<a href="#section-8.2.1-2.8.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.2.1-2.9">
+              <p id="section-8.2.1-2.9.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-8.2.1-2.9.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -1904,7 +2063,7 @@ The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and 
 <p id="section-8.2.3-4">Where attestation_subject is derived from Attestation Results (not raw Evidence) to avoid nonce/freshness variability.<a href="#section-8.2.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="response-encryptedcredentialbundle">
+<div id="bundle">
 <section id="section-8.2.4">
           <h4 id="name-response-encryptedcredentia">
 <a href="#section-8.2.4" class="section-number selfRef">8.2.4. </a><a href="#name-response-encryptedcredentia" class="section-name selfRef">Response: EncryptedCredentialBundle</a>
@@ -1958,16 +2117,19 @@ The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and 
 <p id="section-8.2.5-1">Upon receiving AttestedRetrievalRequest, the EST Server <span class="bcp14">MUST</span>:<a href="#section-8.2.5-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-8.2.5-2">
 <li id="section-8.2.5-2.1">
-              <p id="section-8.2.5-2.1.1">Validate syntax and size limits, and correlate <code>handle</code> with the preceding <code>attest-initiate</code> as in enrollment processing<a href="#section-8.2.5-2.1.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.5-2.1.1">Validate syntax, media type, and size limits.<a href="#section-8.2.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-8.2.5-2.2">
-              <p id="section-8.2.5-2.2.1">(Passport mode only, Background Check mode achieved by reversing the order) Forward Evidence to the Verifier and obtain Attestation Results<a href="#section-8.2.5-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.5-2.2.1">Correlate <code>handle</code> with the preceding <code>attest-initiate</code> for this session, if a Freshness Handle was returned.<a href="#section-8.2.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-8.2.5-2.3">
-              <p id="section-8.2.5-2.3.1">Forward Attestation Results to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub<a href="#section-8.2.5-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.5-2.3.1">Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Secret Vault obtains Attestation Results itself.<a href="#section-8.2.5-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-8.2.5-2.4">
-              <p id="section-8.2.5-2.4.1">Return the EncryptedCredentialBundle produced by the Secret Vault<a href="#section-8.2.5-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.2.5-2.4.1">Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub.<a href="#section-8.2.5-2.4.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-8.2.5-2.5">
+              <p id="section-8.2.5-2.5.1">Return the EncryptedCredentialBundle produced by the Secret Vault.<a href="#section-8.2.5-2.5.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
 <p id="section-8.2.5-3">A variant in which the EST Server receives a plaintext secret from the Secret Vault and re-encrypts to CEKpub is possible but discouraged.<a href="#section-8.2.5-3" class="pilcrow">¶</a></p>
@@ -1982,10 +2144,10 @@ The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and 
       <h2 id="name-error-handling">
 <a href="#section-9" class="section-number selfRef">9. </a><a href="#name-error-handling" class="section-name selfRef">Error Handling</a>
       </h2>
-<p id="section-9-1">Servers <span class="bcp14">SHOULD</span> reuse HTTP status codes from <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span> and a machine-readable error body:<a href="#section-9-1" class="pilcrow">¶</a></p>
+<p id="section-9-1">An error response carries one of the status codes below, and a human-readable body as a simpleenroll error does (Section 4.2.3 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>, updated by Section 5.1 of <span>[<a href="#RFC8951" class="cite xref">RFC8951</a>]</span>):<a href="#section-9-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-9-2.1">
-          <p id="section-9-2.1.1">400 Bad Request: malformed envelope, missing fields<a href="#section-9-2.1.1" class="pilcrow">¶</a></p>
+          <p id="section-9-2.1.1">400 Bad Request: a request that does not match its definition (<a href="#cddl" class="auto internal xref">Section 6.1</a>)<a href="#section-9-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-9-2.2">
           <p id="section-9-2.2.1">401 Unauthorized: missing/invalid authentication required by deployment policy<a href="#section-9-2.2.1" class="pilcrow">¶</a></p>
@@ -1997,16 +2159,26 @@ The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and 
           <p id="section-9-2.4.1">409 Conflict: Freshness Handle replay detected, or <code>present-epoch</code> marker has moved<a href="#section-9-2.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-9-2.5">
-          <p id="section-9-2.5.1">415 Unsupported Media Type: unsupported encoding<a href="#section-9-2.5.1" class="pilcrow">¶</a></p>
+          <p id="section-9-2.5.1">413 Content Too Large: a request larger than the server takes (Section 15.5.14 of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>)<a href="#section-9-2.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-9-2.6">
-          <p id="section-9-2.6.1">429 Too Many Requests: rate limiting<a href="#section-9-2.6.1" class="pilcrow">¶</a></p>
+          <p id="section-9-2.6.1">415 Unsupported Media Type: a request not of the resource's media type (<a href="#media-types" class="auto internal xref">Section 6</a>), or Evidence of a format that is not accepted<a href="#section-9-2.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-9-2.7">
-          <p id="section-9-2.7.1">500/503: verifier unavailable or internal error<a href="#section-9-2.7.1" class="pilcrow">¶</a></p>
+          <p id="section-9-2.7.1">429 Too Many Requests: rate limiting (Section 4 of <span>[<a href="#RFC6585" class="cite xref">RFC6585</a>]</span>)<a href="#section-9-2.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-9-2.8">
+          <p id="section-9-2.8.1">500 Internal Server Error: internal error<a href="#section-9-2.8.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-9-2.9">
+          <p id="section-9-2.9.1">502 Bad Gateway: the RATS Relying Party did not answer, or answered with a message the EST Server cannot pass on<a href="#section-9-2.9.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-9-2.10">
+          <p id="section-9-2.10.1">503 Service Unavailable: the Verifier is unavailable<a href="#section-9-2.10.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-9-3">Error bodies <span class="bcp14">MUST NOT</span> leak sensitive attestation details. Servers <span class="bcp14">MAY</span> provide a correlation identifier for debugging.<a href="#section-9-3" class="pilcrow">¶</a></p>
+<p id="section-9-3">A client acts on the status code. A machine-readable body (<span>[<a href="#RFC9457" class="cite xref">RFC9457</a>]</span>) is left for a revision in which a client needs the reason.<a href="#section-9-3" class="pilcrow">¶</a></p>
+<p id="section-9-4">Error bodies <span class="bcp14">MUST NOT</span> leak sensitive attestation details. Servers <span class="bcp14">MAY</span> provide a correlation identifier for debugging.<a href="#section-9-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="security">
@@ -2075,32 +2247,366 @@ The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and 
       <h2 id="name-iana-considerations">
 <a href="#section-11" class="section-number selfRef">11. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-11-1">This document requests registrations for:<a href="#section-11-1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-11-2.1">
-          <p id="section-11-2.1.1">New EST well-known paths (if applicable under EST registries)<a href="#section-11-2.1.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-11-2.2">
-          <p id="section-11-2.2.1">Media types for:<a href="#section-11-2.2.1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-11-2.2.2.1">
-              <p id="section-11-2.2.2.1.1">AttestationInitiationResponse<a href="#section-11-2.2.2.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-11-2.2.2.2">
-              <p id="section-11-2.2.2.2.1">AttestedEnrollmentRequest<a href="#section-11-2.2.2.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-11-2.2.2.3">
-              <p id="section-11-2.2.2.3.1">AttestedRetrievalRequest<a href="#section-11-2.2.2.3.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-11-2.2.2.4">
-              <p id="section-11-2.2.2.4.1">EncryptedCredentialBundle<a href="#section-11-2.2.2.4.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-</li>
-        <li class="normal" id="section-11-2.3">
-          <p id="section-11-2.3.1">Registry of acceptable_evidence identifiers and credential_type identifiers (if not reused from existing registries)<a href="#section-11-2.3.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
+<p id="section-11-1">The <code>attest-*</code> resources are additional services of an EST server (Section 3.2.2 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>), under the well-known URI suffix "est" that <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span> registered.
+No registry of EST operation paths exists, so none is requested.<a href="#section-11-1" class="pilcrow">¶</a></p>
+<p id="section-11-2">IANA is requested to register the media types of <a href="#media-types" class="auto internal xref">Section 6</a> in the "Media Types" registry (<span>[<a href="#RFC6838" class="cite xref">RFC6838</a>]</span>).<a href="#section-11-2" class="pilcrow">¶</a></p>
+<p id="section-11-3">This document also requests a registry of acceptable_evidence identifiers and credential_type identifiers (if not reused from existing registries).<a href="#section-11-3" class="pilcrow">¶</a></p>
+<div id="applicationest-attest-initiatejson">
+<section id="section-11.1">
+        <h3 id="name-application-est-attest-init">
+<a href="#section-11.1" class="section-number selfRef">11.1. </a><a href="#name-application-est-attest-init" class="section-name selfRef">application/est-attest-initiate+json</a>
+        </h3>
+<span class="break"></span><dl class="dlParallel" id="section-11.1-1">
+          <dt id="section-11.1-1.1">Type name:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.2">
+            <p id="section-11.1-1.2.1">application<a href="#section-11.1-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.3">Subtype name:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.4">
+            <p id="section-11.1-1.4.1">est-attest-initiate+json<a href="#section-11.1-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.5">Required parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.6">
+            <p id="section-11.1-1.6.1">N/A<a href="#section-11.1-1.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.7">Optional parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.8">
+            <p id="section-11.1-1.8.1">N/A<a href="#section-11.1-1.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.9">Encoding considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.10">
+            <p id="section-11.1-1.10.1">binary<a href="#section-11.1-1.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.11">Security considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.12">
+            <p id="section-11.1-1.12.1">See <a href="#security" class="auto internal xref">Section 10</a> of this document.<a href="#section-11.1-1.12.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.13">Interoperability considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.14">
+            <p id="section-11.1-1.14.1">The response of <code>attest-initiate</code>.<a href="#section-11.1-1.14.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.15">Published specification:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.16">
+            <p id="section-11.1-1.16.1">This document.<a href="#section-11.1-1.16.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.17">Applications that use this media type:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.18">
+            <p id="section-11.1-1.18.1">EST implementations of the <code>attest-*</code> resources of this document.<a href="#section-11.1-1.18.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.19">Fragment identifier considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.20">
+            <p id="section-11.1-1.20.1">The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".<a href="#section-11.1-1.20.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.21">Additional information:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.22">
+            <p id="section-11.1-1.22.1">Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-11.1-1.22.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.23">Person &amp; email address to contact for further information:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.24">
+            <p id="section-11.1-1.24.1">IETF LAMPS Working Group (spasm@ietf.org)<a href="#section-11.1-1.24.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.25">Intended usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.26">
+            <p id="section-11.1-1.26.1">COMMON<a href="#section-11.1-1.26.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.27">Restrictions on usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.28">
+            <p id="section-11.1-1.28.1">N/A<a href="#section-11.1-1.28.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.29">Author:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.30">
+            <p id="section-11.1-1.30.1">See the Authors' Addresses section of this document.<a href="#section-11.1-1.30.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.1-1.31">Change controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.1-1.32">
+            <p id="section-11.1-1.32.1">IETF<a href="#section-11.1-1.32.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="applicationest-attest-enrolljson">
+<section id="section-11.2">
+        <h3 id="name-application-est-attest-enro">
+<a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-application-est-attest-enro" class="section-name selfRef">application/est-attest-enroll+json</a>
+        </h3>
+<span class="break"></span><dl class="dlParallel" id="section-11.2-1">
+          <dt id="section-11.2-1.1">Type name:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.2">
+            <p id="section-11.2-1.2.1">application<a href="#section-11.2-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.3">Subtype name:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.4">
+            <p id="section-11.2-1.4.1">est-attest-enroll+json<a href="#section-11.2-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.5">Required parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.6">
+            <p id="section-11.2-1.6.1">N/A<a href="#section-11.2-1.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.7">Optional parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.8">
+            <p id="section-11.2-1.8.1">N/A<a href="#section-11.2-1.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.9">Encoding considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.10">
+            <p id="section-11.2-1.10.1">binary<a href="#section-11.2-1.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.11">Security considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.12">
+            <p id="section-11.2-1.12.1">See <a href="#security" class="auto internal xref">Section 10</a> of this document.<a href="#section-11.2-1.12.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.13">Interoperability considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.14">
+            <p id="section-11.2-1.14.1">The request of <code>attest-enroll</code>; its response is that of simpleenroll.<a href="#section-11.2-1.14.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.15">Published specification:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.16">
+            <p id="section-11.2-1.16.1">This document.<a href="#section-11.2-1.16.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.17">Applications that use this media type:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.18">
+            <p id="section-11.2-1.18.1">EST implementations of the <code>attest-*</code> resources of this document.<a href="#section-11.2-1.18.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.19">Fragment identifier considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.20">
+            <p id="section-11.2-1.20.1">The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".<a href="#section-11.2-1.20.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.21">Additional information:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.22">
+            <p id="section-11.2-1.22.1">Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-11.2-1.22.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.23">Person &amp; email address to contact for further information:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.24">
+            <p id="section-11.2-1.24.1">IETF LAMPS Working Group (spasm@ietf.org)<a href="#section-11.2-1.24.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.25">Intended usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.26">
+            <p id="section-11.2-1.26.1">COMMON<a href="#section-11.2-1.26.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.27">Restrictions on usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.28">
+            <p id="section-11.2-1.28.1">N/A<a href="#section-11.2-1.28.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.29">Author:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.30">
+            <p id="section-11.2-1.30.1">See the Authors' Addresses section of this document.<a href="#section-11.2-1.30.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.2-1.31">Change controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.2-1.32">
+            <p id="section-11.2-1.32.1">IETF<a href="#section-11.2-1.32.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="applicationest-attest-retrievejson">
+<section id="section-11.3">
+        <h3 id="name-application-est-attest-retr">
+<a href="#section-11.3" class="section-number selfRef">11.3. </a><a href="#name-application-est-attest-retr" class="section-name selfRef">application/est-attest-retrieve+json</a>
+        </h3>
+<span class="break"></span><dl class="dlParallel" id="section-11.3-1">
+          <dt id="section-11.3-1.1">Type name:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.2">
+            <p id="section-11.3-1.2.1">application<a href="#section-11.3-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.3">Subtype name:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.4">
+            <p id="section-11.3-1.4.1">est-attest-retrieve+json<a href="#section-11.3-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.5">Required parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.6">
+            <p id="section-11.3-1.6.1">N/A<a href="#section-11.3-1.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.7">Optional parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.8">
+            <p id="section-11.3-1.8.1">N/A<a href="#section-11.3-1.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.9">Encoding considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.10">
+            <p id="section-11.3-1.10.1">binary<a href="#section-11.3-1.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.11">Security considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.12">
+            <p id="section-11.3-1.12.1">See <a href="#security" class="auto internal xref">Section 10</a> of this document.<a href="#section-11.3-1.12.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.13">Interoperability considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.14">
+            <p id="section-11.3-1.14.1">The request of <code>attest-retrieve</code>; its response is <code>application/est-attest-bundle+json</code>.<a href="#section-11.3-1.14.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.15">Published specification:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.16">
+            <p id="section-11.3-1.16.1">This document.<a href="#section-11.3-1.16.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.17">Applications that use this media type:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.18">
+            <p id="section-11.3-1.18.1">EST implementations of the <code>attest-*</code> resources of this document.<a href="#section-11.3-1.18.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.19">Fragment identifier considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.20">
+            <p id="section-11.3-1.20.1">The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".<a href="#section-11.3-1.20.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.21">Additional information:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.22">
+            <p id="section-11.3-1.22.1">Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-11.3-1.22.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.23">Person &amp; email address to contact for further information:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.24">
+            <p id="section-11.3-1.24.1">IETF LAMPS Working Group (spasm@ietf.org)<a href="#section-11.3-1.24.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.25">Intended usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.26">
+            <p id="section-11.3-1.26.1">COMMON<a href="#section-11.3-1.26.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.27">Restrictions on usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.28">
+            <p id="section-11.3-1.28.1">N/A<a href="#section-11.3-1.28.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.29">Author:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.30">
+            <p id="section-11.3-1.30.1">See the Authors' Addresses section of this document.<a href="#section-11.3-1.30.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.3-1.31">Change controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.3-1.32">
+            <p id="section-11.3-1.32.1">IETF<a href="#section-11.3-1.32.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="applicationest-attest-bundlejson">
+<section id="section-11.4">
+        <h3 id="name-application-est-attest-bund">
+<a href="#section-11.4" class="section-number selfRef">11.4. </a><a href="#name-application-est-attest-bund" class="section-name selfRef">application/est-attest-bundle+json</a>
+        </h3>
+<span class="break"></span><dl class="dlParallel" id="section-11.4-1">
+          <dt id="section-11.4-1.1">Type name:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.2">
+            <p id="section-11.4-1.2.1">application<a href="#section-11.4-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.3">Subtype name:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.4">
+            <p id="section-11.4-1.4.1">est-attest-bundle+json<a href="#section-11.4-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.5">Required parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.6">
+            <p id="section-11.4-1.6.1">N/A<a href="#section-11.4-1.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.7">Optional parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.8">
+            <p id="section-11.4-1.8.1">N/A<a href="#section-11.4-1.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.9">Encoding considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.10">
+            <p id="section-11.4-1.10.1">binary<a href="#section-11.4-1.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.11">Security considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.12">
+            <p id="section-11.4-1.12.1">See <a href="#security" class="auto internal xref">Section 10</a> of this document.<a href="#section-11.4-1.12.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.13">Interoperability considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.14">
+            <p id="section-11.4-1.14.1">The response of <code>attest-retrieve</code>, the EncryptedCredentialBundle (<a href="#bundle" class="auto internal xref">Section 8.2.4</a>).<a href="#section-11.4-1.14.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.15">Published specification:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.16">
+            <p id="section-11.4-1.16.1">This document.<a href="#section-11.4-1.16.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.17">Applications that use this media type:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.18">
+            <p id="section-11.4-1.18.1">EST implementations of the <code>attest-*</code> resources of this document.<a href="#section-11.4-1.18.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.19">Fragment identifier considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.20">
+            <p id="section-11.4-1.20.1">The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".<a href="#section-11.4-1.20.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.21">Additional information:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.22">
+            <p id="section-11.4-1.22.1">Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-11.4-1.22.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.23">Person &amp; email address to contact for further information:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.24">
+            <p id="section-11.4-1.24.1">IETF LAMPS Working Group (spasm@ietf.org)<a href="#section-11.4-1.24.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.25">Intended usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.26">
+            <p id="section-11.4-1.26.1">COMMON<a href="#section-11.4-1.26.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.27">Restrictions on usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.28">
+            <p id="section-11.4-1.28.1">N/A<a href="#section-11.4-1.28.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.29">Author:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.30">
+            <p id="section-11.4-1.30.1">See the Authors' Addresses section of this document.<a href="#section-11.4-1.30.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-11.4-1.31">Change controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-11.4-1.32">
+            <p id="section-11.4-1.32.1">IETF<a href="#section-11.4-1.32.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
 </section>
 </div>
 <div id="sec-combined-references">
@@ -2118,6 +2624,14 @@ The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and 
         <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC4648">[RFC4648]</dt>
+        <dd>
+<span class="refAuthor">Josefsson, S.</span>, <span class="refTitle">"The Base16, Base32, and Base64 Data Encodings"</span>, <span class="seriesInfo">RFC 4648</span>, <span class="seriesInfo">DOI 10.17487/RFC4648</span>, <time datetime="2006-10" class="refDate">October 2006</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc4648">https://www.rfc-editor.org/rfc/rfc4648</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6838">[RFC6838]</dt>
+        <dd>
+<span class="refAuthor">Freed, N.</span>, <span class="refAuthor">Klensin, J.</span>, and <span class="refAuthor">T. Hansen</span>, <span class="refTitle">"Media Type Specifications and Registration Procedures"</span>, <span class="seriesInfo">BCP 13</span>, <span class="seriesInfo">RFC 6838</span>, <span class="seriesInfo">DOI 10.17487/RFC6838</span>, <time datetime="2013-01" class="refDate">January 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6838">https://www.rfc-editor.org/rfc/rfc6838</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC7030">[RFC7030]</dt>
         <dd>
 <span class="refAuthor">Pritikin, M., Ed.</span>, <span class="refAuthor">Yee, P., Ed.</span>, and <span class="refAuthor">D. Harkins, Ed.</span>, <span class="refTitle">"Enrollment over Secure Transport"</span>, <span class="seriesInfo">RFC 7030</span>, <span class="seriesInfo">DOI 10.17487/RFC7030</span>, <time datetime="2013-10" class="refDate">October 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7030">https://www.rfc-editor.org/rfc/rfc7030</a>&gt;</span>. </dd>
@@ -2126,9 +2640,29 @@ The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and 
         <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC8259">[RFC8259]</dt>
+        <dd>
+<span class="refAuthor">Bray, T., Ed.</span>, <span class="refTitle">"The JavaScript Object Notation (JSON) Data Interchange Format"</span>, <span class="seriesInfo">STD 90</span>, <span class="seriesInfo">RFC 8259</span>, <span class="seriesInfo">DOI 10.17487/RFC8259</span>, <time datetime="2017-12" class="refDate">December 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8259">https://www.rfc-editor.org/rfc/rfc8259</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8610">[RFC8610]</dt>
+        <dd>
+<span class="refAuthor">Birkholz, H.</span>, <span class="refAuthor">Vigano, C.</span>, and <span class="refAuthor">C. Bormann</span>, <span class="refTitle">"Concise Data Definition Language (CDDL): A Notational Convention to Express Concise Binary Object Representation (CBOR) and JSON Data Structures"</span>, <span class="seriesInfo">RFC 8610</span>, <span class="seriesInfo">DOI 10.17487/RFC8610</span>, <time datetime="2019-06" class="refDate">June 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8610">https://www.rfc-editor.org/rfc/rfc8610</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8951">[RFC8951]</dt>
+        <dd>
+<span class="refAuthor">Richardson, M.</span>, <span class="refAuthor">Werner, T.</span>, and <span class="refAuthor">W. Pan</span>, <span class="refTitle">"Clarification of Enrollment over Secure Transport (EST): Transfer Encodings and ASN.1"</span>, <span class="seriesInfo">RFC 8951</span>, <span class="seriesInfo">DOI 10.17487/RFC8951</span>, <time datetime="2020-11" class="refDate">November 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8951">https://www.rfc-editor.org/rfc/rfc8951</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9110">[RFC9110]</dt>
+        <dd>
+<span class="refAuthor">Fielding, R., Ed.</span>, <span class="refAuthor">Nottingham, M., Ed.</span>, and <span class="refAuthor">J. Reschke, Ed.</span>, <span class="refTitle">"HTTP Semantics"</span>, <span class="seriesInfo">STD 97</span>, <span class="seriesInfo">RFC 9110</span>, <span class="seriesInfo">DOI 10.17487/RFC9110</span>, <time datetime="2022-06" class="refDate">June 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9110">https://www.rfc-editor.org/rfc/rfc9110</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC9334">[RFC9334]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Birkholz, H.</span>, <span class="refAuthor">Thaler, D.</span>, <span class="refAuthor">Richardson, M.</span>, <span class="refAuthor">Smith, N.</span>, and <span class="refAuthor">W. Pan</span>, <span class="refTitle">"Remote ATtestation procedureS (RATS) Architecture"</span>, <span class="seriesInfo">RFC 9334</span>, <span class="seriesInfo">DOI 10.17487/RFC9334</span>, <time datetime="2023-01" class="refDate">January 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9334">https://www.rfc-editor.org/rfc/rfc9334</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9741">[RFC9741]</dt>
+      <dd>
+<span class="refAuthor">Bormann, C.</span>, <span class="refTitle">"Concise Data Definition Language (CDDL): Additional Control Operators for the Conversion and Processing of Text"</span>, <span class="seriesInfo">RFC 9741</span>, <span class="seriesInfo">DOI 10.17487/RFC9741</span>, <time datetime="2025-03" class="refDate">March 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9741">https://www.rfc-editor.org/rfc/rfc9741</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -2146,6 +2680,18 @@ The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and 
 <dt id="INTERACTION-MODELS">[INTERACTION-MODELS]</dt>
         <dd>
 <span class="refAuthor">Birkholz, H.</span>, <span class="refAuthor">Eckel, M.</span>, <span class="refAuthor">Pan, W.</span>, and <span class="refAuthor">E. Voit</span>, <span class="refTitle">"Reference Interaction Models for Remote Attestation Procedures"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-rats-reference-interaction-models-18</span>, <time datetime="2026-09-17" class="refDate">17 September 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-rats-reference-interaction-models-18">https://datatracker.ietf.org/doc/html/draft-ietf-rats-reference-interaction-models-18</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6585">[RFC6585]</dt>
+        <dd>
+<span class="refAuthor">Nottingham, M.</span> and <span class="refAuthor">R. Fielding</span>, <span class="refTitle">"Additional HTTP Status Codes"</span>, <span class="seriesInfo">RFC 6585</span>, <span class="seriesInfo">DOI 10.17487/RFC6585</span>, <time datetime="2012-04" class="refDate">April 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6585">https://www.rfc-editor.org/rfc/rfc6585</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9148">[RFC9148]</dt>
+        <dd>
+<span class="refAuthor">van der Stok, P.</span>, <span class="refAuthor">Kampanakis, P.</span>, <span class="refAuthor">Richardson, M.</span>, and <span class="refAuthor">S. Raza</span>, <span class="refTitle">"EST-coaps: Enrollment over Secure Transport with the Secure Constrained Application Protocol"</span>, <span class="seriesInfo">RFC 9148</span>, <span class="seriesInfo">DOI 10.17487/RFC9148</span>, <time datetime="2022-04" class="refDate">April 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9148">https://www.rfc-editor.org/rfc/rfc9148</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9457">[RFC9457]</dt>
+        <dd>
+<span class="refAuthor">Nottingham, M.</span>, <span class="refAuthor">Wilde, E.</span>, and <span class="refAuthor">S. Dalal</span>, <span class="refTitle">"Problem Details for HTTP APIs"</span>, <span class="seriesInfo">RFC 9457</span>, <span class="seriesInfo">DOI 10.17487/RFC9457</span>, <time datetime="2023-07" class="refDate">July 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9457">https://www.rfc-editor.org/rfc/rfc9457</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="TACRA">[TACRA]</dt>
         <dd>
