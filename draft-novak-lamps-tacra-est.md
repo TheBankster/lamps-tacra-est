@@ -255,7 +255,7 @@ As each EST message type has its own media type (Section 3.2.4 of {{RFC7030}}), 
 
 | Resource | Request | Response |
 |---|---|---|
-| `attest-initiate` | none (GET) | `application/est-attest-initiate+json` |
+| `attest-initiate` | none: a GET, no body | `application/est-attest-initiate+json` |
 | `attest-enroll` | `application/est-attest-enroll+json` | `application/pkcs7-mime; smime-type=certs-only`, as simpleenroll |
 | `attest-retrieve` | `application/est-attest-retrieve+json` | `application/est-attest-bundle+json` |
 {: title="Media types of the attest-* messages"}
@@ -340,8 +340,8 @@ Upon receiving AttestedEnrollmentRequest, the EST Server MUST:
 
 1. Validate syntax, media type, and size limits.
 2. Correlate `handle` with the preceding `attest-initiate` for this session, if a Freshness Handle was returned.
-3. Forward Evidence to the Verifier and obtain Attestation Results.
-4. Forward the CSR and Attestation Results to the Credential Authority, which verifies PoP and authorizes issuance.
+3. Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Credential Authority obtains Attestation Results itself.
+4. Forward the CSR and Attestation Results (Passport) or the CSR and Evidence (Background Check) to the Credential Authority, which verifies PoP and authorizes issuance.
 5. Return the Credential Authority's enrollment response.
 
 The Credential Authority MUST NOT mint identities (e.g., DNS names) beyond policy for the attested identity context.
@@ -401,10 +401,11 @@ TODO: Ensure that TACRA architecture can carry these and other encryption mechan
 
 Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 
-1. Validate syntax, media type, and size limits, and correlate `handle` with the preceding `attest-initiate` as in enrollment processing
-2. (Passport mode only, Background Check mode achieved by reversing the order) Forward Evidence to the Verifier and obtain Attestation Results
-3. Forward Attestation Results to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub
-4. Return the EncryptedCredentialBundle produced by the Secret Vault
+1. Validate syntax, media type, and size limits.
+2. Correlate `handle` with the preceding `attest-initiate` for this session, if a Freshness Handle was returned.
+3. Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Secret Vault obtains Attestation Results itself.
+4. Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub.
+5. Return the EncryptedCredentialBundle produced by the Secret Vault.
 
 A variant in which the EST Server receives a plaintext secret from the Secret Vault and re-encrypts to CEKpub is possible but discouraged.
 
