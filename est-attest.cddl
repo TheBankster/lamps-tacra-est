@@ -1,0 +1,63 @@
+; The JSON messages of the attest-* resources (RFC 8610; RFC 8259).
+; A byte string is carried as a text string holding its unpadded
+; base64url encoding (RFC 4648, Section 5), as the control .b64u of
+; RFC 9741 defines.
+
+attestation-initiation-response = {
+  initiation-freshness,
+  initiation-mode,
+  ? acceptable_evidence: [+ text],
+}
+
+initiation-freshness = (
+  freshness_kind: "present-nonce" / "present-epoch",
+  handle: text .b64u bytes,
+  ? expires_in: uint,
+//
+  freshness_kind: "absent-timestamp",
+  ? max_age: uint,
+//
+  freshness_kind: "absent-epoch" / "absent-none",
+)
+
+initiation-mode = (
+  mode: "enroll",
+  ? acceptable_csk: [+ text],
+//
+  mode: "retrieve",
+  ? acceptable_cek: [+ text],
+)
+
+attested-enrollment-request = {
+  request-common,
+  request-freshness,
+  csr: text .b64u bytes,
+}
+
+attested-retrieval-request = {
+  request-common,
+  request-freshness,
+  cek_pub: text .b64u bytes,
+}
+
+request-common = (
+  target: text,
+  ? credential_type: text,
+  evidence: text .b64u bytes,
+  ? profile: text,
+  binding: binding,
+  ? credential_hint: text,
+)
+
+request-freshness = (
+  freshness_kind: "absent-none"
+//
+  freshness_kind: "absent-timestamp" / "absent-epoch"
+                / "present-nonce" / "present-epoch",
+  handle: text .b64u bytes,
+)
+
+binding = {
+  method: text,
+  ? hash: text,
+}

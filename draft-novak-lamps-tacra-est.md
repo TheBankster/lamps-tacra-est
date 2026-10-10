@@ -42,10 +42,20 @@ author:
 normative:
   RFC7030: EST
   RFC9334: RATS
+  RFC4648:
+  RFC6838:
+  RFC8259:
+  RFC8610: CDDL
+  RFC8951:
+  RFC9110:
+  RFC9741:
 
 informative:
   INTERACTION-MODELS: I-D.ietf-rats-reference-interaction-models
   ATTESTATION-FRESHNESS: I-D.ietf-lamps-attestation-freshness
+  RFC6585:
+  RFC9148:
+  RFC9457:
   TACRA:
     target: https://TheBankster.github.io/rats-tacra/draft-novak-rats-tacra.html
     title: Trustworthy Acquisition of Credentials via Remote Attestation
@@ -210,7 +220,7 @@ The first leg of both modes is where the Attester initiates Remote Attestation b
 * Method: GET
 * Request: None
 * Success: 200 OK
-* Response: Freshness kind, Credential Acquisition Mode (`enroll` or `retrieve`), acceptable ciphers
+* Response: AttestationInitiationResponse ({{initiation-response}}): Freshness kind, Credential Acquisition Mode (`enroll` or `retrieve`), acceptable ciphers
 
 * If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (`absent-timestamp`, `absent-none`, or `absent-epoch`), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it MAY complete `attest-initiate` locally and, in that case, MUST NOT contact the EST Server. Otherwise, `attest-initiate` is a GET with no body and no query parameters.
 * The EST Server, if contacted, obtains the Freshness Kind and Handle, if any, from the configured Verifier or Relying Party and returns that result.
@@ -220,35 +230,53 @@ The first leg of both modes is where the Attester initiates Remote Attestation b
 * The EST Client then POSTs `attest-enroll` or `attest-retrieve` as the Attester indicates.
 * If the second leg fails because a `present-epoch` moved or a `present-nonce` is no longer valid, the Attester retries `attest-initiate`.
 
-* Method: GET
-* Success: 200 OK
-* Response: AttestationInitiationResponse
-
 ## attest-enroll {#attest-enroll}
 
 * Method: POST
-* Request: AttestedEnrollmentRequest (CSR and Evidence)
+* Request: AttestedEnrollmentRequest ({{enrollment-request}}): CSR and Evidence
 * Success: 200 OK
-* Response: enrollment response as for simpleenroll in {{RFC7030}}
+* Response: enrollment response as for simpleenroll (Section 4.2.3 of {{RFC7030}})
 
 ## attest-retrieve {#attest-retrieve}
 
 * Method: POST
-* Request: AttestedRetrievalRequest (Evidence including CEKpub)
+* Request: AttestedRetrievalRequest ({{retrieval-request}}): CEKpub and Evidence
 * Success: 200 OK
-* Response: EncryptedCredentialBundle
+* Response: EncryptedCredentialBundle ({{bundle}})
 
 
-# Media Types and Encodings
+# Media Types and Encodings {#media-types}
 
-Implementations MUST support at least one of CBOR or JSON envelopes, using to-be-registered media types ({{iana}}).
-Servers advertise supported types with Content-Type and Accept; clients MUST send a supported type.
-Evidence blobs are opaque byte strings.
+The messages of the `attest-*` resources are JSON ({{RFC8259}}), as defined in CDDL ({{RFC8610}}) in {{cddl}}; implementations MUST support this encoding.
+A CBOR encoding, for EST over secure CoAP ({{RFC9148}}), is left for future work.
+Evidence is an opaque byte string.
+
+As each EST message type has its own media type (Section 3.2.4 of {{RFC7030}}), so does each JSON message of the `attest-*` resources ({{iana}}):
+
+| Resource | Request | Response |
+|---|---|---|
+| `attest-initiate` | none: a GET, no body | `application/est-attest-initiate+json` |
+| `attest-enroll` | `application/est-attest-enroll+json` | `application/pkcs7-mime; smime-type=certs-only`, as simpleenroll |
+| `attest-retrieve` | `application/est-attest-retrieve+json` | `application/est-attest-bundle+json` |
+{: title="Media types of the attest-* messages"}
+
+A client MUST send a request of the resource's media type.
+An EST Server responds to a request of another media type with 415 (Unsupported Media Type) and SHOULD name the resource's media type in an Accept header field (Section 15.5.16 of {{RFC9110}}).
+
+## Message Definitions {#cddl}
+
+In the definitions below, a byte string is carried as a text string holding its unpadded base64url encoding (Section 5 of {{RFC4648}}), as the control operator `.b64u` defines it (Section 2.1 of {{RFC9741}}): only characters of the base64url alphabet, no padding, and the bits that encode no octet set to zero.
+The group choices tie each member to the Freshness Kinds and modes its description below names: in a response, `handle` and `expires_in` to `present-nonce` and `present-epoch`, `max_age` to `absent-timestamp`, `acceptable_csk` to `enroll` and `acceptable_cek` to `retrieve`; in a request, `handle` to every Freshness Kind but `absent-none`.
+The EncryptedCredentialBundle is not defined here ({{bundle}}).
+
+~~~ cddl
+{::include est-attest.cddl}
+~~~
 
 
 # Common Structures
 
-## AttestationInitiationResponse
+## AttestationInitiationResponse {#initiation-response}
 
 Fields:
 
@@ -264,6 +292,7 @@ Fields:
 * `mode` (string, REQUIRED): `enroll` or `retrieve`
 * `acceptable_cek` (array, only when `mode` is `retrieve`): acceptable CEK algorithms/suites
 * `acceptable_csk` (array, only when `mode` is `enroll`): acceptable CSK algorithms/suites
+* `acceptable_evidence` (array, OPTIONAL): the Evidence formats the EST Server accepts; a request of the second leg names the format of its Evidence in `profile`
 
 The Freshness Handle originator MUST ensure `present-nonce` uniqueness and MUST correlate the second-leg request with the Handle from this `attest-initiate`.
 The Verifier appraises whether Evidence is bound to a still-valid Freshness Handle.
@@ -273,15 +302,18 @@ The Verifier appraises whether Evidence is bound to a still-valid Freshness Hand
 
 ## Credential Enrollment Mode
 
-### Request: AttestedEnrollmentRequest
+### Request: AttestedEnrollmentRequest {#enrollment-request}
 
 Fields:
 
+* target (string, REQUIRED): the Target of Enroll-Credential (Section 5.2 of {{TACRA}})
 * freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
 * handle (bytes): Freshness Handle - REQUIRED when `freshness_kind` is not `absent-none`; MUST be absent otherwise. MUST equal the Handle returned by `attest-initiate` when present.
 * csr (bytes, REQUIRED): DER-encoded PKCS#10 CSR
 * evidence (bytes, REQUIRED): MUST be bound to the Freshness returned by `attest-initiate`, if any
+* profile (string, OPTIONAL): the format of `evidence`, one of `acceptable_evidence`
 * binding (object, REQUIRED): declares how the CSR key is bound to Evidence
+* credential_type (string, OPTIONAL): e.g., x509, wimse-wit
 * credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the Credential Authority MAY use it, ignore it, or reject the request
 
 ### Response (Success)
@@ -308,21 +340,25 @@ Upon receiving AttestedEnrollmentRequest, the EST Server MUST:
 
 1. Validate syntax, media type, and size limits.
 2. Correlate `handle` with the preceding `attest-initiate` for this session, if a Freshness Handle was returned.
-3. Forward Evidence (and endorsements, if any) to the Verifier and obtain Attestation Results.
-4. Forward the CSR and Attestation Results to the Credential Authority, which verifies PoP and authorizes issuance.
+3. Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Credential Authority obtains Attestation Results itself.
+4. Forward the CSR and Attestation Results (Passport) or the CSR and Evidence (Background Check) to the Credential Authority, which verifies PoP and authorizes issuance.
 5. Return the Credential Authority's enrollment response.
 
 The Credential Authority MUST NOT mint identities (e.g., DNS names) beyond policy for the attested identity context.
 
 ## Credential Retrieval Mode
 
-### Request: AttestedRetrievalRequest
+### Request: AttestedRetrievalRequest {#retrieval-request}
 
 Fields:
 
+* target (string, REQUIRED): the Target of Retrieve-Credential (Section 5.3 of {{TACRA}})
 * freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
 * handle (bytes): Freshness Handle - REQUIRED when `freshness_kind` is not `absent-none`; MUST be absent otherwise. MUST equal the Handle returned by `attest-initiate` when present.
 * evidence (bytes, REQUIRED) -- MUST include CEKpub; MUST be bound to the Freshness returned by `attest-initiate`, if any
+* cek_pub (bytes, REQUIRED): CEKpub, to which the Secret Vault encrypts
+* profile (string, OPTIONAL): the format of `evidence`, one of `acceptable_evidence`
+* binding (object, REQUIRED): declares how CEKpub is bound to Evidence
 * credential_type (string, OPTIONAL): e.g., x509, wimse-wit
 * credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) MAY use it, ignore it, or reject the request
 
@@ -341,7 +377,7 @@ group_id = H(attestation_subject \|\| credential_hint \|\| policy_version)
 
 Where attestation_subject is derived from Attestation Results (not raw Evidence) to avoid nonce/freshness variability.
 
-### Response: EncryptedCredentialBundle
+### Response: EncryptedCredentialBundle {#bundle}
 
 The response MUST be an authenticated-encryption container encrypted to CEKpub. It contains:
 
@@ -365,25 +401,31 @@ TODO: Ensure that TACRA architecture can carry these and other encryption mechan
 
 Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 
-1. Validate syntax and size limits, and correlate `handle` with the preceding `attest-initiate` as in enrollment processing
-2. (Passport mode only, Background Check mode achieved by reversing the order) Forward Evidence to the Verifier and obtain Attestation Results
-3. Forward Attestation Results to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub
-4. Return the EncryptedCredentialBundle produced by the Secret Vault
+1. Validate syntax, media type, and size limits.
+2. Correlate `handle` with the preceding `attest-initiate` for this session, if a Freshness Handle was returned.
+3. Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Secret Vault obtains Attestation Results itself.
+4. Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub.
+5. Return the EncryptedCredentialBundle produced by the Secret Vault.
 
 A variant in which the EST Server receives a plaintext secret from the Secret Vault and re-encrypts to CEKpub is possible but discouraged.
 
 
 # Error Handling
 
-Servers SHOULD reuse HTTP status codes from {{RFC7030}} and a machine-readable error body:
+An error response carries one of the status codes below, and a human-readable body as a simpleenroll error does (Section 4.2.3 of {{RFC7030}}, updated by Section 5.1 of {{RFC8951}}):
 
-* 400 Bad Request: malformed envelope, missing fields
+* 400 Bad Request: a request that does not match its definition ({{cddl}})
 * 401 Unauthorized: missing/invalid authentication required by deployment policy
 * 403 Forbidden: attestation failed or policy denies enrollment/retrieval
 * 409 Conflict: Freshness Handle replay detected, or `present-epoch` marker has moved
-* 415 Unsupported Media Type: unsupported encoding
-* 429 Too Many Requests: rate limiting
-* 500/503: verifier unavailable or internal error
+* 413 Content Too Large: a request larger than the server takes (Section 15.5.14 of {{RFC9110}})
+* 415 Unsupported Media Type: a request not of the resource's media type ({{media-types}}), or Evidence of a format that is not accepted
+* 429 Too Many Requests: rate limiting (Section 4 of {{RFC6585}})
+* 500 Internal Server Error: internal error
+* 502 Bad Gateway: the RATS Relying Party did not answer, or answered with a message the EST Server cannot pass on
+* 503 Service Unavailable: the Verifier is unavailable
+
+A client acts on the status code. A machine-readable body ({{RFC9457}}) is left for a revision in which a client needs the reason.
 
 Error bodies MUST NOT leak sensitive attestation details. Servers MAY provide a correlation identifier for debugging.
 
@@ -411,15 +453,212 @@ Error bodies MUST NOT leak sensitive attestation details. Servers MAY provide a 
 
 # IANA Considerations {#iana}
 
-This document requests registrations for:
+The `attest-*` resources are additional services of an EST server (Section 3.2.2 of {{RFC7030}}), under the well-known URI suffix "est" that {{RFC7030}} registered.
+No registry of EST operation paths exists, so none is requested.
 
-* New EST well-known paths (if applicable under EST registries)
-* Media types for:
-    * AttestationInitiationResponse
-    * AttestedEnrollmentRequest
-    * AttestedRetrievalRequest
-    * EncryptedCredentialBundle
-* Registry of acceptable_evidence identifiers and credential_type identifiers (if not reused from existing registries)
+IANA is requested to register the media types of {{media-types}} in the "Media Types" registry ({{RFC6838}}).
+
+This document also requests a registry of acceptable_evidence identifiers and credential_type identifiers (if not reused from existing registries).
+
+## application/est-attest-initiate+json
+
+Type name:
+: application
+
+Subtype name:
+: est-attest-initiate+json
+
+Required parameters:
+: N/A
+
+Optional parameters:
+: N/A
+
+Encoding considerations:
+: binary
+
+Security considerations:
+: See {{security}} of this document.
+
+Interoperability considerations:
+: The response of `attest-initiate`.
+
+Published specification:
+: This document.
+
+Applications that use this media type:
+: EST implementations of the `attest-*` resources of this document.
+
+Fragment identifier considerations:
+: The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".
+
+Additional information:
+: Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
+
+Person & email address to contact for further information:
+: IETF LAMPS Working Group (spasm@ietf.org)
+
+Intended usage:
+: COMMON
+
+Restrictions on usage:
+: N/A
+
+Author:
+: See the Authors' Addresses section of this document.
+
+Change controller:
+: IETF
+
+## application/est-attest-enroll+json
+
+Type name:
+: application
+
+Subtype name:
+: est-attest-enroll+json
+
+Required parameters:
+: N/A
+
+Optional parameters:
+: N/A
+
+Encoding considerations:
+: binary
+
+Security considerations:
+: See {{security}} of this document.
+
+Interoperability considerations:
+: The request of `attest-enroll`; its response is that of simpleenroll.
+
+Published specification:
+: This document.
+
+Applications that use this media type:
+: EST implementations of the `attest-*` resources of this document.
+
+Fragment identifier considerations:
+: The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".
+
+Additional information:
+: Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
+
+Person & email address to contact for further information:
+: IETF LAMPS Working Group (spasm@ietf.org)
+
+Intended usage:
+: COMMON
+
+Restrictions on usage:
+: N/A
+
+Author:
+: See the Authors' Addresses section of this document.
+
+Change controller:
+: IETF
+
+## application/est-attest-retrieve+json
+
+Type name:
+: application
+
+Subtype name:
+: est-attest-retrieve+json
+
+Required parameters:
+: N/A
+
+Optional parameters:
+: N/A
+
+Encoding considerations:
+: binary
+
+Security considerations:
+: See {{security}} of this document.
+
+Interoperability considerations:
+: The request of `attest-retrieve`; its response is `application/est-attest-bundle+json`.
+
+Published specification:
+: This document.
+
+Applications that use this media type:
+: EST implementations of the `attest-*` resources of this document.
+
+Fragment identifier considerations:
+: The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".
+
+Additional information:
+: Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
+
+Person & email address to contact for further information:
+: IETF LAMPS Working Group (spasm@ietf.org)
+
+Intended usage:
+: COMMON
+
+Restrictions on usage:
+: N/A
+
+Author:
+: See the Authors' Addresses section of this document.
+
+Change controller:
+: IETF
+
+## application/est-attest-bundle+json
+
+Type name:
+: application
+
+Subtype name:
+: est-attest-bundle+json
+
+Required parameters:
+: N/A
+
+Optional parameters:
+: N/A
+
+Encoding considerations:
+: binary
+
+Security considerations:
+: See {{security}} of this document.
+
+Interoperability considerations:
+: The response of `attest-retrieve`, the EncryptedCredentialBundle ({{bundle}}).
+
+Published specification:
+: This document.
+
+Applications that use this media type:
+: EST implementations of the `attest-*` resources of this document.
+
+Fragment identifier considerations:
+: The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".
+
+Additional information:
+: Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
+
+Person & email address to contact for further information:
+: IETF LAMPS Working Group (spasm@ietf.org)
+
+Intended usage:
+: COMMON
+
+Restrictions on usage:
+: N/A
+
+Author:
+: See the Authors' Addresses section of this document.
+
+Change controller:
+: IETF
 
 --- back
 
