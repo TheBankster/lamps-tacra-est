@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-08T05:48:52.614781+00:00",
+  "timestamp": "2026-10-11T05:32:18.440094+00:00",
   "repo": "TheBankster/lamps-tacra-est",
   "labels": [
     {
@@ -1870,6 +1870,140 @@
               "updatedAt": "2026-10-08T01:16:56Z"
             }
           ]
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "id": "PR_kwDOUNE08M8AAAABHYhkrQ",
+      "title": "EST wire format: a media type for each message, the messages in CDDL, error codes (part 1 of #1)",
+      "url": "https://github.com/TheBankster/lamps-tacra-est/pull/10",
+      "state": "MERGED",
+      "author": "nikolaichuk7",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The first of the five parts #1 is being split into: the wire format alone, on -00.\n\n- attest-initiate: the repeated block is gone; the text on what the GET carries stays as it is until\n  TheBankster/rats-tacra#19.\n- The requests carry `target` (TACRA 5.2, 5.3) and an optional `credential_type`, as in -00's Retrieval request and\n  the TWI server; whether it needs to travel is #19. Retrieval also carries `cek_pub` and `binding`. Enrollment no\n  longer forwards endorsements.\n- -00 has no `rrp_id`, and this does not add one: where the Attester gets the RRP identifier, and whether it is\n  bound at all, are TheBankster/rats-tacra#17 and #20.\n- JSON is mandatory, CBOR (for CoAP) is left for later. Each message type has its own media type, as in EST\n  (RFC 7030, 3.2.4) and in -00's IANA list. A request of another type gets 415, which names the expected type in\n  Accept.\n- The messages are in CDDL (`est-attest.cddl`). Byte strings use RFC 9741's `.b64u`. Group choices say which\n  members go with which Freshness Kind and mode.\n- Errors: 413 and 502 are added, and 500 and 503 are told apart. The body is the human-readable text of a\n  simpleenroll error (RFC 7030, 4.2.3; RFC 8951, 5.1), which EST clients already handle; -00's \"machine-readable\"\n  is noted for a later revision.\n- IANA: four media types. There is no registry of EST paths to add to.\n- The names `acceptable_evidence` and `profile` are the TWI server's; `acceptable_profiles`/`chosen_profile` is a\n  one-line change if you prefer it. The Key Binding sections stay as -00 has them; part 2 (binding) reconciles them\n  with TACRA.\n\nI ran it before writing this, in my setup: six end-to-end runs (GCP SEV-SNP, GCP TDX and AWS SEV-SNP; Background\nCheck and Passport) and three attack runs on the same platforms. All 192 messages are valid against this CDDL with\nCarsten Bormann's `cddl` tool, each with the media type above, and the tool refuses each of 144 messages altered to\nbreak one of its rules.\n",
+      "createdAt": "2026-10-08T17:24:11Z",
+      "updatedAt": "2026-10-10T16:33:20Z",
+      "baseRepository": "TheBankster/lamps-tacra-est",
+      "baseRefName": "master",
+      "baseRefOid": "5830f5a6ff8c110bdf4c2a2ec5ef09e75b950dc6",
+      "headRepository": "nikolaichuk7/lamps-tacra-est",
+      "headRefName": "est-wire",
+      "headRefOid": "6f9b4a241594552cca71caf973e6dfa17e7a1a68",
+      "closedAt": "2026-10-10T16:33:20Z",
+      "mergedAt": "2026-10-10T16:33:20Z",
+      "mergedBy": "TheBankster",
+      "mergeCommit": {
+        "oid": "4fa3883a4c16b4e1dab38b023e735ea58e1eb537"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOUNE08M8AAAABRpQNAQ",
+          "commit": {
+            "abbreviatedOid": "c6e9691"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2026-10-10T13:15:09Z",
+          "updatedAt": "2026-10-10T13:26:29Z",
+          "comments": [
+            {
+              "originalPosition": 71,
+              "body": "Maybe \"None or GET\". As stated it's unclear that it's either or the other. Or do you mean \"None because it's GET\"? In that case OK to leave as is.",
+              "createdAt": "2026-10-10T13:15:09Z",
+              "updatedAt": "2026-10-10T13:26:30Z"
+            },
+            {
+              "originalPosition": 167,
+              "body": "Under \"enroll\" we have this split into two parts, with handle validated in a separate step. Let's aim for consistency.",
+              "createdAt": "2026-10-10T13:21:50Z",
+              "updatedAt": "2026-10-10T13:26:30Z"
+            },
+            {
+              "originalPosition": 168,
+              "body": "Under Enrollment, Passport mode is not mentioned.",
+              "createdAt": "2026-10-10T13:23:29Z",
+              "updatedAt": "2026-10-10T13:26:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABRpTJ2Q",
+          "commit": {
+            "abbreviatedOid": "6f9b4a2"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-10T13:33:54Z",
+          "updatedAt": "2026-10-10T13:33:54Z",
+          "comments": [
+            {
+              "originalPosition": 71,
+              "body": "Yes, none because it is a GET. Made it say so: `none: a GET, no body` (line 258 at 6f9b4a2).\n",
+              "createdAt": "2026-10-10T13:33:54Z",
+              "updatedAt": "2026-10-10T13:33:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABRpTKEg",
+          "commit": {
+            "abbreviatedOid": "6f9b4a2"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-10T13:33:55Z",
+          "updatedAt": "2026-10-10T13:33:55Z",
+          "comments": [
+            {
+              "originalPosition": 167,
+              "body": "Split as in enrollment: validate (1), correlate the handle (2), the Verifier step (3), the Secret Vault (4), the response (5): lines 404\u2013408 at 6f9b4a2.\n",
+              "createdAt": "2026-10-10T13:33:55Z",
+              "updatedAt": "2026-10-10T13:33:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABRpTKPw",
+          "commit": {
+            "abbreviatedOid": "6f9b4a2"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-10T13:33:57Z",
+          "updatedAt": "2026-10-10T13:33:57Z",
+          "comments": [
+            {
+              "originalPosition": 168,
+              "body": "Both sections now name both modes the same way: step 3 is Passport (forward Evidence to the Verifier and obtain Attestation Results); in Background Check the EST Server skips it and forwards the Evidence to the Credential Authority or the Secret Vault, which obtains the Attestation Results itself (enrollment lines 343\u2013344, retrieval 406\u2013407 at 6f9b4a2). That is what the backend does in both models on the bench. If you would rather keep the \"reversing the order\" parenthetical in both places, say so and I will put it back.\n",
+              "createdAt": "2026-10-10T13:33:57Z",
+              "updatedAt": "2026-10-10T13:33:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABRqBgUA",
+          "commit": {
+            "abbreviatedOid": "6f9b4a2"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-10T16:33:06Z",
+          "updatedAt": "2026-10-10T16:33:06Z",
+          "comments": []
         }
       ]
     }
