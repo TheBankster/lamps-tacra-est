@@ -53,6 +53,7 @@ normative:
 informative:
   INTERACTION-MODELS: I-D.ietf-rats-reference-interaction-models
   ATTESTATION-FRESHNESS: I-D.ietf-lamps-attestation-freshness
+  CSR-ATTEST: I-D.ietf-lamps-csr-attestation
   RFC6585:
   RFC9148:
   RFC9457:
@@ -245,6 +246,21 @@ The first leg of both modes is where the Attester initiates Remote Attestation b
 * Response: EncryptedCredentialBundle ({{bundle}})
 
 
+# Relationship to Other LAMPS Work {#relationship}
+
+Two LAMPS documents cover parts of the exchange defined here.
+
+{{ATTESTATION-FRESHNESS}} defines a nonce request and response for certificate management protocols, including an EST resource at `/.well-known/est/nonce` (GET, or POST with `application/est-attestation-freshness+json`) whose response carries a `nonce` of 8 to 64 bytes and an OPTIONAL `expiry` in seconds (Section 5.1 of {{ATTESTATION-FRESHNESS}}).
+`attest-initiate` ({{attest-initiate}}) covers the same first leg for the `present-nonce` Freshness Kind and, in addition, returns the Freshness Kind itself, the Credential Acquisition Mode and the acceptable CSK or CEK algorithms ({{initiation-response}}), none of which the nonce resource carries.
+A `present-nonce` Handle is a nonce in the sense of {{ATTESTATION-FRESHNESS}}, and the requirement of Section 5.1 of that document that the server associate the nonce with the subsequent request applies to `attest-initiate` and its second leg alike.
+An EST Server MAY offer both resources.
+
+{{CSR-ATTEST}} conveys Evidence inside the CSR, in the `id-aa-attestation` attribute, and makes the CA/RA responsible for validating the binding between the attestations and the CSR's public key (Section 6.1 of {{CSR-ATTEST}}).
+This document conveys Evidence beside the CSR, in the AttestedEnrollmentRequest ({{enrollment-request}}), and binds the two through the Evidence itself ({{key-binding}}): the Evidence is produced over a digest that covers the finished CSR, so it cannot travel inside it.
+Evidence beside the CSR is what this profile requires.
+Placing attestations in the CSR as well, per {{CSR-ATTEST}}, is an optional interoperability path for an Attester whose platform can make claims about the CSR key; whether a Credential Authority requires it is agreed out of band.
+This choice is specific to Enrollment; Retrieval has no CSR and binds Evidence to CEKpub ({{evidence-to-cek}}).
+
 # Media Types and Encodings {#media-types}
 
 The messages of the `attest-*` resources are JSON ({{RFC8259}}), as defined in CDDL ({{RFC8610}}) in {{cddl}}; implementations MUST support this encoding.
@@ -320,26 +336,19 @@ Fields:
 
 On success, the EST Server returns the enrollment response produced by the Credential Authority, as for simpleenroll in {{RFC7030}}.
 
-### Key Binding and PoP Requirements
+### Key Binding and PoP Requirements {#key-binding}
 
 1. PoP: The Credential Authority MUST verify possession of the CSR private key.
-2. Evidence-to-CSR: Evidence MUST bind the CSR so a different CSR cannot be substituted. The Verifier MUST attest to that binding.
-3. Evidence-to-Freshness: Evidence MUST be bound to the Freshness from `attest-initiate` ({{attest-initiate}}). The Verifier MUST attest to that binding.
+2. Evidence-to-CSR and Evidence-to-Freshness: the Evidence MUST carry the binding of Section "Binding Credential Keys to Evidence" of {{TACRA}}, with the DER-encoded CSR as its subject. As that section requires, the Verifier reports the bound value in the Attestation Results, and the Credential Authority recomputes it from the request and refuses the request on a mismatch; a substituted CSR, or Evidence produced under another Freshness, fails that check.
 
-At least one Evidence-to-CSR mechanism MUST be produced by the Attester and verified by the Verifier:
-
-* CSR Hash: Evidence contains H(csr_der)
-* Public Key Thumbprint: Evidence contains a thumbprint of the CSR SubjectPublicKeyInfo
-* Key Certification: Evidence states that the CSR key is resident in protected hardware/TEE and matches the CSR public key
-
-The binding object MUST name the method and any identifiers (e.g., hash algorithm).
+The `binding` object ({{cddl}}) names the method, `binding-input`, and in `hash` the digest of the binding input: `sha512` where the Evidence's freshness input is 64 octets, as REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are ({{TACRA}}).
 
 ### Enrollment Server Processing
 
 Upon receiving AttestedEnrollmentRequest, the EST Server MUST:
 
 1. Validate syntax, media type, and size limits.
-2. Correlate `handle` with the preceding `attest-initiate` for this session, if a Freshness Handle was returned.
+2. For `present-nonce` and `present-epoch`, correlate `handle` with the `attest-initiate` that returned it: refuse the request with 409 Conflict when no `attest-initiate` returned this Handle or it has expired, and with 403 Forbidden when the request's `target` or `freshness_kind`, or `credential_type` when it is carried, differ from that `attest-initiate`'s; a `present-nonce` Handle is single-use. For the `absent-*` Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target ({{TACRA}}).
 3. Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Credential Authority obtains Attestation Results itself.
 4. Forward the CSR and Attestation Results (Passport) or the CSR and Evidence (Background Check) to the Credential Authority, which verifies PoP and authorizes issuance.
 5. Return the Credential Authority's enrollment response.
@@ -362,10 +371,11 @@ Fields:
 * credential_type (string, OPTIONAL): e.g., x509, wimse-wit
 * credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) MAY use it, ignore it, or reject the request
 
-### Evidence-to-CEK Binding
+### Evidence-to-CEK Binding {#evidence-to-cek}
 
-Evidence MUST integrity-protect the Freshness from `attest-initiate` ({{attest-initiate}}) and a claim conveying CEKpub or a thumbprint of CEKpub.
-The Verifier MUST reject Evidence that does not, and the Secret Vault MUST deny release when Attestation Results do not confirm these bindings.
+The Evidence MUST carry the binding of Section "Binding Credential Keys to Evidence" of {{TACRA}} with CEKpub, the octets of `cek_pub`, as its subject.
+As that section requires, the Verifier reports the bound value in the Attestation Results, and the Secret Vault recomputes it from the request and denies release on a mismatch.
+The `binding` object is as in Enrollment ({{key-binding}}).
 
 ### Credential Group ID Determination
 
@@ -402,7 +412,7 @@ TODO: Ensure that TACRA architecture can carry these and other encryption mechan
 Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 
 1. Validate syntax, media type, and size limits.
-2. Correlate `handle` with the preceding `attest-initiate` for this session, if a Freshness Handle was returned.
+2. For `present-nonce` and `present-epoch`, correlate `handle` with the `attest-initiate` that returned it, as in Enrollment: 409 Conflict when no `attest-initiate` returned this Handle or it has expired, 403 Forbidden when the request's `target` or `freshness_kind`, or `credential_type` when it is carried, differ from that `attest-initiate`'s, and a `present-nonce` Handle is single-use. For the `absent-*` Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target ({{TACRA}}).
 3. Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Secret Vault obtains Attestation Results itself.
 4. Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub.
 5. Return the EncryptedCredentialBundle produced by the Secret Vault.
@@ -416,8 +426,8 @@ An error response carries one of the status codes below, and a human-readable bo
 
 * 400 Bad Request: a request that does not match its definition ({{cddl}})
 * 401 Unauthorized: missing/invalid authentication required by deployment policy
-* 403 Forbidden: attestation failed or policy denies enrollment/retrieval
-* 409 Conflict: Freshness Handle replay detected, or `present-epoch` marker has moved
+* 403 Forbidden: attestation failed, policy denies enrollment/retrieval, or the request's `target` or `freshness_kind`, or `credential_type` when it is carried, differ from those of the `attest-initiate` that returned its Handle
+* 409 Conflict: Freshness Handle replay detected, a Handle that no `attest-initiate` returned or that has expired, or `present-epoch` marker has moved
 * 413 Content Too Large: a request larger than the server takes (Section 15.5.14 of {{RFC9110}})
 * 415 Unsupported Media Type: a request not of the resource's media type ({{media-types}}), or Evidence of a format that is not accepted
 * 429 Too Many Requests: rate limiting (Section 4 of {{RFC6585}})
