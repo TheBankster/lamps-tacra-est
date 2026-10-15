@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-11T05:32:18.440094+00:00",
+  "timestamp": "2026-10-15T04:21:58.013600+00:00",
   "repo": "TheBankster/lamps-tacra-est",
   "labels": [
     {
@@ -2006,6 +2006,32 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 11,
+      "id": "PR_kwDOUNE08M8AAAABILsEEQ",
+      "title": "The EST minimum: the binding by reference to TACRA, the second leg checked against its attest-initiate, the two LAMPS neighbours (part 2 of #1)",
+      "url": "https://github.com/TheBankster/lamps-tacra-est/pull/11",
+      "state": "OPEN",
+      "author": "nikolaichuk7",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "One commit on master (4fa3883): the part of #1 that is EST's own, as agreed there. What TACRA decides is not restated, so nothing here depends on TheBankster/rats-tacra#19 or #20 (`credential_type` is named only as \"when it is carried\"): which values the binding covers, the Freshness Kinds and their checks, the container of the retrieved credential and the Security Considerations shared by every CAS go to the base draft.\n\nWhat changes, and where each sentence comes from:\n\n| section | change | source |\n|---|---|---|\n| 9.1.3 Key Binding and PoP Requirements | the three Evidence-to-CSR methods of -00 go; the Evidence carries the binding of TACRA's \"Binding Credential Keys to Evidence\" with the DER-encoded CSR as its subject; the Verifier reports the value, the Credential Authority recomputes and refuses a mismatch; `binding.method` is `binding-input` and `hash` is `sha512` where the freshness input is 64 octets | TACRA, Section 4.5 (the subject for Enrollment is the DER CSR; SHA-512 for a 64-octet freshness input); the group's server: `attest.go` (`BindingInput = \"binding-input\"`, `BindingDigest` is SHA-512), `internal/tacra/binding.go`; the bench's client sends `{\"method\":\"binding-input\",\"hash\":\"sha512\"}` |\n| 9.2.2 Evidence-to-CEK Binding | the same binding with CEKpub, the octets of `cek_pub`, as the subject; the Secret Vault recomputes and denies release on a mismatch | `internal/tacra/backend.go` binds the octets of `cek_pub`. TACRA 4.5 says \"the DER-encoded SubjectPublicKeyInfo of CEKpub\"; both implementations carry the KEM public key's own octets (1249 for MLKEM768-P256), so that sentence of TACRA wants the same correction, which I will propose there |\n| 9.1.4 and 9.2.5, step 2 | for `present-nonce` and `present-epoch`: 409 when no `attest-initiate` returned the Handle or it has expired, 403 when the request's `target` or `freshness_kind`, or `credential_type` when it is carried, differ from that `attest-initiate`'s, a `present-nonce` Handle single-use; for the `absent-*` kinds the RRP checks the freshness element under the kind its policy sets | `internal/tacra/backend.go`, `correlateKey`, and the server's tests `internal/tacra/session_test.go` (`TestEpochSharedByTargets`: another Target, 403; `TestNonceSingleUse`: another Credential Type, 403, the Handle again, 409; `TestExpiredOrUnknown`: 409); TACRA 4.5: \"the Relying Party MUST take the Freshness Kind for a Target from its own policy\" |\n| 10 Error Handling | the two cases named under 403 and 409 | the same |\n| 6 Relationship to Other LAMPS Work (new) | attestation-freshness-08, Section 5.1: the nonce resource, a `present-nonce` Handle is a nonce in its sense, an EST Server MAY offer both; csr-attestation-29: `id-aa-attestation`, Section 6.1 (the CA/RA validates the binding), while this profile carries Evidence beside the CSR and binds the two through the Evidence, so attestations in the CSR are an optional interoperability path | the two drafts as posted (-08 of 4 July, -29 of 16 September 2026; no newer revision today); the threads of 26 September on fewer options |\n\nThe server the text describes is the group's master (TWI-Unified-Model/globalsign-est, with #4, #5 and #6); on 11 October the bench ran it on GCP SEV-SNP, AWS SEV-SNP and GCP TDX, enrollment and retrieval in Passport and in Background Check, 10 of 10 Targets each, and its attack series (232, 232 and 142 checks). Today the bench builds the master with #6, and its checks pass.\n\nBuilds with kramdown-rfc 1.7.43 and xml2rfc 3.34.1; the notes it prints (two references both inline and in the YAML header, two unused references TWISIGDef and TWISIGReq) pre-date this change.\n\nWith this merged I will close #1 with a map of its threads: what landed in #10 and here, what moved to TACRA, and what waits for #19 and #20.\n",
+      "createdAt": "2026-10-13T13:37:58Z",
+      "updatedAt": "2026-10-13T13:37:58Z",
+      "baseRepository": "TheBankster/lamps-tacra-est",
+      "baseRefName": "master",
+      "baseRefOid": "4fa3883a4c16b4e1dab38b023e735ea58e1eb537",
+      "headRepository": "nikolaichuk7/lamps-tacra-est",
+      "headRefName": "est-minimum",
+      "headRefOid": "8be0e17679112549e9bfd42d9b83ba9e0c57b613",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
