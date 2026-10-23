@@ -5,10 +5,10 @@
 Limited Additional Mechanisms for PKIX and SMIME                M. Novak
 Internet-Draft                                   J.P. Morgan Chase & Co.
 Intended status: Informational                             M. Richardson
-Expires: 13 April 2027                          Sandelman Software Works
+Expires: 26 April 2027                          Sandelman Software Works
                                                              H. Birkholz
                                                         Fraunhofer Inst.
-                                                         10 October 2026
+                                                         23 October 2026
 
 
                  Remote Attestation Extensions for EST
@@ -73,7 +73,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 April 2027.
+   This Internet-Draft will expire on 26 April 2027.
 
 Copyright Notice
 
@@ -105,35 +105,36 @@ Table of Contents
      5.1.  attest-initiate
      5.2.  attest-enroll
      5.3.  attest-retrieve
-   6.  Media Types and Encodings
-     6.1.  Message Definitions
-   7.  Common Structures
-     7.1.  AttestationInitiationResponse
-   8.  Attested Credential Acquisition Modes
-     8.1.  Credential Enrollment Mode
-       8.1.1.  Request: AttestedEnrollmentRequest
-       8.1.2.  Response (Success)
-       8.1.3.  Key Binding and PoP Requirements
-       8.1.4.  Enrollment Server Processing
-     8.2.  Credential Retrieval Mode
-       8.2.1.  Request: AttestedRetrievalRequest
-       8.2.2.  Evidence-to-CEK Binding
-       8.2.3.  Credential Group ID Determination
-       8.2.4.  Response: EncryptedCredentialBundle
-       8.2.5.  Retrieval Server Processing
-   9.  Error Handling
-   10. Security Considerations
-     10.1.  Specific to Attested Enrollment Mode
-     10.2.  Specific to Attested Retrieval Mode
-     10.3.  Common to Both Modes
-   11. IANA Considerations
-     11.1.  application/est-attest-initiate+json
-     11.2.  application/est-attest-enroll+json
-     11.3.  application/est-attest-retrieve+json
-     11.4.  application/est-attest-bundle+json
-   12. References
-     12.1.  Normative References
-     12.2.  Informative References
+   6.  Relationship to Other LAMPS Work
+   7.  Media Types and Encodings
+     7.1.  Message Definitions
+   8.  Common Structures
+     8.1.  AttestationInitiationResponse
+   9.  Attested Credential Acquisition Modes
+     9.1.  Credential Enrollment Mode
+       9.1.1.  Request: AttestedEnrollmentRequest
+       9.1.2.  Response (Success)
+       9.1.3.  Key Binding and PoP Requirements
+       9.1.4.  Enrollment Server Processing
+     9.2.  Credential Retrieval Mode
+       9.2.1.  Request: AttestedRetrievalRequest
+       9.2.2.  Evidence-to-CEK Binding
+       9.2.3.  Credential Group ID Determination
+       9.2.4.  Response: EncryptedCredentialBundle
+       9.2.5.  Retrieval Server Processing
+   10. Error Handling
+   11. Security Considerations
+     11.1.  Specific to Attested Enrollment Mode
+     11.2.  Specific to Attested Retrieval Mode
+     11.3.  Common to Both Modes
+   12. IANA Considerations
+     12.1.  application/est-attest-initiate+json
+     12.2.  application/est-attest-enroll+json
+     12.3.  application/est-attest-retrieve+json
+     12.4.  application/est-attest-bundle+json
+   13. References
+     13.1.  Normative References
+     13.2.  Informative References
    Acknowledgments
    Authors' Addresses
 
@@ -354,7 +355,7 @@ Table of Contents
 
    *  Success: 200 OK
 
-   *  Response: AttestationInitiationResponse (Section 7.1): Freshness
+   *  Response: AttestationInitiationResponse (Section 8.1): Freshness
       kind, Credential Acquisition Mode (enroll or retrieve), acceptable
       ciphers
 
@@ -389,7 +390,7 @@ Table of Contents
 
    *  Method: POST
 
-   *  Request: AttestedEnrollmentRequest (Section 8.1.1): CSR and
+   *  Request: AttestedEnrollmentRequest (Section 9.1.1): CSR and
       Evidence
 
    *  Success: 200 OK
@@ -401,24 +402,59 @@ Table of Contents
 
    *  Method: POST
 
-   *  Request: AttestedRetrievalRequest (Section 8.2.1): CEKpub and
+   *  Request: AttestedRetrievalRequest (Section 9.2.1): CEKpub and
       Evidence
 
    *  Success: 200 OK
 
-   *  Response: EncryptedCredentialBundle (Section 8.2.4)
+   *  Response: EncryptedCredentialBundle (Section 9.2.4)
 
-6.  Media Types and Encodings
+6.  Relationship to Other LAMPS Work
+
+   Two LAMPS documents cover parts of the exchange defined here.
+
+   [ATTESTATION-FRESHNESS] defines a nonce request and response for
+   certificate management protocols, including an EST resource at
+   /.well-known/est/nonce (GET, or POST with application/est-
+   attestation-freshness+json) whose response carries a nonce of 8 to 64
+   bytes and an OPTIONAL expiry in seconds (Section 5.1 of
+   [ATTESTATION-FRESHNESS]). attest-initiate (Section 5.1) covers the
+   same first leg for the present-nonce Freshness Kind and, in addition,
+   returns the Freshness Kind itself, the Credential Acquisition Mode
+   and the acceptable CSK or CEK algorithms (Section 8.1), none of which
+   the nonce resource carries.  A present-nonce Handle is a nonce in the
+   sense of [ATTESTATION-FRESHNESS], and the requirement of Section 5.1
+   of that document that the server associate the nonce with the
+   subsequent request applies to attest-initiate and its second leg
+   alike.  An EST Server MAY offer both resources.
+
+   [CSR-ATTEST] conveys Evidence inside the CSR, in its id-aa-
+   attestation attribute.  It makes the Certification Authority or
+   Registration Authority that processes the CSR responsible for
+   validating the binding between the attestations and the CSR's public
+   key (Section 6.1 of [CSR-ATTEST]).  This document conveys Evidence
+   beside the CSR, in the AttestedEnrollmentRequest (Section 9.1.1), and
+   binds the two through the Evidence itself (Section 9.1.3): the
+   Evidence is produced over a digest that covers the finished CSR, so
+   it cannot travel inside it.  Evidence beside the CSR is what this
+   profile requires.  Placing attestations in the CSR as well, per
+   [CSR-ATTEST], is an optional interoperability path for an Attester
+   whose platform can make claims about the CSR key; whether a
+   Credential Authority requires it is agreed out of band.  This choice
+   is specific to Enrollment; Retrieval has no CSR and binds Evidence to
+   CEKpub (Section 9.2.2).
+
+7.  Media Types and Encodings
 
    The messages of the attest-* resources are JSON ([RFC8259]), as
-   defined in CDDL ([RFC8610]) in Section 6.1; implementations MUST
+   defined in CDDL ([RFC8610]) in Section 7.1; implementations MUST
    support this encoding.  A CBOR encoding, for EST over secure CoAP
    ([RFC9148]), is left for future work.  Evidence is an opaque byte
    string.
 
    As each EST message type has its own media type (Section 3.2.4 of
    [RFC7030]), so does each JSON message of the attest-* resources
-   (Section 11):
+   (Section 12):
 
     +===============+========================+========================+
     |Resource       |Request                 |Response                |
@@ -441,7 +477,7 @@ Table of Contents
    (Unsupported Media Type) and SHOULD name the resource's media type in
    an Accept header field (Section 15.5.16 of [RFC9110]).
 
-6.1.  Message Definitions
+7.1.  Message Definitions
 
    In the definitions below, a byte string is carried as a text string
    holding its unpadded base64url encoding (Section 5 of [RFC4648]), as
@@ -453,7 +489,7 @@ Table of Contents
    max_age to absent-timestamp, acceptable_csk to enroll and
    acceptable_cek to retrieve; in a request, handle to every Freshness
    Kind but absent-none.  The EncryptedCredentialBundle is not defined
-   here (Section 8.2.4).
+   here (Section 9.2.4).
 
    ; The JSON messages of the attest-* resources (RFC 8610; RFC 8259).
    ; A byte string is carried as a text string holding its unpadded
@@ -519,9 +555,9 @@ Table of Contents
      ? hash: text,
    }
 
-7.  Common Structures
+8.  Common Structures
 
-7.1.  AttestationInitiationResponse
+8.1.  AttestationInitiationResponse
 
    Fields:
 
@@ -567,11 +603,11 @@ Table of Contents
    attest-initiate.  The Verifier appraises whether Evidence is bound to
    a still-valid Freshness Handle.
 
-8.  Attested Credential Acquisition Modes
+9.  Attested Credential Acquisition Modes
 
-8.1.  Credential Enrollment Mode
+9.1.  Credential Enrollment Mode
 
-8.1.1.  Request: AttestedEnrollmentRequest
+9.1.1.  Request: AttestedEnrollmentRequest
 
    Fields:
 
@@ -602,45 +638,45 @@ Table of Contents
       the Attester; the Credential Authority MAY use it, ignore it, or
       reject the request
 
-8.1.2.  Response (Success)
+9.1.2.  Response (Success)
 
    On success, the EST Server returns the enrollment response produced
    by the Credential Authority, as for simpleenroll in [RFC7030].
 
-8.1.3.  Key Binding and PoP Requirements
+9.1.3.  Key Binding and PoP Requirements
 
    1.  PoP: The Credential Authority MUST verify possession of the CSR
        private key.
 
-   2.  Evidence-to-CSR: Evidence MUST bind the CSR so a different CSR
-       cannot be substituted.  The Verifier MUST attest to that binding.
+   2.  Evidence-to-CSR and Evidence-to-Freshness: the Evidence MUST
+       carry the binding of Section "Binding Credential Keys to
+       Evidence" of [TACRA], with the DER-encoded CSR as its subject.
+       As that section requires, the Verifier reports the bound value in
+       the Attestation Results, and the Credential Authority recomputes
+       it from the request and refuses the request with 403 Forbidden on
+       a mismatch; a substituted CSR, or Evidence produced under another
+       Freshness, fails that check.
 
-   3.  Evidence-to-Freshness: Evidence MUST be bound to the Freshness
-       from attest-initiate (Section 5.1).  The Verifier MUST attest to
-       that binding.
+   The binding object (Section 7.1) names the method, binding-input, and
+   in hash the digest of the binding input: sha512 where the Evidence's
+   freshness input is 64 octets, as REPORT_DATA of AMD SEV-SNP and
+   REPORTDATA of Intel TDX are ([TACRA]).
 
-   At least one Evidence-to-CSR mechanism MUST be produced by the
-   Attester and verified by the Verifier:
-
-   *  CSR Hash: Evidence contains H(csr_der)
-
-   *  Public Key Thumbprint: Evidence contains a thumbprint of the CSR
-      SubjectPublicKeyInfo
-
-   *  Key Certification: Evidence states that the CSR key is resident in
-      protected hardware/TEE and matches the CSR public key
-
-   The binding object MUST name the method and any identifiers (e.g.,
-   hash algorithm).
-
-8.1.4.  Enrollment Server Processing
+9.1.4.  Enrollment Server Processing
 
    Upon receiving AttestedEnrollmentRequest, the EST Server MUST:
 
    1.  Validate syntax, media type, and size limits.
 
-   2.  Correlate handle with the preceding attest-initiate for this
-       session, if a Freshness Handle was returned.
+   2.  For present-nonce and present-epoch, correlate handle with the
+       attest-initiate that returned it: refuse the request with 409
+       Conflict when no attest-initiate returned this Handle or it has
+       expired, and with 403 Forbidden when the request's target or
+       freshness_kind, or credential_type when it is carried, differ
+       from that attest-initiate's; a present-nonce Handle is single-
+       use.  For the absent-* Freshness Kinds no Handle was returned,
+       and the RATS Relying Party checks the freshness element under the
+       Freshness Kind its policy sets for the Target ([TACRA]).
 
    3.  Passport: forward Evidence to the Verifier and obtain Attestation
        Results.  Background Check: skip this step; the Credential
@@ -655,9 +691,9 @@ Table of Contents
    The Credential Authority MUST NOT mint identities (e.g., DNS names)
    beyond policy for the attested identity context.
 
-8.2.  Credential Retrieval Mode
+9.2.  Credential Retrieval Mode
 
-8.2.1.  Request: AttestedRetrievalRequest
+9.2.1.  Request: AttestedRetrievalRequest
 
    Fields:
 
@@ -689,15 +725,17 @@ Table of Contents
       the Attester; the RATS Relying Party (Secret Vault or Credential
       Authority) MAY use it, ignore it, or reject the request
 
-8.2.2.  Evidence-to-CEK Binding
+9.2.2.  Evidence-to-CEK Binding
 
-   Evidence MUST integrity-protect the Freshness from attest-initiate
-   (Section 5.1) and a claim conveying CEKpub or a thumbprint of CEKpub.
-   The Verifier MUST reject Evidence that does not, and the Secret Vault
-   MUST deny release when Attestation Results do not confirm these
-   bindings.
+   The Evidence MUST carry the binding of Section "Binding Credential
+   Keys to Evidence" of [TACRA] with CEKpub, the octets of cek_pub, as
+   its subject.  As that section requires, the Verifier reports the
+   bound value in the Attestation Results, and the Secret Vault
+   recomputes it from the request and denies release with 403 Forbidden
+   on a mismatch.  The binding object is as in Enrollment
+   (Section 9.1.3).
 
-8.2.3.  Credential Group ID Determination
+9.2.3.  Credential Group ID Determination
 
    The Secret Vault MUST map Attestation Results to a credential group
    ID that is stable for replica workloads and distinct across security
@@ -711,7 +749,7 @@ Table of Contents
    Where attestation_subject is derived from Attestation Results (not
    raw Evidence) to avoid nonce/freshness variability.
 
-8.2.4.  Response: EncryptedCredentialBundle
+9.2.4.  Response: EncryptedCredentialBundle
 
    The response MUST be an authenticated-encryption container encrypted
    to CEKpub.  It contains:
@@ -724,7 +762,7 @@ Table of Contents
 
       -  WIMSE WIT(s) or WIC(s) (if requested/authorized)
 
-      -  a shared signing key (high risk; see Section 10)
+      -  a shared signing key (high risk; see Section 11)
 
    *  metadata (optional): validity, refresh hints, rotation epoch, key
       identifiers
@@ -744,14 +782,21 @@ Table of Contents
    TODO: Ensure that TACRA architecture can carry these and other
    encryption mechanisms to the Attester in a predictable format.
 
-8.2.5.  Retrieval Server Processing
+9.2.5.  Retrieval Server Processing
 
    Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 
    1.  Validate syntax, media type, and size limits.
 
-   2.  Correlate handle with the preceding attest-initiate for this
-       session, if a Freshness Handle was returned.
+   2.  For present-nonce and present-epoch, correlate handle with the
+       attest-initiate that returned it, as in Enrollment: 409 Conflict
+       when no attest-initiate returned this Handle or it has expired,
+       403 Forbidden when the request's target or freshness_kind, or
+       credential_type when it is carried, differ from that attest-
+       initiate's, and a present-nonce Handle is single-use.  For the
+       absent-* Freshness Kinds no Handle was returned, and the RATS
+       Relying Party checks the freshness element under the Freshness
+       Kind its policy sets for the Target ([TACRA]).
 
    3.  Passport: forward Evidence to the Verifier and obtain Attestation
        Results.  Background Check: skip this step; the Secret Vault
@@ -768,29 +813,32 @@ Table of Contents
    the Secret Vault and re-encrypts to CEKpub is possible but
    discouraged.
 
-9.  Error Handling
+10.  Error Handling
 
    An error response carries one of the status codes below, and a human-
    readable body as a simpleenroll error does (Section 4.2.3 of
    [RFC7030], updated by Section 5.1 of [RFC8951]):
 
    *  400 Bad Request: a request that does not match its definition
-      (Section 6.1)
+      (Section 7.1)
 
    *  401 Unauthorized: missing/invalid authentication required by
       deployment policy
 
-   *  403 Forbidden: attestation failed or policy denies enrollment/
-      retrieval
+   *  403 Forbidden: attestation failed, policy denies enrollment/
+      retrieval, or the request's target or freshness_kind, or
+      credential_type when it is carried, differ from those of the
+      attest-initiate that returned its Handle
 
-   *  409 Conflict: Freshness Handle replay detected, or present-epoch
+   *  409 Conflict: Freshness Handle replay detected, a Handle that no
+      attest-initiate returned or that has expired, or present-epoch
       marker has moved
 
    *  413 Content Too Large: a request larger than the server takes
       (Section 15.5.14 of [RFC9110])
 
    *  415 Unsupported Media Type: a request not of the resource's media
-      type (Section 6), or Evidence of a format that is not accepted
+      type (Section 7), or Evidence of a format that is not accepted
 
    *  429 Too Many Requests: rate limiting (Section 4 of [RFC6585])
 
@@ -808,9 +856,9 @@ Table of Contents
    Error bodies MUST NOT leak sensitive attestation details.  Servers
    MAY provide a correlation identifier for debugging.
 
-10.  Security Considerations
+11.  Security Considerations
 
-10.1.  Specific to Attested Enrollment Mode
+11.1.  Specific to Attested Enrollment Mode
 
    *  Key Substitution: attestation success is not sufficient without
       Evidence-to-CSR binding and PoP
@@ -818,7 +866,7 @@ Table of Contents
    *  Identity Over-Issuance: Credential Authority policy must constrain
       subject/SAN to the attested identity context
 
-10.2.  Specific to Attested Retrieval Mode
+11.2.  Specific to Attested Retrieval Mode
 
    *  Shared Signing Key distribution: If the credential bundle includes
       a private signing key shared across replicas, compromise of one
@@ -834,7 +882,7 @@ Table of Contents
       accountability is required, consider per-instance keys with
       identical identity claims, or a centralized signing service.
 
-10.3.  Common to Both Modes
+11.3.  Common to Both Modes
 
    *  Freshness: a nonce Handle MAY come from the Verifier or the
       Relying Party; a timestamp from the Attester's clock; an epoch
@@ -852,21 +900,21 @@ Table of Contents
       Party MUST be able to require attestation.  The EST Server MUST
       NOT substitute a classic EST operation for an attested request.
 
-11.  IANA Considerations
+12.  IANA Considerations
 
    The attest-* resources are additional services of an EST server
    (Section 3.2.2 of [RFC7030]), under the well-known URI suffix "est"
    that [RFC7030] registered.  No registry of EST operation paths
    exists, so none is requested.
 
-   IANA is requested to register the media types of Section 6 in the
+   IANA is requested to register the media types of Section 7 in the
    "Media Types" registry ([RFC6838]).
 
    This document also requests a registry of acceptable_evidence
    identifiers and credential_type identifiers (if not reused from
    existing registries).
 
-11.1.  application/est-attest-initiate+json
+12.1.  application/est-attest-initiate+json
 
    Type name:  application
 
@@ -878,7 +926,7 @@ Table of Contents
 
    Encoding considerations:  binary
 
-   Security considerations:  See Section 10 of this document.
+   Security considerations:  See Section 11 of this document.
 
    Interoperability considerations:  The response of attest-initiate.
 
@@ -907,7 +955,7 @@ Table of Contents
 
    Change controller:  IETF
 
-11.2.  application/est-attest-enroll+json
+12.2.  application/est-attest-enroll+json
 
    Type name:  application
 
@@ -919,7 +967,7 @@ Table of Contents
 
    Encoding considerations:  binary
 
-   Security considerations:  See Section 10 of this document.
+   Security considerations:  See Section 11 of this document.
 
    Interoperability considerations:  The request of attest-enroll; its
       response is that of simpleenroll.
@@ -949,7 +997,7 @@ Table of Contents
 
    Change controller:  IETF
 
-11.3.  application/est-attest-retrieve+json
+12.3.  application/est-attest-retrieve+json
 
    Type name:  application
 
@@ -961,7 +1009,7 @@ Table of Contents
 
    Encoding considerations:  binary
 
-   Security considerations:  See Section 10 of this document.
+   Security considerations:  See Section 11 of this document.
 
    Interoperability considerations:  The request of attest-retrieve; its
       response is application/est-attest-bundle+json.
@@ -991,7 +1039,7 @@ Table of Contents
 
    Change controller:  IETF
 
-11.4.  application/est-attest-bundle+json
+12.4.  application/est-attest-bundle+json
 
    Type name:  application
 
@@ -1003,10 +1051,10 @@ Table of Contents
 
    Encoding considerations:  binary
 
-   Security considerations:  See Section 10 of this document.
+   Security considerations:  See Section 11 of this document.
 
    Interoperability considerations:  The response of attest-retrieve,
-      the EncryptedCredentialBundle (Section 8.2.4).
+      the EncryptedCredentialBundle (Section 9.2.4).
 
    Published specification:  This document.
 
@@ -1033,9 +1081,9 @@ Table of Contents
 
    Change controller:  IETF
 
-12.  References
+13.  References
 
-12.1.  Normative References
+13.1.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -1091,15 +1139,23 @@ Table of Contents
               Processing of Text", RFC 9741, DOI 10.17487/RFC9741, March
               2025, <https://www.rfc-editor.org/rfc/rfc9741>.
 
-12.2.  Informative References
+13.2.  Informative References
 
    [ATTESTATION-FRESHNESS]
               Tschofenig, H., Brockhaus, H., Mandel, J., and S. Turner,
               "Requesting a Freshness Nonce for Attestation Evidence in
               Certificate Signing Requests", Work in Progress, Internet-
-              Draft, draft-ietf-lamps-attestation-freshness-08, 4 July
-              2026, <https://datatracker.ietf.org/doc/html/draft-ietf-
-              lamps-attestation-freshness-08>.
+              Draft, draft-ietf-lamps-attestation-freshness-09, 17
+              October 2026, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-lamps-attestation-freshness-09>.
+
+   [CSR-ATTEST]
+              Ounsworth, M., Tschofenig, H., Birkholz, H., Wiseman, M.,
+              and N. Smith, "Use of Remote Attestation with
+              Certification Signing Requests", Work in Progress,
+              Internet-Draft, draft-ietf-lamps-csr-attestation-32, 22
+              October 2026, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-lamps-csr-attestation-32>.
 
    [INTERACTION-MODELS]
               Birkholz, H., Eckel, M., Pan, W., and E. Voit, "Reference

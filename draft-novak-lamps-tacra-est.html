@@ -38,11 +38,11 @@ It is not a completed interoperability specification.
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.12.2
+    platformdirs 4.13.4
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.9.1
+    wcwidth 0.9.2
 -->
 <link href="draft-novak-lamps-tacra-est.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1062,7 +1062,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Novak, et al.</td>
-<td class="center">Expires 13 April 2027</td>
+<td class="center">Expires 26 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1075,12 +1075,12 @@ svg {
 <dd class="internet-draft">draft-novak-lamps-tacra-est-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-10" class="published">10 October 2026</time>
+<time datetime="2026-10-23" class="published">23 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-13">13 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-26">26 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1151,7 +1151,7 @@ It is not a completed interoperability specification.<a href="#section-abstract-
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 13 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 26 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1229,113 +1229,116 @@ It is not a completed interoperability specification.<a href="#section-abstract-
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-media-types-and-encodings" class="internal xref">Media Types and Encodings</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
-                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-message-definitions" class="internal xref">Message Definitions</a></p>
-</li>
-            </ul>
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-relationship-to-other-lamps" class="internal xref">Relationship to Other LAMPS Work</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-common-structures" class="internal xref">Common Structures</a></p>
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-media-types-and-encodings" class="internal xref">Media Types and Encodings</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
-                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-attestationinitiationrespon" class="internal xref">AttestationInitiationResponse</a></p>
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-message-definitions" class="internal xref">Message Definitions</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
-            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-attested-credential-acquisi" class="internal xref">Attested Credential Acquisition Modes</a></p>
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-common-structures" class="internal xref">Common Structures</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
-                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-credential-enrollment-mode" class="internal xref">Credential Enrollment Mode</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1.2.1">
-                    <p id="section-toc.1-1.8.2.1.2.1.1"><a href="#section-8.1.1" class="auto internal xref">8.1.1</a>.  <a href="#name-request-attestedenrollmentr" class="internal xref">Request: AttestedEnrollmentRequest</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1.2.2">
-                    <p id="section-toc.1-1.8.2.1.2.2.1"><a href="#section-8.1.2" class="auto internal xref">8.1.2</a>.  <a href="#name-response-success" class="internal xref">Response (Success)</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1.2.3">
-                    <p id="section-toc.1-1.8.2.1.2.3.1"><a href="#section-8.1.3" class="auto internal xref">8.1.3</a>.  <a href="#name-key-binding-and-pop-require" class="internal xref">Key Binding and PoP Requirements</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1.2.4">
-                    <p id="section-toc.1-1.8.2.1.2.4.1"><a href="#section-8.1.4" class="auto internal xref">8.1.4</a>.  <a href="#name-enrollment-server-processin" class="internal xref">Enrollment Server Processing</a></p>
-</li>
-                </ul>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
-                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-credential-retrieval-mode" class="internal xref">Credential Retrieval Mode</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2.2.1">
-                    <p id="section-toc.1-1.8.2.2.2.1.1"><a href="#section-8.2.1" class="auto internal xref">8.2.1</a>.  <a href="#name-request-attestedretrievalre" class="internal xref">Request: AttestedRetrievalRequest</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2.2.2">
-                    <p id="section-toc.1-1.8.2.2.2.2.1"><a href="#section-8.2.2" class="auto internal xref">8.2.2</a>.  <a href="#name-evidence-to-cek-binding" class="internal xref">Evidence-to-CEK Binding</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2.2.3">
-                    <p id="section-toc.1-1.8.2.2.2.3.1"><a href="#section-8.2.3" class="auto internal xref">8.2.3</a>.  <a href="#name-credential-group-id-determi" class="internal xref">Credential Group ID Determination</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2.2.4">
-                    <p id="section-toc.1-1.8.2.2.2.4.1"><a href="#section-8.2.4" class="auto internal xref">8.2.4</a>.  <a href="#name-response-encryptedcredentia" class="internal xref">Response: EncryptedCredentialBundle</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2.2.5">
-                    <p id="section-toc.1-1.8.2.2.2.5.1"><a href="#section-8.2.5" class="auto internal xref">8.2.5</a>.  <a href="#name-retrieval-server-processing" class="internal xref">Retrieval Server Processing</a></p>
-</li>
-                </ul>
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-attestationinitiationrespon" class="internal xref">AttestationInitiationResponse</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-error-handling" class="internal xref">Error Handling</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
-            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-attested-credential-acquisi" class="internal xref">Attested Credential Acquisition Modes</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
-                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-specific-to-attested-enroll" class="internal xref">Specific to Attested Enrollment Mode</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-credential-enrollment-mode" class="internal xref">Credential Enrollment Mode</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1.2.1">
+                    <p id="section-toc.1-1.9.2.1.2.1.1"><a href="#section-9.1.1" class="auto internal xref">9.1.1</a>.  <a href="#name-request-attestedenrollmentr" class="internal xref">Request: AttestedEnrollmentRequest</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
-                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-specific-to-attested-retrie" class="internal xref">Specific to Attested Retrieval Mode</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1.2.2">
+                    <p id="section-toc.1-1.9.2.1.2.2.1"><a href="#section-9.1.2" class="auto internal xref">9.1.2</a>.  <a href="#name-response-success" class="internal xref">Response (Success)</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.3">
-                <p id="section-toc.1-1.10.2.3.1"><a href="#section-10.3" class="auto internal xref">10.3</a>.  <a href="#name-common-to-both-modes" class="internal xref">Common to Both Modes</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1.2.3">
+                    <p id="section-toc.1-1.9.2.1.2.3.1"><a href="#section-9.1.3" class="auto internal xref">9.1.3</a>.  <a href="#name-key-binding-and-pop-require" class="internal xref">Key Binding and PoP Requirements</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1.2.4">
+                    <p id="section-toc.1-1.9.2.1.2.4.1"><a href="#section-9.1.4" class="auto internal xref">9.1.4</a>.  <a href="#name-enrollment-server-processin" class="internal xref">Enrollment Server Processing</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-credential-retrieval-mode" class="internal xref">Credential Retrieval Mode</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2.2.1">
+                    <p id="section-toc.1-1.9.2.2.2.1.1"><a href="#section-9.2.1" class="auto internal xref">9.2.1</a>.  <a href="#name-request-attestedretrievalre" class="internal xref">Request: AttestedRetrievalRequest</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2.2.2">
+                    <p id="section-toc.1-1.9.2.2.2.2.1"><a href="#section-9.2.2" class="auto internal xref">9.2.2</a>.  <a href="#name-evidence-to-cek-binding" class="internal xref">Evidence-to-CEK Binding</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2.2.3">
+                    <p id="section-toc.1-1.9.2.2.2.3.1"><a href="#section-9.2.3" class="auto internal xref">9.2.3</a>.  <a href="#name-credential-group-id-determi" class="internal xref">Credential Group ID Determination</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2.2.4">
+                    <p id="section-toc.1-1.9.2.2.2.4.1"><a href="#section-9.2.4" class="auto internal xref">9.2.4</a>.  <a href="#name-response-encryptedcredentia" class="internal xref">Response: EncryptedCredentialBundle</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2.2.5">
+                    <p id="section-toc.1-1.9.2.2.2.5.1"><a href="#section-9.2.5" class="auto internal xref">9.2.5</a>.  <a href="#name-retrieval-server-processing" class="internal xref">Retrieval Server Processing</a></p>
+</li>
+                </ul>
 </li>
             </ul>
 </li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-error-handling" class="internal xref">Error Handling</a></p>
+</li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
-            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1">
-                <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="auto internal xref">11.1</a>.  <a href="#name-application-est-attest-init" class="internal xref">application/est-attest-initiate+json</a></p>
+                <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="auto internal xref">11.1</a>.  <a href="#name-specific-to-attested-enroll" class="internal xref">Specific to Attested Enrollment Mode</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.2">
-                <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref">11.2</a>.  <a href="#name-application-est-attest-enro" class="internal xref">application/est-attest-enroll+json</a></p>
+                <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref">11.2</a>.  <a href="#name-specific-to-attested-retrie" class="internal xref">Specific to Attested Retrieval Mode</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.3">
-                <p id="section-toc.1-1.11.2.3.1"><a href="#section-11.3" class="auto internal xref">11.3</a>.  <a href="#name-application-est-attest-retr" class="internal xref">application/est-attest-retrieve+json</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.4">
-                <p id="section-toc.1-1.11.2.4.1"><a href="#section-11.4" class="auto internal xref">11.4</a>.  <a href="#name-application-est-attest-bund" class="internal xref">application/est-attest-bundle+json</a></p>
+                <p id="section-toc.1-1.11.2.3.1"><a href="#section-11.3" class="auto internal xref">11.3</a>.  <a href="#name-common-to-both-modes" class="internal xref">Common to Both Modes</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
-            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-references" class="internal xref">References</a></p>
+            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.1">
-                <p id="section-toc.1-1.12.2.1.1"><a href="#section-12.1" class="auto internal xref">12.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+                <p id="section-toc.1-1.12.2.1.1"><a href="#section-12.1" class="auto internal xref">12.1</a>.  <a href="#name-application-est-attest-init" class="internal xref">application/est-attest-initiate+json</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2">
-                <p id="section-toc.1-1.12.2.2.1"><a href="#section-12.2" class="auto internal xref">12.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+                <p id="section-toc.1-1.12.2.2.1"><a href="#section-12.2" class="auto internal xref">12.2</a>.  <a href="#name-application-est-attest-enro" class="internal xref">application/est-attest-enroll+json</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.3">
+                <p id="section-toc.1-1.12.2.3.1"><a href="#section-12.3" class="auto internal xref">12.3</a>.  <a href="#name-application-est-attest-retr" class="internal xref">application/est-attest-retrieve+json</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.4">
+                <p id="section-toc.1-1.12.2.4.1"><a href="#section-12.4" class="auto internal xref">12.4</a>.  <a href="#name-application-est-attest-bund" class="internal xref">application/est-attest-bundle+json</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
-            <p id="section-toc.1-1.13.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+            <p id="section-toc.1-1.13.1"><a href="#section-13" class="auto internal xref">13</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.1">
+                <p id="section-toc.1-1.13.2.1.1"><a href="#section-13.1" class="auto internal xref">13.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.2">
+                <p id="section-toc.1-1.13.2.2.1"><a href="#section-13.2" class="auto internal xref">13.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
-            <p id="section-toc.1-1.14.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+            <p id="section-toc.1-1.14.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15">
+            <p id="section-toc.1-1.15.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
 </li>
         </ul>
 </nav>
@@ -1622,7 +1625,7 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.1-2.3.1">Success: 200 OK<a href="#section-5.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.4">
-            <p id="section-5.1-2.4.1">Response: AttestationInitiationResponse (<a href="#initiation-response" class="auto internal xref">Section 7.1</a>): Freshness kind, Credential Acquisition Mode (<code>enroll</code> or <code>retrieve</code>), acceptable ciphers<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-2.4.1">Response: AttestationInitiationResponse (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>): Freshness kind, Credential Acquisition Mode (<code>enroll</code> or <code>retrieve</code>), acceptable ciphers<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.5">
             <p id="section-5.1-2.5.1">If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (<code>absent-timestamp</code>, <code>absent-none</code>, or <code>absent-epoch</code>), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it <span class="bcp14">MAY</span> complete <code>attest-initiate</code> locally and, in that case, <span class="bcp14">MUST NOT</span> contact the EST Server. Otherwise, <code>attest-initiate</code> is a GET with no body and no query parameters.<a href="#section-5.1-2.5.1" class="pilcrow">¶</a></p>
@@ -1658,7 +1661,7 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.2-1.1.1">Method: POST<a href="#section-5.2-1.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.2-1.2">
-            <p id="section-5.2-1.2.1">Request: AttestedEnrollmentRequest (<a href="#enrollment-request" class="auto internal xref">Section 8.1.1</a>): CSR and Evidence<a href="#section-5.2-1.2.1" class="pilcrow">¶</a></p>
+            <p id="section-5.2-1.2.1">Request: AttestedEnrollmentRequest (<a href="#enrollment-request" class="auto internal xref">Section 9.1.1</a>): CSR and Evidence<a href="#section-5.2-1.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.2-1.3">
             <p id="section-5.2-1.3.1">Success: 200 OK<a href="#section-5.2-1.3.1" class="pilcrow">¶</a></p>
@@ -1679,28 +1682,45 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.3-1.1.1">Method: POST<a href="#section-5.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.3-1.2">
-            <p id="section-5.3-1.2.1">Request: AttestedRetrievalRequest (<a href="#retrieval-request" class="auto internal xref">Section 8.2.1</a>): CEKpub and Evidence<a href="#section-5.3-1.2.1" class="pilcrow">¶</a></p>
+            <p id="section-5.3-1.2.1">Request: AttestedRetrievalRequest (<a href="#retrieval-request" class="auto internal xref">Section 9.2.1</a>): CEKpub and Evidence<a href="#section-5.3-1.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.3-1.3">
             <p id="section-5.3-1.3.1">Success: 200 OK<a href="#section-5.3-1.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.3-1.4">
-            <p id="section-5.3-1.4.1">Response: EncryptedCredentialBundle (<a href="#bundle" class="auto internal xref">Section 8.2.4</a>)<a href="#section-5.3-1.4.1" class="pilcrow">¶</a></p>
+            <p id="section-5.3-1.4.1">Response: EncryptedCredentialBundle (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>)<a href="#section-5.3-1.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 </section>
 </div>
-<div id="media-types">
+<div id="relationship">
 <section id="section-6">
-      <h2 id="name-media-types-and-encodings">
-<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-media-types-and-encodings" class="section-name selfRef">Media Types and Encodings</a>
+      <h2 id="name-relationship-to-other-lamps">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-relationship-to-other-lamps" class="section-name selfRef">Relationship to Other LAMPS Work</a>
       </h2>
-<p id="section-6-1">The messages of the <code>attest-*</code> resources are JSON (<span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span>), as defined in CDDL (<span>[<a href="#RFC8610" class="cite xref">RFC8610</a>]</span>) in <a href="#cddl" class="auto internal xref">Section 6.1</a>; implementations <span class="bcp14">MUST</span> support this encoding.
+<p id="section-6-1">Two LAMPS documents cover parts of the exchange defined here.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-2"><span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span> defines a nonce request and response for certificate management protocols, including an EST resource at <code>/.well-known/est/nonce</code> (GET, or POST with <code>application/est-attestation-freshness+json</code>) whose response carries a <code>nonce</code> of 8 to 64 bytes and an <span class="bcp14">OPTIONAL</span> <code>expiry</code> in seconds (Section 5.1 of <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span>).
+<code>attest-initiate</code> (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>) covers the same first leg for the <code>present-nonce</code> Freshness Kind and, in addition, returns the Freshness Kind itself, the Credential Acquisition Mode and the acceptable CSK or CEK algorithms (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>), none of which the nonce resource carries.
+A <code>present-nonce</code> Handle is a nonce in the sense of <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span>, and the requirement of Section 5.1 of that document that the server associate the nonce with the subsequent request applies to <code>attest-initiate</code> and its second leg alike.
+An EST Server <span class="bcp14">MAY</span> offer both resources.<a href="#section-6-2" class="pilcrow">¶</a></p>
+<p id="section-6-3"><span>[<a href="#CSR-ATTEST" class="cite xref">CSR-ATTEST</a>]</span> conveys Evidence inside the CSR, in its <code>id-aa-attestation</code> attribute. It makes the Certification Authority or Registration Authority that processes the CSR responsible for validating the binding between the attestations and the CSR's public key (Section 6.1 of <span>[<a href="#CSR-ATTEST" class="cite xref">CSR-ATTEST</a>]</span>).
+This document conveys Evidence beside the CSR, in the AttestedEnrollmentRequest (<a href="#enrollment-request" class="auto internal xref">Section 9.1.1</a>), and binds the two through the Evidence itself (<a href="#key-binding" class="auto internal xref">Section 9.1.3</a>): the Evidence is produced over a digest that covers the finished CSR, so it cannot travel inside it.
+Evidence beside the CSR is what this profile requires.
+Placing attestations in the CSR as well, per <span>[<a href="#CSR-ATTEST" class="cite xref">CSR-ATTEST</a>]</span>, is an optional interoperability path for an Attester whose platform can make claims about the CSR key; whether a Credential Authority requires it is agreed out of band.
+This choice is specific to Enrollment; Retrieval has no CSR and binds Evidence to CEKpub (<a href="#evidence-to-cek" class="auto internal xref">Section 9.2.2</a>).<a href="#section-6-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="media-types">
+<section id="section-7">
+      <h2 id="name-media-types-and-encodings">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-media-types-and-encodings" class="section-name selfRef">Media Types and Encodings</a>
+      </h2>
+<p id="section-7-1">The messages of the <code>attest-*</code> resources are JSON (<span>[<a href="#RFC8259" class="cite xref">RFC8259</a>]</span>), as defined in CDDL (<span>[<a href="#RFC8610" class="cite xref">RFC8610</a>]</span>) in <a href="#cddl" class="auto internal xref">Section 7.1</a>; implementations <span class="bcp14">MUST</span> support this encoding.
 A CBOR encoding, for EST over secure CoAP (<span>[<a href="#RFC9148" class="cite xref">RFC9148</a>]</span>), is left for future work.
-Evidence is an opaque byte string.<a href="#section-6-1" class="pilcrow">¶</a></p>
-<p id="section-6-2">As each EST message type has its own media type (Section 3.2.4 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>), so does each JSON message of the <code>attest-*</code> resources (<a href="#iana" class="auto internal xref">Section 11</a>):<a href="#section-6-2" class="pilcrow">¶</a></p>
+Evidence is an opaque byte string.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">As each EST message type has its own media type (Section 3.2.4 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>), so does each JSON message of the <code>attest-*</code> resources (<a href="#iana" class="auto internal xref">Section 12</a>):<a href="#section-7-2" class="pilcrow">¶</a></p>
 <span id="name-media-types-of-the-attest-m"></span><table class="center" id="table-1">
         <caption>
 <a href="#table-1" class="selfRef">Table 1</a>:
@@ -1746,17 +1766,17 @@ Evidence is an opaque byte string.<a href="#section-6-1" class="pilcrow">¶</a><
           </tr>
         </tbody>
       </table>
-<p id="section-6-4">A client <span class="bcp14">MUST</span> send a request of the resource's media type.
-An EST Server responds to a request of another media type with 415 (Unsupported Media Type) and <span class="bcp14">SHOULD</span> name the resource's media type in an Accept header field (Section 15.5.16 of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>).<a href="#section-6-4" class="pilcrow">¶</a></p>
+<p id="section-7-4">A client <span class="bcp14">MUST</span> send a request of the resource's media type.
+An EST Server responds to a request of another media type with 415 (Unsupported Media Type) and <span class="bcp14">SHOULD</span> name the resource's media type in an Accept header field (Section 15.5.16 of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>).<a href="#section-7-4" class="pilcrow">¶</a></p>
 <div id="cddl">
-<section id="section-6.1">
+<section id="section-7.1">
         <h3 id="name-message-definitions">
-<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-message-definitions" class="section-name selfRef">Message Definitions</a>
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-message-definitions" class="section-name selfRef">Message Definitions</a>
         </h3>
-<p id="section-6.1-1">In the definitions below, a byte string is carried as a text string holding its unpadded base64url encoding (Section 5 of <span>[<a href="#RFC4648" class="cite xref">RFC4648</a>]</span>), as the control operator <code>.b64u</code> defines it (Section 2.1 of <span>[<a href="#RFC9741" class="cite xref">RFC9741</a>]</span>): only characters of the base64url alphabet, no padding, and the bits that encode no octet set to zero.
+<p id="section-7.1-1">In the definitions below, a byte string is carried as a text string holding its unpadded base64url encoding (Section 5 of <span>[<a href="#RFC4648" class="cite xref">RFC4648</a>]</span>), as the control operator <code>.b64u</code> defines it (Section 2.1 of <span>[<a href="#RFC9741" class="cite xref">RFC9741</a>]</span>): only characters of the base64url alphabet, no padding, and the bits that encode no octet set to zero.
 The group choices tie each member to the Freshness Kinds and modes its description below names: in a response, <code>handle</code> and <code>expires_in</code> to <code>present-nonce</code> and <code>present-epoch</code>, <code>max_age</code> to <code>absent-timestamp</code>, <code>acceptable_csk</code> to <code>enroll</code> and <code>acceptable_cek</code> to <code>retrieve</code>; in a request, <code>handle</code> to every Freshness Kind but <code>absent-none</code>.
-The EncryptedCredentialBundle is not defined here (<a href="#bundle" class="auto internal xref">Section 8.2.4</a>).<a href="#section-6.1-1" class="pilcrow">¶</a></p>
-<div class="breakable lang-cddl sourcecode" id="section-6.1-2">
+The EncryptedCredentialBundle is not defined here (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>).<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<div class="breakable lang-cddl sourcecode" id="section-7.1-2">
 <pre>
 ; The JSON messages of the attest-* resources (RFC 8610; RFC 8259).
 ; A byte string is carried as a text string holding its unpadded
@@ -1821,318 +1841,304 @@ binding = {
   method: text,
   ? hash: text,
 }
-</pre><a href="#section-6.1-2" class="pilcrow">¶</a>
+</pre><a href="#section-7.1-2" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
 </section>
 </div>
 <div id="common-structures">
-<section id="section-7">
+<section id="section-8">
       <h2 id="name-common-structures">
-<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-common-structures" class="section-name selfRef">Common Structures</a>
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-common-structures" class="section-name selfRef">Common Structures</a>
       </h2>
 <div id="initiation-response">
-<section id="section-7.1">
+<section id="section-8.1">
         <h3 id="name-attestationinitiationrespon">
-<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-attestationinitiationrespon" class="section-name selfRef">AttestationInitiationResponse</a>
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-attestationinitiationrespon" class="section-name selfRef">AttestationInitiationResponse</a>
         </h3>
-<p id="section-7.1-1">Fields:<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.1-1">Fields:<a href="#section-8.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7.1-2.1">
-            <p id="section-7.1-2.1.1"><code>freshness_kind</code> (string, <span class="bcp14">REQUIRED</span>): one of<a href="#section-7.1-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.1-2.1">
+            <p id="section-8.1-2.1.1"><code>freshness_kind</code> (string, <span class="bcp14">REQUIRED</span>): one of<a href="#section-8.1-2.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7.1-2.1.2.1">
-                <p id="section-7.1-2.1.2.1.1"><code>absent-timestamp</code>: stamp Evidence from a trusted clock (<span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>, Section 10.1)<a href="#section-7.1-2.1.2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.1-2.1.2.1">
+                <p id="section-8.1-2.1.2.1.1"><code>absent-timestamp</code>: stamp Evidence from a trusted clock (<span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>, Section 10.1)<a href="#section-8.1-2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-7.1-2.1.2.2">
-                <p id="section-7.1-2.1.2.2.1"><code>absent-none</code>: no freshness claim<a href="#section-7.1-2.1.2.2.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-8.1-2.1.2.2">
+                <p id="section-8.1-2.1.2.2.1"><code>absent-none</code>: no freshness claim<a href="#section-8.1-2.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-7.1-2.1.2.3">
-                <p id="section-7.1-2.1.2.3.1"><code>absent-epoch</code>: embed an epoch marker already held locally<a href="#section-7.1-2.1.2.3.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-8.1-2.1.2.3">
+                <p id="section-8.1-2.1.2.3.1"><code>absent-epoch</code>: embed an epoch marker already held locally<a href="#section-8.1-2.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-7.1-2.1.2.4">
-                <p id="section-7.1-2.1.2.4.1"><code>present-nonce</code>: single-use Freshness Handle; embed it in Evidence<a href="#section-7.1-2.1.2.4.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-8.1-2.1.2.4">
+                <p id="section-8.1-2.1.2.4.1"><code>present-nonce</code>: single-use Freshness Handle; embed it in Evidence<a href="#section-8.1-2.1.2.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-7.1-2.1.2.5">
-                <p id="section-7.1-2.1.2.5.1"><code>present-epoch</code>: current epoch marker as Freshness Handle; embed it in Evidence; retry <code>attest-initiate</code> if the epoch moved<a href="#section-7.1-2.1.2.5.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-8.1-2.1.2.5">
+                <p id="section-8.1-2.1.2.5.1"><code>present-epoch</code>: current epoch marker as Freshness Handle; embed it in Evidence; retry <code>attest-initiate</code> if the epoch moved<a href="#section-8.1-2.1.2.5.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </li>
-          <li class="normal" id="section-7.1-2.2">
-            <p id="section-7.1-2.2.1"><code>handle</code> (bytes): Freshness Handle - <span class="bcp14">REQUIRED</span> for <code>present-nonce</code> and <code>present-epoch</code>; <span class="bcp14">MUST</span> be absent otherwise (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>)<a href="#section-7.1-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.1-2.2">
+            <p id="section-8.1-2.2.1"><code>handle</code> (bytes): Freshness Handle - <span class="bcp14">REQUIRED</span> for <code>present-nonce</code> and <code>present-epoch</code>; <span class="bcp14">MUST</span> be absent otherwise (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>)<a href="#section-8.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.1-2.3">
-            <p id="section-7.1-2.3.1"><code>expires_in</code> (integer, <span class="bcp14">OPTIONAL</span>): seconds until a <code>present-nonce</code> or <code>present-epoch</code> Handle is no longer valid<a href="#section-7.1-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.1-2.3">
+            <p id="section-8.1-2.3.1"><code>expires_in</code> (integer, <span class="bcp14">OPTIONAL</span>): seconds until a <code>present-nonce</code> or <code>present-epoch</code> Handle is no longer valid<a href="#section-8.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.1-2.4">
-            <p id="section-7.1-2.4.1"><code>max_age</code> (integer, <span class="bcp14">OPTIONAL</span>): for <code>absent-timestamp</code>, the maximum Evidence age in seconds acceptable to the Verifier or Relying Party<a href="#section-7.1-2.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.1-2.4">
+            <p id="section-8.1-2.4.1"><code>max_age</code> (integer, <span class="bcp14">OPTIONAL</span>): for <code>absent-timestamp</code>, the maximum Evidence age in seconds acceptable to the Verifier or Relying Party<a href="#section-8.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.1-2.5">
-            <p id="section-7.1-2.5.1"><code>mode</code> (string, <span class="bcp14">REQUIRED</span>): <code>enroll</code> or <code>retrieve</code><a href="#section-7.1-2.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.1-2.5">
+            <p id="section-8.1-2.5.1"><code>mode</code> (string, <span class="bcp14">REQUIRED</span>): <code>enroll</code> or <code>retrieve</code><a href="#section-8.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.1-2.6">
-            <p id="section-7.1-2.6.1"><code>acceptable_cek</code> (array, only when <code>mode</code> is <code>retrieve</code>): acceptable CEK algorithms/suites<a href="#section-7.1-2.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.1-2.6">
+            <p id="section-8.1-2.6.1"><code>acceptable_cek</code> (array, only when <code>mode</code> is <code>retrieve</code>): acceptable CEK algorithms/suites<a href="#section-8.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.1-2.7">
-            <p id="section-7.1-2.7.1"><code>acceptable_csk</code> (array, only when <code>mode</code> is <code>enroll</code>): acceptable CSK algorithms/suites<a href="#section-7.1-2.7.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.1-2.7">
+            <p id="section-8.1-2.7.1"><code>acceptable_csk</code> (array, only when <code>mode</code> is <code>enroll</code>): acceptable CSK algorithms/suites<a href="#section-8.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.1-2.8">
-            <p id="section-7.1-2.8.1"><code>acceptable_evidence</code> (array, <span class="bcp14">OPTIONAL</span>): the Evidence formats the EST Server accepts; a request of the second leg names the format of its Evidence in <code>profile</code><a href="#section-7.1-2.8.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.1-2.8">
+            <p id="section-8.1-2.8.1"><code>acceptable_evidence</code> (array, <span class="bcp14">OPTIONAL</span>): the Evidence formats the EST Server accepts; a request of the second leg names the format of its Evidence in <code>profile</code><a href="#section-8.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.1-3">The Freshness Handle originator <span class="bcp14">MUST</span> ensure <code>present-nonce</code> uniqueness and <span class="bcp14">MUST</span> correlate the second-leg request with the Handle from this <code>attest-initiate</code>.
-The Verifier appraises whether Evidence is bound to a still-valid Freshness Handle.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
+<p id="section-8.1-3">The Freshness Handle originator <span class="bcp14">MUST</span> ensure <code>present-nonce</code> uniqueness and <span class="bcp14">MUST</span> correlate the second-leg request with the Handle from this <code>attest-initiate</code>.
+The Verifier appraises whether Evidence is bound to a still-valid Freshness Handle.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="attested-credential-acquisition-modes">
-<section id="section-8">
+<section id="section-9">
       <h2 id="name-attested-credential-acquisi">
-<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-attested-credential-acquisi" class="section-name selfRef">Attested Credential Acquisition Modes</a>
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-attested-credential-acquisi" class="section-name selfRef">Attested Credential Acquisition Modes</a>
       </h2>
 <div id="credential-enrollment-mode">
-<section id="section-8.1">
+<section id="section-9.1">
         <h3 id="name-credential-enrollment-mode">
-<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-credential-enrollment-mode" class="section-name selfRef">Credential Enrollment Mode</a>
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-credential-enrollment-mode" class="section-name selfRef">Credential Enrollment Mode</a>
         </h3>
 <div id="enrollment-request">
-<section id="section-8.1.1">
+<section id="section-9.1.1">
           <h4 id="name-request-attestedenrollmentr">
-<a href="#section-8.1.1" class="section-number selfRef">8.1.1. </a><a href="#name-request-attestedenrollmentr" class="section-name selfRef">Request: AttestedEnrollmentRequest</a>
+<a href="#section-9.1.1" class="section-number selfRef">9.1.1. </a><a href="#name-request-attestedenrollmentr" class="section-name selfRef">Request: AttestedEnrollmentRequest</a>
           </h4>
-<p id="section-8.1.1-1">Fields:<a href="#section-8.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-9.1.1-1">Fields:<a href="#section-9.1.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.1.1-2.1">
-              <p id="section-8.1.1-2.1.1">target (string, <span class="bcp14">REQUIRED</span>): the Target of Enroll-Credential (Section 5.2 of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>)<a href="#section-8.1.1-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.1.1-2.1">
+              <p id="section-9.1.1-2.1.1">target (string, <span class="bcp14">REQUIRED</span>): the Target of Enroll-Credential (Section 5.2 of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>)<a href="#section-9.1.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.1.1-2.2">
-              <p id="section-8.1.1-2.2.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-8.1.1-2.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.1.1-2.2">
+              <p id="section-9.1.1-2.2.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-9.1.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.1.1-2.3">
-              <p id="section-8.1.1-2.3.1">handle (bytes): Freshness Handle - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is not <code>absent-none</code>; <span class="bcp14">MUST</span> be absent otherwise. <span class="bcp14">MUST</span> equal the Handle returned by <code>attest-initiate</code> when present.<a href="#section-8.1.1-2.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.1.1-2.3">
+              <p id="section-9.1.1-2.3.1">handle (bytes): Freshness Handle - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is not <code>absent-none</code>; <span class="bcp14">MUST</span> be absent otherwise. <span class="bcp14">MUST</span> equal the Handle returned by <code>attest-initiate</code> when present.<a href="#section-9.1.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.1.1-2.4">
-              <p id="section-8.1.1-2.4.1">csr (bytes, <span class="bcp14">REQUIRED</span>): DER-encoded PKCS#10 CSR<a href="#section-8.1.1-2.4.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.1.1-2.4">
+              <p id="section-9.1.1-2.4.1">csr (bytes, <span class="bcp14">REQUIRED</span>): DER-encoded PKCS#10 CSR<a href="#section-9.1.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.1.1-2.5">
-              <p id="section-8.1.1-2.5.1">evidence (bytes, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> be bound to the Freshness returned by <code>attest-initiate</code>, if any<a href="#section-8.1.1-2.5.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.1.1-2.5">
+              <p id="section-9.1.1-2.5.1">evidence (bytes, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> be bound to the Freshness returned by <code>attest-initiate</code>, if any<a href="#section-9.1.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.1.1-2.6">
-              <p id="section-8.1.1-2.6.1">profile (string, <span class="bcp14">OPTIONAL</span>): the format of <code>evidence</code>, one of <code>acceptable_evidence</code><a href="#section-8.1.1-2.6.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.1.1-2.6">
+              <p id="section-9.1.1-2.6.1">profile (string, <span class="bcp14">OPTIONAL</span>): the format of <code>evidence</code>, one of <code>acceptable_evidence</code><a href="#section-9.1.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.1.1-2.7">
-              <p id="section-8.1.1-2.7.1">binding (object, <span class="bcp14">REQUIRED</span>): declares how the CSR key is bound to Evidence<a href="#section-8.1.1-2.7.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.1.1-2.7">
+              <p id="section-9.1.1-2.7.1">binding (object, <span class="bcp14">REQUIRED</span>): declares how the CSR key is bound to Evidence<a href="#section-9.1.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.1.1-2.8">
-              <p id="section-8.1.1-2.8.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): e.g., x509, wimse-wit<a href="#section-8.1.1-2.8.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.1.1-2.8">
+              <p id="section-9.1.1-2.8.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): e.g., x509, wimse-wit<a href="#section-9.1.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.1.1-2.9">
-              <p id="section-8.1.1-2.9.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the Credential Authority <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-8.1.1-2.9.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.1.1-2.9">
+              <p id="section-9.1.1-2.9.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the Credential Authority <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-9.1.1-2.9.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
 </div>
 <div id="response-success">
-<section id="section-8.1.2">
+<section id="section-9.1.2">
           <h4 id="name-response-success">
-<a href="#section-8.1.2" class="section-number selfRef">8.1.2. </a><a href="#name-response-success" class="section-name selfRef">Response (Success)</a>
+<a href="#section-9.1.2" class="section-number selfRef">9.1.2. </a><a href="#name-response-success" class="section-name selfRef">Response (Success)</a>
           </h4>
-<p id="section-8.1.2-1">On success, the EST Server returns the enrollment response produced by the Credential Authority, as for simpleenroll in <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>.<a href="#section-8.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-9.1.2-1">On success, the EST Server returns the enrollment response produced by the Credential Authority, as for simpleenroll in <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>.<a href="#section-9.1.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="key-binding-and-pop-requirements">
-<section id="section-8.1.3">
+<div id="key-binding">
+<section id="section-9.1.3">
           <h4 id="name-key-binding-and-pop-require">
-<a href="#section-8.1.3" class="section-number selfRef">8.1.3. </a><a href="#name-key-binding-and-pop-require" class="section-name selfRef">Key Binding and PoP Requirements</a>
+<a href="#section-9.1.3" class="section-number selfRef">9.1.3. </a><a href="#name-key-binding-and-pop-require" class="section-name selfRef">Key Binding and PoP Requirements</a>
           </h4>
-<ol start="1" type="1" class="normal type-1" id="section-8.1.3-1">
-<li id="section-8.1.3-1.1">
-              <p id="section-8.1.3-1.1.1">PoP: The Credential Authority <span class="bcp14">MUST</span> verify possession of the CSR private key.<a href="#section-8.1.3-1.1.1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-9.1.3-1">
+<li id="section-9.1.3-1.1">
+              <p id="section-9.1.3-1.1.1">PoP: The Credential Authority <span class="bcp14">MUST</span> verify possession of the CSR private key.<a href="#section-9.1.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-8.1.3-1.2">
-              <p id="section-8.1.3-1.2.1">Evidence-to-CSR: Evidence <span class="bcp14">MUST</span> bind the CSR so a different CSR cannot be substituted. The Verifier <span class="bcp14">MUST</span> attest to that binding.<a href="#section-8.1.3-1.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li id="section-8.1.3-1.3">
-              <p id="section-8.1.3-1.3.1">Evidence-to-Freshness: Evidence <span class="bcp14">MUST</span> be bound to the Freshness from <code>attest-initiate</code> (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>). The Verifier <span class="bcp14">MUST</span> attest to that binding.<a href="#section-8.1.3-1.3.1" class="pilcrow">¶</a></p>
+            <li id="section-9.1.3-1.2">
+              <p id="section-9.1.3-1.2.1">Evidence-to-CSR and Evidence-to-Freshness: the Evidence <span class="bcp14">MUST</span> carry the binding of Section "Binding Credential Keys to Evidence" of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>, with the DER-encoded CSR as its subject. As that section requires, the Verifier reports the bound value in the Attestation Results, and the Credential Authority recomputes it from the request and refuses the request with 403 Forbidden on a mismatch; a substituted CSR, or Evidence produced under another Freshness, fails that check.<a href="#section-9.1.3-1.2.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-8.1.3-2">At least one Evidence-to-CSR mechanism <span class="bcp14">MUST</span> be produced by the Attester and verified by the Verifier:<a href="#section-8.1.3-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-8.1.3-3.1">
-              <p id="section-8.1.3-3.1.1">CSR Hash: Evidence contains H(csr_der)<a href="#section-8.1.3-3.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-8.1.3-3.2">
-              <p id="section-8.1.3-3.2.1">Public Key Thumbprint: Evidence contains a thumbprint of the CSR SubjectPublicKeyInfo<a href="#section-8.1.3-3.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-8.1.3-3.3">
-              <p id="section-8.1.3-3.3.1">Key Certification: Evidence states that the CSR key is resident in protected hardware/TEE and matches the CSR public key<a href="#section-8.1.3-3.3.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-8.1.3-4">The binding object <span class="bcp14">MUST</span> name the method and any identifiers (e.g., hash algorithm).<a href="#section-8.1.3-4" class="pilcrow">¶</a></p>
+<p id="section-9.1.3-2">The <code>binding</code> object (<a href="#cddl" class="auto internal xref">Section 7.1</a>) names the method, <code>binding-input</code>, and in <code>hash</code> the digest of the binding input: <code>sha512</code> where the Evidence's freshness input is 64 octets, as REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.1.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="enrollment-server-processing">
-<section id="section-8.1.4">
+<section id="section-9.1.4">
           <h4 id="name-enrollment-server-processin">
-<a href="#section-8.1.4" class="section-number selfRef">8.1.4. </a><a href="#name-enrollment-server-processin" class="section-name selfRef">Enrollment Server Processing</a>
+<a href="#section-9.1.4" class="section-number selfRef">9.1.4. </a><a href="#name-enrollment-server-processin" class="section-name selfRef">Enrollment Server Processing</a>
           </h4>
-<p id="section-8.1.4-1">Upon receiving AttestedEnrollmentRequest, the EST Server <span class="bcp14">MUST</span>:<a href="#section-8.1.4-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-8.1.4-2">
-<li id="section-8.1.4-2.1">
-              <p id="section-8.1.4-2.1.1">Validate syntax, media type, and size limits.<a href="#section-8.1.4-2.1.1" class="pilcrow">¶</a></p>
+<p id="section-9.1.4-1">Upon receiving AttestedEnrollmentRequest, the EST Server <span class="bcp14">MUST</span>:<a href="#section-9.1.4-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-9.1.4-2">
+<li id="section-9.1.4-2.1">
+              <p id="section-9.1.4-2.1.1">Validate syntax, media type, and size limits.<a href="#section-9.1.4-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-8.1.4-2.2">
-              <p id="section-8.1.4-2.2.1">Correlate <code>handle</code> with the preceding <code>attest-initiate</code> for this session, if a Freshness Handle was returned.<a href="#section-8.1.4-2.2.1" class="pilcrow">¶</a></p>
+            <li id="section-9.1.4-2.2">
+              <p id="section-9.1.4-2.2.1">For <code>present-nonce</code> and <code>present-epoch</code>, correlate <code>handle</code> with the <code>attest-initiate</code> that returned it: refuse the request with 409 Conflict when no <code>attest-initiate</code> returned this Handle or it has expired, and with 403 Forbidden when the request's <code>target</code> or <code>freshness_kind</code>, or <code>credential_type</code> when it is carried, differ from that <code>attest-initiate</code>'s; a <code>present-nonce</code> Handle is single-use. For the <code>absent-*</code> Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.1.4-2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-8.1.4-2.3">
-              <p id="section-8.1.4-2.3.1">Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Credential Authority obtains Attestation Results itself.<a href="#section-8.1.4-2.3.1" class="pilcrow">¶</a></p>
+            <li id="section-9.1.4-2.3">
+              <p id="section-9.1.4-2.3.1">Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Credential Authority obtains Attestation Results itself.<a href="#section-9.1.4-2.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-8.1.4-2.4">
-              <p id="section-8.1.4-2.4.1">Forward the CSR and Attestation Results (Passport) or the CSR and Evidence (Background Check) to the Credential Authority, which verifies PoP and authorizes issuance.<a href="#section-8.1.4-2.4.1" class="pilcrow">¶</a></p>
+            <li id="section-9.1.4-2.4">
+              <p id="section-9.1.4-2.4.1">Forward the CSR and Attestation Results (Passport) or the CSR and Evidence (Background Check) to the Credential Authority, which verifies PoP and authorizes issuance.<a href="#section-9.1.4-2.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-8.1.4-2.5">
-              <p id="section-8.1.4-2.5.1">Return the Credential Authority's enrollment response.<a href="#section-8.1.4-2.5.1" class="pilcrow">¶</a></p>
+            <li id="section-9.1.4-2.5">
+              <p id="section-9.1.4-2.5.1">Return the Credential Authority's enrollment response.<a href="#section-9.1.4-2.5.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-8.1.4-3">The Credential Authority <span class="bcp14">MUST NOT</span> mint identities (e.g., DNS names) beyond policy for the attested identity context.<a href="#section-8.1.4-3" class="pilcrow">¶</a></p>
+<p id="section-9.1.4-3">The Credential Authority <span class="bcp14">MUST NOT</span> mint identities (e.g., DNS names) beyond policy for the attested identity context.<a href="#section-9.1.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="credential-retrieval-mode">
-<section id="section-8.2">
+<section id="section-9.2">
         <h3 id="name-credential-retrieval-mode">
-<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-credential-retrieval-mode" class="section-name selfRef">Credential Retrieval Mode</a>
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-credential-retrieval-mode" class="section-name selfRef">Credential Retrieval Mode</a>
         </h3>
 <div id="retrieval-request">
-<section id="section-8.2.1">
+<section id="section-9.2.1">
           <h4 id="name-request-attestedretrievalre">
-<a href="#section-8.2.1" class="section-number selfRef">8.2.1. </a><a href="#name-request-attestedretrievalre" class="section-name selfRef">Request: AttestedRetrievalRequest</a>
+<a href="#section-9.2.1" class="section-number selfRef">9.2.1. </a><a href="#name-request-attestedretrievalre" class="section-name selfRef">Request: AttestedRetrievalRequest</a>
           </h4>
-<p id="section-8.2.1-1">Fields:<a href="#section-8.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.1-1">Fields:<a href="#section-9.2.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.2.1-2.1">
-              <p id="section-8.2.1-2.1.1">target (string, <span class="bcp14">REQUIRED</span>): the Target of Retrieve-Credential (Section 5.3 of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>)<a href="#section-8.2.1-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.2.1-2.1">
+              <p id="section-9.2.1-2.1.1">target (string, <span class="bcp14">REQUIRED</span>): the Target of Retrieve-Credential (Section 5.3 of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>)<a href="#section-9.2.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.2.1-2.2">
-              <p id="section-8.2.1-2.2.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-8.2.1-2.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.2">
+              <p id="section-9.2.1-2.2.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-9.2.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.2.1-2.3">
-              <p id="section-8.2.1-2.3.1">handle (bytes): Freshness Handle - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is not <code>absent-none</code>; <span class="bcp14">MUST</span> be absent otherwise. <span class="bcp14">MUST</span> equal the Handle returned by <code>attest-initiate</code> when present.<a href="#section-8.2.1-2.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.3">
+              <p id="section-9.2.1-2.3.1">handle (bytes): Freshness Handle - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is not <code>absent-none</code>; <span class="bcp14">MUST</span> be absent otherwise. <span class="bcp14">MUST</span> equal the Handle returned by <code>attest-initiate</code> when present.<a href="#section-9.2.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.2.1-2.4">
-              <p id="section-8.2.1-2.4.1">evidence (bytes, <span class="bcp14">REQUIRED</span>) -- <span class="bcp14">MUST</span> include CEKpub; <span class="bcp14">MUST</span> be bound to the Freshness returned by <code>attest-initiate</code>, if any<a href="#section-8.2.1-2.4.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.4">
+              <p id="section-9.2.1-2.4.1">evidence (bytes, <span class="bcp14">REQUIRED</span>) -- <span class="bcp14">MUST</span> include CEKpub; <span class="bcp14">MUST</span> be bound to the Freshness returned by <code>attest-initiate</code>, if any<a href="#section-9.2.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.2.1-2.5">
-              <p id="section-8.2.1-2.5.1">cek_pub (bytes, <span class="bcp14">REQUIRED</span>): CEKpub, to which the Secret Vault encrypts<a href="#section-8.2.1-2.5.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.5">
+              <p id="section-9.2.1-2.5.1">cek_pub (bytes, <span class="bcp14">REQUIRED</span>): CEKpub, to which the Secret Vault encrypts<a href="#section-9.2.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.2.1-2.6">
-              <p id="section-8.2.1-2.6.1">profile (string, <span class="bcp14">OPTIONAL</span>): the format of <code>evidence</code>, one of <code>acceptable_evidence</code><a href="#section-8.2.1-2.6.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.6">
+              <p id="section-9.2.1-2.6.1">profile (string, <span class="bcp14">OPTIONAL</span>): the format of <code>evidence</code>, one of <code>acceptable_evidence</code><a href="#section-9.2.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.2.1-2.7">
-              <p id="section-8.2.1-2.7.1">binding (object, <span class="bcp14">REQUIRED</span>): declares how CEKpub is bound to Evidence<a href="#section-8.2.1-2.7.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.7">
+              <p id="section-9.2.1-2.7.1">binding (object, <span class="bcp14">REQUIRED</span>): declares how CEKpub is bound to Evidence<a href="#section-9.2.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.2.1-2.8">
-              <p id="section-8.2.1-2.8.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): e.g., x509, wimse-wit<a href="#section-8.2.1-2.8.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.8">
+              <p id="section-9.2.1-2.8.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): e.g., x509, wimse-wit<a href="#section-9.2.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.2.1-2.9">
-              <p id="section-8.2.1-2.9.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-8.2.1-2.9.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.1-2.9">
+              <p id="section-9.2.1-2.9.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-9.2.1-2.9.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
 </div>
-<div id="evidence-to-cek-binding">
-<section id="section-8.2.2">
+<div id="evidence-to-cek">
+<section id="section-9.2.2">
           <h4 id="name-evidence-to-cek-binding">
-<a href="#section-8.2.2" class="section-number selfRef">8.2.2. </a><a href="#name-evidence-to-cek-binding" class="section-name selfRef">Evidence-to-CEK Binding</a>
+<a href="#section-9.2.2" class="section-number selfRef">9.2.2. </a><a href="#name-evidence-to-cek-binding" class="section-name selfRef">Evidence-to-CEK Binding</a>
           </h4>
-<p id="section-8.2.2-1">Evidence <span class="bcp14">MUST</span> integrity-protect the Freshness from <code>attest-initiate</code> (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>) and a claim conveying CEKpub or a thumbprint of CEKpub.
-The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and the Secret Vault <span class="bcp14">MUST</span> deny release when Attestation Results do not confirm these bindings.<a href="#section-8.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.2-1">The Evidence <span class="bcp14">MUST</span> carry the binding of Section "Binding Credential Keys to Evidence" of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> with CEKpub, the octets of <code>cek_pub</code>, as its subject.
+As that section requires, the Verifier reports the bound value in the Attestation Results, and the Secret Vault recomputes it from the request and denies release with 403 Forbidden on a mismatch.
+The <code>binding</code> object is as in Enrollment (<a href="#key-binding" class="auto internal xref">Section 9.1.3</a>).<a href="#section-9.2.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="credential-group-id-determination">
-<section id="section-8.2.3">
+<section id="section-9.2.3">
           <h4 id="name-credential-group-id-determi">
-<a href="#section-8.2.3" class="section-number selfRef">8.2.3. </a><a href="#name-credential-group-id-determi" class="section-name selfRef">Credential Group ID Determination</a>
+<a href="#section-9.2.3" class="section-number selfRef">9.2.3. </a><a href="#name-credential-group-id-determi" class="section-name selfRef">Credential Group ID Determination</a>
           </h4>
-<p id="section-8.2.3-1">The Secret Vault <span class="bcp14">MUST</span> map Attestation Results to a credential group ID that is stable for replica workloads and distinct across security domains, tenants, and credential selections.<a href="#section-8.2.3-1" class="pilcrow">¶</a></p>
-<p id="section-8.2.3-2">A typical construction is:<a href="#section-8.2.3-2" class="pilcrow">¶</a></p>
-<p id="section-8.2.3-3">group_id = H(attestation_subject || credential_hint || policy_version)<a href="#section-8.2.3-3" class="pilcrow">¶</a></p>
-<p id="section-8.2.3-4">Where attestation_subject is derived from Attestation Results (not raw Evidence) to avoid nonce/freshness variability.<a href="#section-8.2.3-4" class="pilcrow">¶</a></p>
+<p id="section-9.2.3-1">The Secret Vault <span class="bcp14">MUST</span> map Attestation Results to a credential group ID that is stable for replica workloads and distinct across security domains, tenants, and credential selections.<a href="#section-9.2.3-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.3-2">A typical construction is:<a href="#section-9.2.3-2" class="pilcrow">¶</a></p>
+<p id="section-9.2.3-3">group_id = H(attestation_subject || credential_hint || policy_version)<a href="#section-9.2.3-3" class="pilcrow">¶</a></p>
+<p id="section-9.2.3-4">Where attestation_subject is derived from Attestation Results (not raw Evidence) to avoid nonce/freshness variability.<a href="#section-9.2.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="bundle">
-<section id="section-8.2.4">
+<section id="section-9.2.4">
           <h4 id="name-response-encryptedcredentia">
-<a href="#section-8.2.4" class="section-number selfRef">8.2.4. </a><a href="#name-response-encryptedcredentia" class="section-name selfRef">Response: EncryptedCredentialBundle</a>
+<a href="#section-9.2.4" class="section-number selfRef">9.2.4. </a><a href="#name-response-encryptedcredentia" class="section-name selfRef">Response: EncryptedCredentialBundle</a>
           </h4>
-<p id="section-8.2.4-1">The response <span class="bcp14">MUST</span> be an authenticated-encryption container encrypted to CEKpub. It contains:<a href="#section-8.2.4-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.4-1">The response <span class="bcp14">MUST</span> be an authenticated-encryption container encrypted to CEKpub. It contains:<a href="#section-9.2.4-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.2.4-2.1">
-              <p id="section-8.2.4-2.1.1">group_id<a href="#section-8.2.4-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.2.4-2.1">
+              <p id="section-9.2.4-2.1.1">group_id<a href="#section-9.2.4-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.2.4-2.2">
-              <p id="section-8.2.4-2.2.1"><code>credential_items</code> (array):<a href="#section-8.2.4-2.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.4-2.2">
+              <p id="section-9.2.4-2.2.1"><code>credential_items</code> (array):<a href="#section-9.2.4-2.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.2.4-2.2.2.1">
-                  <p id="section-8.2.4-2.2.2.1.1">X.509 chain (if requested/authorized)<a href="#section-8.2.4-2.2.2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.2.4-2.2.2.1">
+                  <p id="section-9.2.4-2.2.2.1.1">X.509 chain (if requested/authorized)<a href="#section-9.2.4-2.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-8.2.4-2.2.2.2">
-                  <p id="section-8.2.4-2.2.2.2.1">WIMSE WIT(s) or WIC(s) (if requested/authorized)<a href="#section-8.2.4-2.2.2.2.1" class="pilcrow">¶</a></p>
+                <li class="normal" id="section-9.2.4-2.2.2.2">
+                  <p id="section-9.2.4-2.2.2.2.1">WIMSE WIT(s) or WIC(s) (if requested/authorized)<a href="#section-9.2.4-2.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-8.2.4-2.2.2.3">
-                  <p id="section-8.2.4-2.2.2.3.1">a shared signing key (high risk; see <a href="#security" class="auto internal xref">Section 10</a>)<a href="#section-8.2.4-2.2.2.3.1" class="pilcrow">¶</a></p>
+                <li class="normal" id="section-9.2.4-2.2.2.3">
+                  <p id="section-9.2.4-2.2.2.3.1">a shared signing key (high risk; see <a href="#security" class="auto internal xref">Section 11</a>)<a href="#section-9.2.4-2.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </li>
-            <li class="normal" id="section-8.2.4-2.3">
-              <p id="section-8.2.4-2.3.1">metadata (optional): validity, refresh hints, rotation epoch, key identifiers<a href="#section-8.2.4-2.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.4-2.3">
+              <p id="section-9.2.4-2.3.1">metadata (optional): validity, refresh hints, rotation epoch, key identifiers<a href="#section-9.2.4-2.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.2.4-2.4">
-              <p id="section-8.2.4-2.4.1">(implicit or explicit): associated data binding at least {group_id, handle if any, credential_hint, server_id}<a href="#section-8.2.4-2.4.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.4-2.4">
+              <p id="section-9.2.4-2.4.1">(implicit or explicit): associated data binding at least {group_id, handle if any, credential_hint, server_id}<a href="#section-9.2.4-2.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-8.2.4-3">Mandatory-to-implement encryption mechanism: The specification <span class="bcp14">MUST</span> choose one baseline.<a href="#section-8.2.4-3" class="pilcrow">¶</a></p>
+<p id="section-9.2.4-3">Mandatory-to-implement encryption mechanism: The specification <span class="bcp14">MUST</span> choose one baseline.<a href="#section-9.2.4-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.2.4-4.1">
-              <p id="section-8.2.4-4.1.1">CMS EnvelopedData (aligned with EST’s CMS usage), OR<a href="#section-8.2.4-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.2.4-4.1">
+              <p id="section-9.2.4-4.1.1">CMS EnvelopedData (aligned with EST’s CMS usage), OR<a href="#section-9.2.4-4.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.2.4-4.2">
-              <p id="section-8.2.4-4.2.1">HPKE (RFC 9180) with a specific required ciphersuite, or<a href="#section-8.2.4-4.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.4-4.2">
+              <p id="section-9.2.4-4.2.1">HPKE (RFC 9180) with a specific required ciphersuite, or<a href="#section-9.2.4-4.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.2.4-4.3">
-              <p id="section-8.2.4-4.3.1">COSE_Encrypt0 with a required AEAD suite.<a href="#section-8.2.4-4.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.4-4.3">
+              <p id="section-9.2.4-4.3.1">COSE_Encrypt0 with a required AEAD suite.<a href="#section-9.2.4-4.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-8.2.4-5">TODO: Ensure that TACRA architecture can carry these and other encryption mechanisms to the Attester in a predictable format.<a href="#section-8.2.4-5" class="pilcrow">¶</a></p>
+<p id="section-9.2.4-5">TODO: Ensure that TACRA architecture can carry these and other encryption mechanisms to the Attester in a predictable format.<a href="#section-9.2.4-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="retrieval-server-processing">
-<section id="section-8.2.5">
+<section id="section-9.2.5">
           <h4 id="name-retrieval-server-processing">
-<a href="#section-8.2.5" class="section-number selfRef">8.2.5. </a><a href="#name-retrieval-server-processing" class="section-name selfRef">Retrieval Server Processing</a>
+<a href="#section-9.2.5" class="section-number selfRef">9.2.5. </a><a href="#name-retrieval-server-processing" class="section-name selfRef">Retrieval Server Processing</a>
           </h4>
-<p id="section-8.2.5-1">Upon receiving AttestedRetrievalRequest, the EST Server <span class="bcp14">MUST</span>:<a href="#section-8.2.5-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-8.2.5-2">
-<li id="section-8.2.5-2.1">
-              <p id="section-8.2.5-2.1.1">Validate syntax, media type, and size limits.<a href="#section-8.2.5-2.1.1" class="pilcrow">¶</a></p>
+<p id="section-9.2.5-1">Upon receiving AttestedRetrievalRequest, the EST Server <span class="bcp14">MUST</span>:<a href="#section-9.2.5-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-9.2.5-2">
+<li id="section-9.2.5-2.1">
+              <p id="section-9.2.5-2.1.1">Validate syntax, media type, and size limits.<a href="#section-9.2.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-8.2.5-2.2">
-              <p id="section-8.2.5-2.2.1">Correlate <code>handle</code> with the preceding <code>attest-initiate</code> for this session, if a Freshness Handle was returned.<a href="#section-8.2.5-2.2.1" class="pilcrow">¶</a></p>
+            <li id="section-9.2.5-2.2">
+              <p id="section-9.2.5-2.2.1">For <code>present-nonce</code> and <code>present-epoch</code>, correlate <code>handle</code> with the <code>attest-initiate</code> that returned it, as in Enrollment: 409 Conflict when no <code>attest-initiate</code> returned this Handle or it has expired, 403 Forbidden when the request's <code>target</code> or <code>freshness_kind</code>, or <code>credential_type</code> when it is carried, differ from that <code>attest-initiate</code>'s, and a <code>present-nonce</code> Handle is single-use. For the <code>absent-*</code> Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.2.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-8.2.5-2.3">
-              <p id="section-8.2.5-2.3.1">Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Secret Vault obtains Attestation Results itself.<a href="#section-8.2.5-2.3.1" class="pilcrow">¶</a></p>
+            <li id="section-9.2.5-2.3">
+              <p id="section-9.2.5-2.3.1">Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Secret Vault obtains Attestation Results itself.<a href="#section-9.2.5-2.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-8.2.5-2.4">
-              <p id="section-8.2.5-2.4.1">Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub.<a href="#section-8.2.5-2.4.1" class="pilcrow">¶</a></p>
+            <li id="section-9.2.5-2.4">
+              <p id="section-9.2.5-2.4.1">Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub.<a href="#section-9.2.5-2.4.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-8.2.5-2.5">
-              <p id="section-8.2.5-2.5.1">Return the EncryptedCredentialBundle produced by the Secret Vault.<a href="#section-8.2.5-2.5.1" class="pilcrow">¶</a></p>
+            <li id="section-9.2.5-2.5">
+              <p id="section-9.2.5-2.5.1">Return the EncryptedCredentialBundle produced by the Secret Vault.<a href="#section-9.2.5-2.5.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-8.2.5-3">A variant in which the EST Server receives a plaintext secret from the Secret Vault and re-encrypts to CEKpub is possible but discouraged.<a href="#section-8.2.5-3" class="pilcrow">¶</a></p>
+<p id="section-9.2.5-3">A variant in which the EST Server receives a plaintext secret from the Secret Vault and re-encrypts to CEKpub is possible but discouraged.<a href="#section-9.2.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2140,102 +2146,102 @@ The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and 
 </section>
 </div>
 <div id="error-handling">
-<section id="section-9">
+<section id="section-10">
       <h2 id="name-error-handling">
-<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-error-handling" class="section-name selfRef">Error Handling</a>
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-error-handling" class="section-name selfRef">Error Handling</a>
       </h2>
-<p id="section-9-1">An error response carries one of the status codes below, and a human-readable body as a simpleenroll error does (Section 4.2.3 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>, updated by Section 5.1 of <span>[<a href="#RFC8951" class="cite xref">RFC8951</a>]</span>):<a href="#section-9-1" class="pilcrow">¶</a></p>
+<p id="section-10-1">An error response carries one of the status codes below, and a human-readable body as a simpleenroll error does (Section 4.2.3 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>, updated by Section 5.1 of <span>[<a href="#RFC8951" class="cite xref">RFC8951</a>]</span>):<a href="#section-10-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-9-2.1">
-          <p id="section-9-2.1.1">400 Bad Request: a request that does not match its definition (<a href="#cddl" class="auto internal xref">Section 6.1</a>)<a href="#section-9-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-10-2.1">
+          <p id="section-10-2.1.1">400 Bad Request: a request that does not match its definition (<a href="#cddl" class="auto internal xref">Section 7.1</a>)<a href="#section-10-2.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-2.2">
-          <p id="section-9-2.2.1">401 Unauthorized: missing/invalid authentication required by deployment policy<a href="#section-9-2.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-10-2.2">
+          <p id="section-10-2.2.1">401 Unauthorized: missing/invalid authentication required by deployment policy<a href="#section-10-2.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-2.3">
-          <p id="section-9-2.3.1">403 Forbidden: attestation failed or policy denies enrollment/retrieval<a href="#section-9-2.3.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-10-2.3">
+          <p id="section-10-2.3.1">403 Forbidden: attestation failed, policy denies enrollment/retrieval, or the request's <code>target</code> or <code>freshness_kind</code>, or <code>credential_type</code> when it is carried, differ from those of the <code>attest-initiate</code> that returned its Handle<a href="#section-10-2.3.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-2.4">
-          <p id="section-9-2.4.1">409 Conflict: Freshness Handle replay detected, or <code>present-epoch</code> marker has moved<a href="#section-9-2.4.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-10-2.4">
+          <p id="section-10-2.4.1">409 Conflict: Freshness Handle replay detected, a Handle that no <code>attest-initiate</code> returned or that has expired, or <code>present-epoch</code> marker has moved<a href="#section-10-2.4.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-2.5">
-          <p id="section-9-2.5.1">413 Content Too Large: a request larger than the server takes (Section 15.5.14 of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>)<a href="#section-9-2.5.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-10-2.5">
+          <p id="section-10-2.5.1">413 Content Too Large: a request larger than the server takes (Section 15.5.14 of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>)<a href="#section-10-2.5.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-2.6">
-          <p id="section-9-2.6.1">415 Unsupported Media Type: a request not of the resource's media type (<a href="#media-types" class="auto internal xref">Section 6</a>), or Evidence of a format that is not accepted<a href="#section-9-2.6.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-10-2.6">
+          <p id="section-10-2.6.1">415 Unsupported Media Type: a request not of the resource's media type (<a href="#media-types" class="auto internal xref">Section 7</a>), or Evidence of a format that is not accepted<a href="#section-10-2.6.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-2.7">
-          <p id="section-9-2.7.1">429 Too Many Requests: rate limiting (Section 4 of <span>[<a href="#RFC6585" class="cite xref">RFC6585</a>]</span>)<a href="#section-9-2.7.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-10-2.7">
+          <p id="section-10-2.7.1">429 Too Many Requests: rate limiting (Section 4 of <span>[<a href="#RFC6585" class="cite xref">RFC6585</a>]</span>)<a href="#section-10-2.7.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-2.8">
-          <p id="section-9-2.8.1">500 Internal Server Error: internal error<a href="#section-9-2.8.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-10-2.8">
+          <p id="section-10-2.8.1">500 Internal Server Error: internal error<a href="#section-10-2.8.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-2.9">
-          <p id="section-9-2.9.1">502 Bad Gateway: the RATS Relying Party did not answer, or answered with a message the EST Server cannot pass on<a href="#section-9-2.9.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-10-2.9">
+          <p id="section-10-2.9.1">502 Bad Gateway: the RATS Relying Party did not answer, or answered with a message the EST Server cannot pass on<a href="#section-10-2.9.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-9-2.10">
-          <p id="section-9-2.10.1">503 Service Unavailable: the Verifier is unavailable<a href="#section-9-2.10.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-10-2.10">
+          <p id="section-10-2.10.1">503 Service Unavailable: the Verifier is unavailable<a href="#section-10-2.10.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-9-3">A client acts on the status code. A machine-readable body (<span>[<a href="#RFC9457" class="cite xref">RFC9457</a>]</span>) is left for a revision in which a client needs the reason.<a href="#section-9-3" class="pilcrow">¶</a></p>
-<p id="section-9-4">Error bodies <span class="bcp14">MUST NOT</span> leak sensitive attestation details. Servers <span class="bcp14">MAY</span> provide a correlation identifier for debugging.<a href="#section-9-4" class="pilcrow">¶</a></p>
+<p id="section-10-3">A client acts on the status code. A machine-readable body (<span>[<a href="#RFC9457" class="cite xref">RFC9457</a>]</span>) is left for a revision in which a client needs the reason.<a href="#section-10-3" class="pilcrow">¶</a></p>
+<p id="section-10-4">Error bodies <span class="bcp14">MUST NOT</span> leak sensitive attestation details. Servers <span class="bcp14">MAY</span> provide a correlation identifier for debugging.<a href="#section-10-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="security">
-<section id="section-10">
+<section id="section-11">
       <h2 id="name-security-considerations">
-<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
 <div id="specific-to-attested-enrollment-mode">
-<section id="section-10.1">
+<section id="section-11.1">
         <h3 id="name-specific-to-attested-enroll">
-<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-specific-to-attested-enroll" class="section-name selfRef">Specific to Attested Enrollment Mode</a>
+<a href="#section-11.1" class="section-number selfRef">11.1. </a><a href="#name-specific-to-attested-enroll" class="section-name selfRef">Specific to Attested Enrollment Mode</a>
         </h3>
 <ul class="normal">
-<li class="normal" id="section-10.1-1.1">
-            <p id="section-10.1-1.1.1">Key Substitution: attestation success is not sufficient without Evidence-to-CSR binding and PoP<a href="#section-10.1-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.1-1.1">
+            <p id="section-11.1-1.1.1">Key Substitution: attestation success is not sufficient without Evidence-to-CSR binding and PoP<a href="#section-11.1-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-10.1-1.2">
-            <p id="section-10.1-1.2.1">Identity Over-Issuance: Credential Authority policy must constrain subject/SAN to the attested identity context<a href="#section-10.1-1.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.1-1.2">
+            <p id="section-11.1-1.2.1">Identity Over-Issuance: Credential Authority policy must constrain subject/SAN to the attested identity context<a href="#section-11.1-1.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="specific-to-attested-retrieval-mode">
-<section id="section-10.2">
+<section id="section-11.2">
         <h3 id="name-specific-to-attested-retrie">
-<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-specific-to-attested-retrie" class="section-name selfRef">Specific to Attested Retrieval Mode</a>
+<a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-specific-to-attested-retrie" class="section-name selfRef">Specific to Attested Retrieval Mode</a>
         </h3>
 <ul class="normal">
-<li class="normal" id="section-10.2-1.1">
-            <p id="section-10.2-1.1.1">Shared Signing Key distribution: If the credential bundle includes a private signing key shared across replicas, compromise of one replica compromises the group. This mode <span class="bcp14">SHOULD</span> be restricted to environments where unwrap and key use are strongly protected.<a href="#section-10.2-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.2-1.1">
+            <p id="section-11.2-1.1.1">Shared Signing Key distribution: If the credential bundle includes a private signing key shared across replicas, compromise of one replica compromises the group. This mode <span class="bcp14">SHOULD</span> be restricted to environments where unwrap and key use are strongly protected.<a href="#section-11.2-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-10.2-1.2">
-            <p id="section-10.2-1.2.1">Non-Exportability Requirements: Deployments that transport a signing key <span class="bcp14">SHOULD</span> require Evidence to attest that CEKpri is non-exportable and that decryption/unwrapping occurs only within an approved protected environment (e.g., TEE/TPM-sealed key usage).<a href="#section-10.2-1.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.2-1.2">
+            <p id="section-11.2-1.2.1">Non-Exportability Requirements: Deployments that transport a signing key <span class="bcp14">SHOULD</span> require Evidence to attest that CEKpri is non-exportable and that decryption/unwrapping occurs only within an approved protected environment (e.g., TEE/TPM-sealed key usage).<a href="#section-11.2-1.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-10.2-1.3">
-            <p id="section-10.2-1.3.1">Attribution: Shared keys eliminate per-instance attribution. If accountability is required, consider per-instance keys with identical identity claims, or a centralized signing service.<a href="#section-10.2-1.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.2-1.3">
+            <p id="section-11.2-1.3.1">Attribution: Shared keys eliminate per-instance attribution. If accountability is required, consider per-instance keys with identical identity claims, or a centralized signing service.<a href="#section-11.2-1.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="common-to-both-modes">
-<section id="section-10.3">
+<section id="section-11.3">
         <h3 id="name-common-to-both-modes">
-<a href="#section-10.3" class="section-number selfRef">10.3. </a><a href="#name-common-to-both-modes" class="section-name selfRef">Common to Both Modes</a>
+<a href="#section-11.3" class="section-number selfRef">11.3. </a><a href="#name-common-to-both-modes" class="section-name selfRef">Common to Both Modes</a>
         </h3>
 <ul class="normal">
-<li class="normal" id="section-10.3-1.1">
-            <p id="section-10.3-1.1.1">Freshness: a nonce Handle <span class="bcp14">MAY</span> come from the Verifier or the Relying Party; a timestamp from the Attester's clock; an epoch marker from a local hold or a returned Handle (Section 10 of <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>). Evidence <span class="bcp14">MUST</span> be bound as required by the kind from <code>attest-initiate</code>. The originator <span class="bcp14">MUST</span> reject <code>present-nonce</code> reuse and a stale <code>present-epoch</code>.<a href="#section-10.3-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-11.3-1.1">
+            <p id="section-11.3-1.1.1">Freshness: a nonce Handle <span class="bcp14">MAY</span> come from the Verifier or the Relying Party; a timestamp from the Attester's clock; an epoch marker from a local hold or a returned Handle (Section 10 of <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>). Evidence <span class="bcp14">MUST</span> be bound as required by the kind from <code>attest-initiate</code>. The originator <span class="bcp14">MUST</span> reject <code>present-nonce</code> reuse and a stale <code>present-epoch</code>.<a href="#section-11.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-10.3-1.2">
-            <p id="section-10.3-1.2.1">The channel from EST Server to Verifier <span class="bcp14">MUST</span> provide integrity, authenticity, and replay protection.<a href="#section-10.3-1.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.3-1.2">
+            <p id="section-11.3-1.2.1">The channel from EST Server to Verifier <span class="bcp14">MUST</span> provide integrity, authenticity, and replay protection.<a href="#section-11.3-1.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-10.3-1.3">
-            <p id="section-10.3-1.3.1">The EST Server <span class="bcp14">SHOULD</span> enforce size and rate limits on Evidence.<a href="#section-10.3-1.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.3-1.3">
+            <p id="section-11.3-1.3.1">The EST Server <span class="bcp14">SHOULD</span> enforce size and rate limits on Evidence.<a href="#section-11.3-1.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-10.3-1.4">
-            <p id="section-10.3-1.4.1">If classic EST and attested resources both exist, the Relying Party <span class="bcp14">MUST</span> be able to require attestation. The EST Server <span class="bcp14">MUST NOT</span> substitute a classic EST operation for an attested request.<a href="#section-10.3-1.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.3-1.4">
+            <p id="section-11.3-1.4.1">If classic EST and attested resources both exist, the Relying Party <span class="bcp14">MUST</span> be able to require attestation. The EST Server <span class="bcp14">MUST NOT</span> substitute a classic EST operation for an attested request.<a href="#section-11.3-1.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2243,365 +2249,365 @@ The Verifier <span class="bcp14">MUST</span> reject Evidence that does not, and 
 </section>
 </div>
 <div id="iana">
-<section id="section-11">
+<section id="section-12">
       <h2 id="name-iana-considerations">
-<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-11-1">The <code>attest-*</code> resources are additional services of an EST server (Section 3.2.2 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>), under the well-known URI suffix "est" that <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span> registered.
-No registry of EST operation paths exists, so none is requested.<a href="#section-11-1" class="pilcrow">¶</a></p>
-<p id="section-11-2">IANA is requested to register the media types of <a href="#media-types" class="auto internal xref">Section 6</a> in the "Media Types" registry (<span>[<a href="#RFC6838" class="cite xref">RFC6838</a>]</span>).<a href="#section-11-2" class="pilcrow">¶</a></p>
-<p id="section-11-3">This document also requests a registry of acceptable_evidence identifiers and credential_type identifiers (if not reused from existing registries).<a href="#section-11-3" class="pilcrow">¶</a></p>
+<p id="section-12-1">The <code>attest-*</code> resources are additional services of an EST server (Section 3.2.2 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>), under the well-known URI suffix "est" that <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span> registered.
+No registry of EST operation paths exists, so none is requested.<a href="#section-12-1" class="pilcrow">¶</a></p>
+<p id="section-12-2">IANA is requested to register the media types of <a href="#media-types" class="auto internal xref">Section 7</a> in the "Media Types" registry (<span>[<a href="#RFC6838" class="cite xref">RFC6838</a>]</span>).<a href="#section-12-2" class="pilcrow">¶</a></p>
+<p id="section-12-3">This document also requests a registry of acceptable_evidence identifiers and credential_type identifiers (if not reused from existing registries).<a href="#section-12-3" class="pilcrow">¶</a></p>
 <div id="applicationest-attest-initiatejson">
-<section id="section-11.1">
+<section id="section-12.1">
         <h3 id="name-application-est-attest-init">
-<a href="#section-11.1" class="section-number selfRef">11.1. </a><a href="#name-application-est-attest-init" class="section-name selfRef">application/est-attest-initiate+json</a>
+<a href="#section-12.1" class="section-number selfRef">12.1. </a><a href="#name-application-est-attest-init" class="section-name selfRef">application/est-attest-initiate+json</a>
         </h3>
-<span class="break"></span><dl class="dlParallel" id="section-11.1-1">
-          <dt id="section-11.1-1.1">Type name:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.2">
-            <p id="section-11.1-1.2.1">application<a href="#section-11.1-1.2.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-12.1-1">
+          <dt id="section-12.1-1.1">Type name:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.2">
+            <p id="section-12.1-1.2.1">application<a href="#section-12.1-1.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.3">Subtype name:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.4">
-            <p id="section-11.1-1.4.1">est-attest-initiate+json<a href="#section-11.1-1.4.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.3">Subtype name:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.4">
+            <p id="section-12.1-1.4.1">est-attest-initiate+json<a href="#section-12.1-1.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.5">Required parameters:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.6">
-            <p id="section-11.1-1.6.1">N/A<a href="#section-11.1-1.6.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.5">Required parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.6">
+            <p id="section-12.1-1.6.1">N/A<a href="#section-12.1-1.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.7">Optional parameters:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.8">
-            <p id="section-11.1-1.8.1">N/A<a href="#section-11.1-1.8.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.7">Optional parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.8">
+            <p id="section-12.1-1.8.1">N/A<a href="#section-12.1-1.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.9">Encoding considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.10">
-            <p id="section-11.1-1.10.1">binary<a href="#section-11.1-1.10.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.9">Encoding considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.10">
+            <p id="section-12.1-1.10.1">binary<a href="#section-12.1-1.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.11">Security considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.12">
-            <p id="section-11.1-1.12.1">See <a href="#security" class="auto internal xref">Section 10</a> of this document.<a href="#section-11.1-1.12.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.11">Security considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.12">
+            <p id="section-12.1-1.12.1">See <a href="#security" class="auto internal xref">Section 11</a> of this document.<a href="#section-12.1-1.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.13">Interoperability considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.14">
-            <p id="section-11.1-1.14.1">The response of <code>attest-initiate</code>.<a href="#section-11.1-1.14.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.13">Interoperability considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.14">
+            <p id="section-12.1-1.14.1">The response of <code>attest-initiate</code>.<a href="#section-12.1-1.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.15">Published specification:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.16">
-            <p id="section-11.1-1.16.1">This document.<a href="#section-11.1-1.16.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.15">Published specification:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.16">
+            <p id="section-12.1-1.16.1">This document.<a href="#section-12.1-1.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.17">Applications that use this media type:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.18">
-            <p id="section-11.1-1.18.1">EST implementations of the <code>attest-*</code> resources of this document.<a href="#section-11.1-1.18.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.17">Applications that use this media type:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.18">
+            <p id="section-12.1-1.18.1">EST implementations of the <code>attest-*</code> resources of this document.<a href="#section-12.1-1.18.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.19">Fragment identifier considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.20">
-            <p id="section-11.1-1.20.1">The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".<a href="#section-11.1-1.20.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.19">Fragment identifier considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.20">
+            <p id="section-12.1-1.20.1">The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".<a href="#section-12.1-1.20.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.21">Additional information:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.22">
-            <p id="section-11.1-1.22.1">Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-11.1-1.22.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.21">Additional information:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.22">
+            <p id="section-12.1-1.22.1">Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-12.1-1.22.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.23">Person &amp; email address to contact for further information:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.24">
-            <p id="section-11.1-1.24.1">IETF LAMPS Working Group (spasm@ietf.org)<a href="#section-11.1-1.24.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.23">Person &amp; email address to contact for further information:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.24">
+            <p id="section-12.1-1.24.1">IETF LAMPS Working Group (spasm@ietf.org)<a href="#section-12.1-1.24.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.25">Intended usage:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.26">
-            <p id="section-11.1-1.26.1">COMMON<a href="#section-11.1-1.26.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.25">Intended usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.26">
+            <p id="section-12.1-1.26.1">COMMON<a href="#section-12.1-1.26.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.27">Restrictions on usage:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.28">
-            <p id="section-11.1-1.28.1">N/A<a href="#section-11.1-1.28.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.27">Restrictions on usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.28">
+            <p id="section-12.1-1.28.1">N/A<a href="#section-12.1-1.28.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.29">Author:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.30">
-            <p id="section-11.1-1.30.1">See the Authors' Addresses section of this document.<a href="#section-11.1-1.30.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.29">Author:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.30">
+            <p id="section-12.1-1.30.1">See the Authors' Addresses section of this document.<a href="#section-12.1-1.30.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.1-1.31">Change controller:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.1-1.32">
-            <p id="section-11.1-1.32.1">IETF<a href="#section-11.1-1.32.1" class="pilcrow">¶</a></p>
+<dt id="section-12.1-1.31">Change controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.1-1.32">
+            <p id="section-12.1-1.32.1">IETF<a href="#section-12.1-1.32.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
 </section>
 </div>
 <div id="applicationest-attest-enrolljson">
-<section id="section-11.2">
+<section id="section-12.2">
         <h3 id="name-application-est-attest-enro">
-<a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-application-est-attest-enro" class="section-name selfRef">application/est-attest-enroll+json</a>
+<a href="#section-12.2" class="section-number selfRef">12.2. </a><a href="#name-application-est-attest-enro" class="section-name selfRef">application/est-attest-enroll+json</a>
         </h3>
-<span class="break"></span><dl class="dlParallel" id="section-11.2-1">
-          <dt id="section-11.2-1.1">Type name:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.2">
-            <p id="section-11.2-1.2.1">application<a href="#section-11.2-1.2.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-12.2-1">
+          <dt id="section-12.2-1.1">Type name:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.2">
+            <p id="section-12.2-1.2.1">application<a href="#section-12.2-1.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.3">Subtype name:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.4">
-            <p id="section-11.2-1.4.1">est-attest-enroll+json<a href="#section-11.2-1.4.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.3">Subtype name:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.4">
+            <p id="section-12.2-1.4.1">est-attest-enroll+json<a href="#section-12.2-1.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.5">Required parameters:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.6">
-            <p id="section-11.2-1.6.1">N/A<a href="#section-11.2-1.6.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.5">Required parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.6">
+            <p id="section-12.2-1.6.1">N/A<a href="#section-12.2-1.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.7">Optional parameters:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.8">
-            <p id="section-11.2-1.8.1">N/A<a href="#section-11.2-1.8.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.7">Optional parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.8">
+            <p id="section-12.2-1.8.1">N/A<a href="#section-12.2-1.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.9">Encoding considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.10">
-            <p id="section-11.2-1.10.1">binary<a href="#section-11.2-1.10.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.9">Encoding considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.10">
+            <p id="section-12.2-1.10.1">binary<a href="#section-12.2-1.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.11">Security considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.12">
-            <p id="section-11.2-1.12.1">See <a href="#security" class="auto internal xref">Section 10</a> of this document.<a href="#section-11.2-1.12.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.11">Security considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.12">
+            <p id="section-12.2-1.12.1">See <a href="#security" class="auto internal xref">Section 11</a> of this document.<a href="#section-12.2-1.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.13">Interoperability considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.14">
-            <p id="section-11.2-1.14.1">The request of <code>attest-enroll</code>; its response is that of simpleenroll.<a href="#section-11.2-1.14.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.13">Interoperability considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.14">
+            <p id="section-12.2-1.14.1">The request of <code>attest-enroll</code>; its response is that of simpleenroll.<a href="#section-12.2-1.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.15">Published specification:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.16">
-            <p id="section-11.2-1.16.1">This document.<a href="#section-11.2-1.16.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.15">Published specification:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.16">
+            <p id="section-12.2-1.16.1">This document.<a href="#section-12.2-1.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.17">Applications that use this media type:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.18">
-            <p id="section-11.2-1.18.1">EST implementations of the <code>attest-*</code> resources of this document.<a href="#section-11.2-1.18.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.17">Applications that use this media type:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.18">
+            <p id="section-12.2-1.18.1">EST implementations of the <code>attest-*</code> resources of this document.<a href="#section-12.2-1.18.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.19">Fragment identifier considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.20">
-            <p id="section-11.2-1.20.1">The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".<a href="#section-11.2-1.20.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.19">Fragment identifier considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.20">
+            <p id="section-12.2-1.20.1">The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".<a href="#section-12.2-1.20.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.21">Additional information:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.22">
-            <p id="section-11.2-1.22.1">Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-11.2-1.22.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.21">Additional information:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.22">
+            <p id="section-12.2-1.22.1">Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-12.2-1.22.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.23">Person &amp; email address to contact for further information:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.24">
-            <p id="section-11.2-1.24.1">IETF LAMPS Working Group (spasm@ietf.org)<a href="#section-11.2-1.24.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.23">Person &amp; email address to contact for further information:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.24">
+            <p id="section-12.2-1.24.1">IETF LAMPS Working Group (spasm@ietf.org)<a href="#section-12.2-1.24.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.25">Intended usage:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.26">
-            <p id="section-11.2-1.26.1">COMMON<a href="#section-11.2-1.26.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.25">Intended usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.26">
+            <p id="section-12.2-1.26.1">COMMON<a href="#section-12.2-1.26.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.27">Restrictions on usage:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.28">
-            <p id="section-11.2-1.28.1">N/A<a href="#section-11.2-1.28.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.27">Restrictions on usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.28">
+            <p id="section-12.2-1.28.1">N/A<a href="#section-12.2-1.28.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.29">Author:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.30">
-            <p id="section-11.2-1.30.1">See the Authors' Addresses section of this document.<a href="#section-11.2-1.30.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.29">Author:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.30">
+            <p id="section-12.2-1.30.1">See the Authors' Addresses section of this document.<a href="#section-12.2-1.30.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.2-1.31">Change controller:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.2-1.32">
-            <p id="section-11.2-1.32.1">IETF<a href="#section-11.2-1.32.1" class="pilcrow">¶</a></p>
+<dt id="section-12.2-1.31">Change controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.2-1.32">
+            <p id="section-12.2-1.32.1">IETF<a href="#section-12.2-1.32.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
 </section>
 </div>
 <div id="applicationest-attest-retrievejson">
-<section id="section-11.3">
+<section id="section-12.3">
         <h3 id="name-application-est-attest-retr">
-<a href="#section-11.3" class="section-number selfRef">11.3. </a><a href="#name-application-est-attest-retr" class="section-name selfRef">application/est-attest-retrieve+json</a>
+<a href="#section-12.3" class="section-number selfRef">12.3. </a><a href="#name-application-est-attest-retr" class="section-name selfRef">application/est-attest-retrieve+json</a>
         </h3>
-<span class="break"></span><dl class="dlParallel" id="section-11.3-1">
-          <dt id="section-11.3-1.1">Type name:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.2">
-            <p id="section-11.3-1.2.1">application<a href="#section-11.3-1.2.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-12.3-1">
+          <dt id="section-12.3-1.1">Type name:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.2">
+            <p id="section-12.3-1.2.1">application<a href="#section-12.3-1.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.3">Subtype name:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.4">
-            <p id="section-11.3-1.4.1">est-attest-retrieve+json<a href="#section-11.3-1.4.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.3">Subtype name:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.4">
+            <p id="section-12.3-1.4.1">est-attest-retrieve+json<a href="#section-12.3-1.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.5">Required parameters:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.6">
-            <p id="section-11.3-1.6.1">N/A<a href="#section-11.3-1.6.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.5">Required parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.6">
+            <p id="section-12.3-1.6.1">N/A<a href="#section-12.3-1.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.7">Optional parameters:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.8">
-            <p id="section-11.3-1.8.1">N/A<a href="#section-11.3-1.8.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.7">Optional parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.8">
+            <p id="section-12.3-1.8.1">N/A<a href="#section-12.3-1.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.9">Encoding considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.10">
-            <p id="section-11.3-1.10.1">binary<a href="#section-11.3-1.10.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.9">Encoding considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.10">
+            <p id="section-12.3-1.10.1">binary<a href="#section-12.3-1.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.11">Security considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.12">
-            <p id="section-11.3-1.12.1">See <a href="#security" class="auto internal xref">Section 10</a> of this document.<a href="#section-11.3-1.12.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.11">Security considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.12">
+            <p id="section-12.3-1.12.1">See <a href="#security" class="auto internal xref">Section 11</a> of this document.<a href="#section-12.3-1.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.13">Interoperability considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.14">
-            <p id="section-11.3-1.14.1">The request of <code>attest-retrieve</code>; its response is <code>application/est-attest-bundle+json</code>.<a href="#section-11.3-1.14.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.13">Interoperability considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.14">
+            <p id="section-12.3-1.14.1">The request of <code>attest-retrieve</code>; its response is <code>application/est-attest-bundle+json</code>.<a href="#section-12.3-1.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.15">Published specification:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.16">
-            <p id="section-11.3-1.16.1">This document.<a href="#section-11.3-1.16.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.15">Published specification:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.16">
+            <p id="section-12.3-1.16.1">This document.<a href="#section-12.3-1.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.17">Applications that use this media type:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.18">
-            <p id="section-11.3-1.18.1">EST implementations of the <code>attest-*</code> resources of this document.<a href="#section-11.3-1.18.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.17">Applications that use this media type:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.18">
+            <p id="section-12.3-1.18.1">EST implementations of the <code>attest-*</code> resources of this document.<a href="#section-12.3-1.18.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.19">Fragment identifier considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.20">
-            <p id="section-11.3-1.20.1">The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".<a href="#section-11.3-1.20.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.19">Fragment identifier considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.20">
+            <p id="section-12.3-1.20.1">The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".<a href="#section-12.3-1.20.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.21">Additional information:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.22">
-            <p id="section-11.3-1.22.1">Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-11.3-1.22.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.21">Additional information:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.22">
+            <p id="section-12.3-1.22.1">Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-12.3-1.22.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.23">Person &amp; email address to contact for further information:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.24">
-            <p id="section-11.3-1.24.1">IETF LAMPS Working Group (spasm@ietf.org)<a href="#section-11.3-1.24.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.23">Person &amp; email address to contact for further information:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.24">
+            <p id="section-12.3-1.24.1">IETF LAMPS Working Group (spasm@ietf.org)<a href="#section-12.3-1.24.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.25">Intended usage:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.26">
-            <p id="section-11.3-1.26.1">COMMON<a href="#section-11.3-1.26.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.25">Intended usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.26">
+            <p id="section-12.3-1.26.1">COMMON<a href="#section-12.3-1.26.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.27">Restrictions on usage:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.28">
-            <p id="section-11.3-1.28.1">N/A<a href="#section-11.3-1.28.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.27">Restrictions on usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.28">
+            <p id="section-12.3-1.28.1">N/A<a href="#section-12.3-1.28.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.29">Author:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.30">
-            <p id="section-11.3-1.30.1">See the Authors' Addresses section of this document.<a href="#section-11.3-1.30.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.29">Author:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.30">
+            <p id="section-12.3-1.30.1">See the Authors' Addresses section of this document.<a href="#section-12.3-1.30.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.3-1.31">Change controller:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.3-1.32">
-            <p id="section-11.3-1.32.1">IETF<a href="#section-11.3-1.32.1" class="pilcrow">¶</a></p>
+<dt id="section-12.3-1.31">Change controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.3-1.32">
+            <p id="section-12.3-1.32.1">IETF<a href="#section-12.3-1.32.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
 </section>
 </div>
 <div id="applicationest-attest-bundlejson">
-<section id="section-11.4">
+<section id="section-12.4">
         <h3 id="name-application-est-attest-bund">
-<a href="#section-11.4" class="section-number selfRef">11.4. </a><a href="#name-application-est-attest-bund" class="section-name selfRef">application/est-attest-bundle+json</a>
+<a href="#section-12.4" class="section-number selfRef">12.4. </a><a href="#name-application-est-attest-bund" class="section-name selfRef">application/est-attest-bundle+json</a>
         </h3>
-<span class="break"></span><dl class="dlParallel" id="section-11.4-1">
-          <dt id="section-11.4-1.1">Type name:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.2">
-            <p id="section-11.4-1.2.1">application<a href="#section-11.4-1.2.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-12.4-1">
+          <dt id="section-12.4-1.1">Type name:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.2">
+            <p id="section-12.4-1.2.1">application<a href="#section-12.4-1.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.3">Subtype name:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.4">
-            <p id="section-11.4-1.4.1">est-attest-bundle+json<a href="#section-11.4-1.4.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.3">Subtype name:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.4">
+            <p id="section-12.4-1.4.1">est-attest-bundle+json<a href="#section-12.4-1.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.5">Required parameters:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.6">
-            <p id="section-11.4-1.6.1">N/A<a href="#section-11.4-1.6.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.5">Required parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.6">
+            <p id="section-12.4-1.6.1">N/A<a href="#section-12.4-1.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.7">Optional parameters:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.8">
-            <p id="section-11.4-1.8.1">N/A<a href="#section-11.4-1.8.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.7">Optional parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.8">
+            <p id="section-12.4-1.8.1">N/A<a href="#section-12.4-1.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.9">Encoding considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.10">
-            <p id="section-11.4-1.10.1">binary<a href="#section-11.4-1.10.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.9">Encoding considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.10">
+            <p id="section-12.4-1.10.1">binary<a href="#section-12.4-1.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.11">Security considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.12">
-            <p id="section-11.4-1.12.1">See <a href="#security" class="auto internal xref">Section 10</a> of this document.<a href="#section-11.4-1.12.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.11">Security considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.12">
+            <p id="section-12.4-1.12.1">See <a href="#security" class="auto internal xref">Section 11</a> of this document.<a href="#section-12.4-1.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.13">Interoperability considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.14">
-            <p id="section-11.4-1.14.1">The response of <code>attest-retrieve</code>, the EncryptedCredentialBundle (<a href="#bundle" class="auto internal xref">Section 8.2.4</a>).<a href="#section-11.4-1.14.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.13">Interoperability considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.14">
+            <p id="section-12.4-1.14.1">The response of <code>attest-retrieve</code>, the EncryptedCredentialBundle (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>).<a href="#section-12.4-1.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.15">Published specification:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.16">
-            <p id="section-11.4-1.16.1">This document.<a href="#section-11.4-1.16.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.15">Published specification:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.16">
+            <p id="section-12.4-1.16.1">This document.<a href="#section-12.4-1.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.17">Applications that use this media type:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.18">
-            <p id="section-11.4-1.18.1">EST implementations of the <code>attest-*</code> resources of this document.<a href="#section-11.4-1.18.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.17">Applications that use this media type:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.18">
+            <p id="section-12.4-1.18.1">EST implementations of the <code>attest-*</code> resources of this document.<a href="#section-12.4-1.18.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.19">Fragment identifier considerations:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.20">
-            <p id="section-11.4-1.20.1">The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".<a href="#section-11.4-1.20.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.19">Fragment identifier considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.20">
+            <p id="section-12.4-1.20.1">The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".<a href="#section-12.4-1.20.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.21">Additional information:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.22">
-            <p id="section-11.4-1.22.1">Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-11.4-1.22.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.21">Additional information:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.22">
+            <p id="section-12.4-1.22.1">Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-12.4-1.22.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.23">Person &amp; email address to contact for further information:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.24">
-            <p id="section-11.4-1.24.1">IETF LAMPS Working Group (spasm@ietf.org)<a href="#section-11.4-1.24.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.23">Person &amp; email address to contact for further information:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.24">
+            <p id="section-12.4-1.24.1">IETF LAMPS Working Group (spasm@ietf.org)<a href="#section-12.4-1.24.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.25">Intended usage:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.26">
-            <p id="section-11.4-1.26.1">COMMON<a href="#section-11.4-1.26.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.25">Intended usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.26">
+            <p id="section-12.4-1.26.1">COMMON<a href="#section-12.4-1.26.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.27">Restrictions on usage:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.28">
-            <p id="section-11.4-1.28.1">N/A<a href="#section-11.4-1.28.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.27">Restrictions on usage:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.28">
+            <p id="section-12.4-1.28.1">N/A<a href="#section-12.4-1.28.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.29">Author:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.30">
-            <p id="section-11.4-1.30.1">See the Authors' Addresses section of this document.<a href="#section-11.4-1.30.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.29">Author:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.30">
+            <p id="section-12.4-1.30.1">See the Authors' Addresses section of this document.<a href="#section-12.4-1.30.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-11.4-1.31">Change controller:</dt>
-          <dd style="margin-left: 1.5em" id="section-11.4-1.32">
-            <p id="section-11.4-1.32.1">IETF<a href="#section-11.4-1.32.1" class="pilcrow">¶</a></p>
+<dt id="section-12.4-1.31">Change controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-12.4-1.32">
+            <p id="section-12.4-1.32.1">IETF<a href="#section-12.4-1.32.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -2610,14 +2616,14 @@ No registry of EST operation paths exists, so none is requested.<a href="#sectio
 </section>
 </div>
 <div id="sec-combined-references">
-<section id="section-12">
+<section id="section-13">
       <h2 id="name-references">
-<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-references" class="section-name selfRef">References</a>
+<a href="#section-13" class="section-number selfRef">13. </a><a href="#name-references" class="section-name selfRef">References</a>
       </h2>
 <div id="sec-normative-references">
-<section id="section-12.1">
+<section id="section-13.1">
         <h3 id="name-normative-references">
-<a href="#section-12.1" class="section-number selfRef">12.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+<a href="#section-13.1" class="section-number selfRef">13.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
 <dt id="RFC2119">[RFC2119]</dt>
@@ -2668,14 +2674,18 @@ No registry of EST operation paths exists, so none is requested.<a href="#sectio
 </section>
 </div>
 <div id="sec-informative-references">
-<section id="section-12.2">
+<section id="section-13.2">
         <h3 id="name-informative-references">
-<a href="#section-12.2" class="section-number selfRef">12.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+<a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
 <dt id="ATTESTATION-FRESHNESS">[ATTESTATION-FRESHNESS]</dt>
         <dd>
-<span class="refAuthor">Tschofenig, H.</span>, <span class="refAuthor">Brockhaus, H.</span>, <span class="refAuthor">Mandel, J.</span>, and <span class="refAuthor">S. Turner</span>, <span class="refTitle">"Requesting a Freshness Nonce for Attestation Evidence in Certificate Signing Requests"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-lamps-attestation-freshness-08</span>, <time datetime="2026-07-04" class="refDate">4 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-attestation-freshness-08">https://datatracker.ietf.org/doc/html/draft-ietf-lamps-attestation-freshness-08</a>&gt;</span>. </dd>
+<span class="refAuthor">Tschofenig, H.</span>, <span class="refAuthor">Brockhaus, H.</span>, <span class="refAuthor">Mandel, J.</span>, and <span class="refAuthor">S. Turner</span>, <span class="refTitle">"Requesting a Freshness Nonce for Attestation Evidence in Certificate Signing Requests"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-lamps-attestation-freshness-09</span>, <time datetime="2026-10-17" class="refDate">17 October 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-attestation-freshness-09">https://datatracker.ietf.org/doc/html/draft-ietf-lamps-attestation-freshness-09</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="CSR-ATTEST">[CSR-ATTEST]</dt>
+        <dd>
+<span class="refAuthor">Ounsworth, M.</span>, <span class="refAuthor">Tschofenig, H.</span>, <span class="refAuthor">Birkholz, H.</span>, <span class="refAuthor">Wiseman, M.</span>, and <span class="refAuthor">N. Smith</span>, <span class="refTitle">"Use of Remote Attestation with Certification Signing Requests"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-lamps-csr-attestation-32</span>, <time datetime="2026-10-22" class="refDate">22 October 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-lamps-csr-attestation-32">https://datatracker.ietf.org/doc/html/draft-ietf-lamps-csr-attestation-32</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="INTERACTION-MODELS">[INTERACTION-MODELS]</dt>
         <dd>
