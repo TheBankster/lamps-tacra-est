@@ -339,7 +339,7 @@ On success, the EST Server returns the enrollment response produced by the Crede
 ### Key Binding and PoP Requirements {#key-binding}
 
 1. PoP: The Credential Authority MUST verify possession of the CSR private key.
-2. Evidence-to-CSR and Evidence-to-Freshness: the Evidence MUST carry the binding of Section "Binding Credential Keys to Evidence" of {{TACRA}}, with the DER-encoded CSR as its subject. As that section requires, the Verifier reports the bound value in the Attestation Results, and the Credential Authority recomputes it from the request and refuses the request on a mismatch; a substituted CSR, or Evidence produced under another Freshness, fails that check.
+2. Evidence-to-CSR and Evidence-to-Freshness: the Evidence MUST carry the binding of Section "Binding Credential Keys to Evidence" of {{TACRA}}, with the DER-encoded CSR as its subject. As that section requires, the Verifier reports the bound value in the Attestation Results, and the Credential Authority recomputes it from the request and refuses the request with 403 Forbidden on a mismatch; a substituted CSR, or Evidence produced under another Freshness, fails that check.
 
 The `binding` object ({{cddl}}) names the method, `binding-input`, and in `hash` the digest of the binding input: `sha512` where the Evidence's freshness input is 64 octets, as REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are ({{TACRA}}).
 
@@ -374,7 +374,7 @@ Fields:
 ### Evidence-to-CEK Binding {#evidence-to-cek}
 
 The Evidence MUST carry the binding of Section "Binding Credential Keys to Evidence" of {{TACRA}} with CEKpub, the octets of `cek_pub`, as its subject.
-As that section requires, the Verifier reports the bound value in the Attestation Results, and the Secret Vault recomputes it from the request and denies release on a mismatch.
+As that section requires, the Verifier reports the bound value in the Attestation Results, and the Secret Vault recomputes it from the request and denies release with 403 Forbidden on a mismatch.
 The `binding` object is as in Enrollment ({{key-binding}}).
 
 ### Credential Group ID Determination
