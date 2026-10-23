@@ -255,7 +255,7 @@ Two LAMPS documents cover parts of the exchange defined here.
 A `present-nonce` Handle is a nonce in the sense of {{ATTESTATION-FRESHNESS}}, and the requirement of Section 5.1 of that document that the server associate the nonce with the subsequent request applies to `attest-initiate` and its second leg alike.
 An EST Server MAY offer both resources.
 
-{{CSR-ATTEST}} conveys Evidence inside the CSR, in the `id-aa-attestation` attribute, and makes the CA/RA responsible for validating the binding between the attestations and the CSR's public key (Section 6.1 of {{CSR-ATTEST}}).
+{{CSR-ATTEST}} conveys Evidence inside the CSR, in its `id-aa-attestation` attribute. It makes the Certification Authority or Registration Authority that processes the CSR responsible for validating the binding between the attestations and the CSR's public key (Section 6.1 of {{CSR-ATTEST}}).
 This document conveys Evidence beside the CSR, in the AttestedEnrollmentRequest ({{enrollment-request}}), and binds the two through the Evidence itself ({{key-binding}}): the Evidence is produced over a digest that covers the finished CSR, so it cannot travel inside it.
 Evidence beside the CSR is what this profile requires.
 Placing attestations in the CSR as well, per {{CSR-ATTEST}}, is an optional interoperability path for an Attester whose platform can make claims about the CSR key; whether a Credential Authority requires it is agreed out of band.
