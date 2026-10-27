@@ -39,6 +39,11 @@ author:
    org:  Fraunhofer Inst.
    email: Henk.Birkholz@ietf.contact
 
+ - ins: S. Nikolaichuk
+   name: Serhii Nikolaichuk
+   org: The Capital Index LLC
+   email: nikolaichuk.s.f@gmail.com
+
 normative:
   RFC7030: EST
   RFC9334: RATS
