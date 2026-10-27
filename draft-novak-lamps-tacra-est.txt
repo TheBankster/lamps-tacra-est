@@ -5,10 +5,12 @@
 Limited Additional Mechanisms for PKIX and SMIME                M. Novak
 Internet-Draft                                   J.P. Morgan Chase & Co.
 Intended status: Informational                             M. Richardson
-Expires: 26 April 2027                          Sandelman Software Works
+Expires: 30 April 2027                          Sandelman Software Works
                                                              H. Birkholz
                                                         Fraunhofer Inst.
-                                                         23 October 2026
+                                                          S. Nikolaichuk
+                                                   The Capital Index LLC
+                                                         27 October 2026
 
 
                  Remote Attestation Extensions for EST
@@ -73,7 +75,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 26 April 2027.
+   This Internet-Draft will expire on 30 April 2027.
 
 Copyright Notice
 
@@ -1217,3 +1219,8 @@ Authors' Addresses
    Henk Birkholz
    Fraunhofer Inst.
    Email: Henk.Birkholz@ietf.contact
+
+
+   Serhii Nikolaichuk
+   The Capital Index LLC
+   Email: nikolaichuk.s.f@gmail.com
