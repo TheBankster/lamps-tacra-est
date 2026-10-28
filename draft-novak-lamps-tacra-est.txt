@@ -7,7 +7,7 @@ Internet-Draft                                   J.P. Morgan Chase & Co.
 Intended status: Informational                             M. Richardson
 Expires: 1 May 2027                             Sandelman Software Works
                                                              H. Birkholz
-                                                        Fraunhofer Inst.
+                                                          Fraunhofer SIT
                                                           S. Nikolaichuk
                                                    The Capital Index LLC
                                                          28 October 2026
@@ -353,7 +353,8 @@ Table of Contents
 
    *  Method: GET
 
-   *  Request: None
+   *  Request: no body; query parameters target (REQUIRED) and
+      credential_type (OPTIONAL)
 
    *  Success: 200 OK
 
@@ -361,13 +362,25 @@ Table of Contents
       kind, Credential Acquisition Mode (enroll or retrieve), acceptable
       ciphers
 
+   *  Error: 400 if target is absent; 403 if the EST Server does not
+      server that Target, or that credential_type for it
+
+   Query parameters:
+
+   *  target: the Target of Initiate-Credential-Acquisition (Section 5.1
+      of [TACRA]).  The client URI-encodes it; the EST Server compares
+      the decoded UTF-8 string.
+
+   *  credential_type: the Credential Type the Attester plans to use
+      with this Target.  If omitted, the EST Server returns the mode and
+      algorithms its policy sets for the Target.
+
    *  If the EST Client already knows all the information the Attester
       needs to proceed, i.e., it is already configured for an absent
       Freshness kind (absent-timestamp, absent-none, or absent-epoch),
       and it knows what Credential Acquisition Mode is expected, and
       which ciphers to use, it MAY complete attest-initiate locally and,
-      in that case, MUST NOT contact the EST Server.  Otherwise, attest-
-      initiate is a GET with no body and no query parameters.
+      in that case, MUST NOT contact the EST Server.
 
    *  The EST Server, if contacted, obtains the Freshness Kind and
       Handle, if any, from the configured Verifier or Relying Party and
@@ -437,7 +450,7 @@ Table of Contents
    key (Section 6.1 of [CSR-ATTEST]).  This document conveys Evidence
    beside the CSR, in the AttestedEnrollmentRequest (Section 9.1.1), and
    binds the two through the Evidence itself (Section 9.1.3): the
-   Evidence is produced over a digest that covers the finished CSR, so
+   Evidence is produced over a digest that includes the finished CSR, so
    it cannot travel inside it.  Evidence beside the CSR is what this
    profile requires.  Placing attestations in the CSR as well, per
    [CSR-ATTEST], is an optional interoperability path for an Attester
@@ -461,8 +474,8 @@ Table of Contents
     +===============+========================+========================+
     |Resource       |Request                 |Response                |
     +===============+========================+========================+
-    |attest-initiate|none: a GET, no body    |application/est-attest- |
-    |               |                        |initiate+json           |
+    |attest-initiate|none: a GET, query      |application/est-attest- |
+    |               |string, no body         |initiate+json           |
     +---------------+------------------------+------------------------+
     |attest-enroll  |application/est-attest- |application/pkcs7-mime; |
     |               |enroll+json             |smime-type=certs-only,  |
@@ -474,10 +487,12 @@ Table of Contents
 
                Table 1: Media types of the attest-* messages
 
-   A client MUST send a request of the resource's media type.  An EST
-   Server responds to a request of another media type with 415
-   (Unsupported Media Type) and SHOULD name the resource's media type in
-   an Accept header field (Section 15.5.16 of [RFC9110]).
+   A client MUST send a POST of the resource's media type.  An attest-
+   initiate GET has no body; the client SHOULD set Accept to
+   application/est-attest-initiate+json.  An EST Server responds to a
+   request of another media type with 415 (Unsupported Media Type) and
+   SHOULD name the resource's media type in an Accept header field
+   (Section 15.5.16 of [RFC9110]).
 
 7.1.  Message Definitions
 
@@ -770,7 +785,7 @@ Table of Contents
       identifiers
 
    *  (implicit or explicit): associated data binding at least
-      {group_id, handle if any, credential_hint, server_id}
+      {group_id, handle if any, credential_hint}
 
    Mandatory-to-implement encryption mechanism: The specification MUST
    choose one baseline.
@@ -822,15 +837,16 @@ Table of Contents
    [RFC7030], updated by Section 5.1 of [RFC8951]):
 
    *  400 Bad Request: a request that does not match its definition
-      (Section 7.1)
+      (Section 7.1), or an attest-initiate with no target
 
    *  401 Unauthorized: missing/invalid authentication required by
       deployment policy
 
    *  403 Forbidden: attestation failed, policy denies enrollment/
-      retrieval, or the request's target or freshness_kind, or
-      credential_type when it is carried, differ from those of the
-      attest-initiate that returned its Handle
+      retrieval, the EST server does not serve the target of attest-
+      initiate or the credential_type for it, or the request's target or
+      freshness_kind, or credential_type when it is carried, differ from
+      those of the attest-initiate that returned its Handle
 
    *  409 Conflict: Freshness Handle replay detected, a Handle that no
       attest-initiate returned or that has expired, or present-epoch
@@ -1182,9 +1198,10 @@ Table of Contents
               <https://www.rfc-editor.org/rfc/rfc9457>.
 
    [TACRA]    Novak, M., Richardson, M., and H. Birkholz, "Trustworthy
-              Acquisition of Credentials via Remote Attestation", n.d.,
-              <https://TheBankster.github.io/rats-tacra/draft-novak-
-              rats-tacra.html>.
+              Acquisition of Credentials via Remote Attestation", Work
+              in Progress, Internet-Draft, draft-novak-rats-tacra-01, 11
+              September 2026, <https://datatracker.ietf.org/doc/html/
+              draft-novak-rats-tacra-01>.
 
    [TWISIGDef]
               Confidential Computing Consortium Trustworthy Workload
@@ -1217,7 +1234,7 @@ Authors' Addresses
 
 
    Henk Birkholz
-   Fraunhofer Inst.
+   Fraunhofer SIT
    Email: Henk.Birkholz@ietf.contact
 
 

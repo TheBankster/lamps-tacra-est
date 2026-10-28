@@ -1094,7 +1094,7 @@ svg {
 </div>
 <div class="author">
       <div class="author-name">H. Birkholz</div>
-<div class="org">Fraunhofer Inst.</div>
+<div class="org">Fraunhofer SIT</div>
 </div>
 <div class="author">
       <div class="author-name">S. Nikolaichuk</div>
@@ -1624,7 +1624,7 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.1-2.1.1">Method: GET<a href="#section-5.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.2">
-            <p id="section-5.1-2.2.1">Request: None<a href="#section-5.1-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-2.2.1">Request: no body; query parameters <code>target</code> (<span class="bcp14">REQUIRED</span>) and <code>credential_type</code> (<span class="bcp14">OPTIONAL</span>)<a href="#section-5.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.3">
             <p id="section-5.1-2.3.1">Success: 200 OK<a href="#section-5.1-2.3.1" class="pilcrow">¶</a></p>
@@ -1633,25 +1633,37 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.1-2.4.1">Response: AttestationInitiationResponse (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>): Freshness kind, Credential Acquisition Mode (<code>enroll</code> or <code>retrieve</code>), acceptable ciphers<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.5">
-            <p id="section-5.1-2.5.1">If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (<code>absent-timestamp</code>, <code>absent-none</code>, or <code>absent-epoch</code>), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it <span class="bcp14">MAY</span> complete <code>attest-initiate</code> locally and, in that case, <span class="bcp14">MUST NOT</span> contact the EST Server. Otherwise, <code>attest-initiate</code> is a GET with no body and no query parameters.<a href="#section-5.1-2.5.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-2.5.1">Error: 400 if <code>target</code> is absent; 403 if the EST Server does not server that Target, or that <code>credential_type</code> for it<a href="#section-5.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.1-2.6">
-            <p id="section-5.1-2.6.1">The EST Server, if contacted, obtains the Freshness Kind and Handle, if any, from the configured Verifier or Relying Party and returns that result.<a href="#section-5.1-2.6.1" class="pilcrow">¶</a></p>
+        </ul>
+<p id="section-5.1-3">Query parameters:<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.1-4.1">
+            <p id="section-5.1-4.1.1"><code>target</code>: the Target of Initiate-Credential-Acquisition (Section 5.1 of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>). The client URI-encodes it; the EST Server compares the decoded UTF-8 string.<a href="#section-5.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.1-2.7">
-            <p id="section-5.1-2.7.1"><code>present-nonce</code> and <code>present-epoch</code> <span class="bcp14">MUST</span> include a Freshness Handle from the party chosen by the EST Server. <code>absent-*</code> Freshness Kinds carry no Freshness Handle.<a href="#section-5.1-2.7.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.1-4.2">
+            <p id="section-5.1-4.2.1"><code>credential_type</code>: the Credential Type the Attester plans to use with this Target. If omitted, the EST Server returns the mode and algorithms its policy sets for the Target.<a href="#section-5.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.1-2.8">
-            <p id="section-5.1-2.8.1">The EST Client forwards the response to the Attester.<a href="#section-5.1-2.8.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.1-4.3">
+            <p id="section-5.1-4.3.1">If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (<code>absent-timestamp</code>, <code>absent-none</code>, or <code>absent-epoch</code>), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it <span class="bcp14">MAY</span> complete <code>attest-initiate</code> locally and, in that case, <span class="bcp14">MUST NOT</span> contact the EST Server.<a href="#section-5.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.1-2.9">
-            <p id="section-5.1-2.9.1">The Attester produces Evidence as the Freshness Kind requires.<a href="#section-5.1-2.9.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.1-4.4">
+            <p id="section-5.1-4.4.1">The EST Server, if contacted, obtains the Freshness Kind and Handle, if any, from the configured Verifier or Relying Party and returns that result.<a href="#section-5.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.1-2.10">
-            <p id="section-5.1-2.10.1">The EST Client then POSTs <code>attest-enroll</code> or <code>attest-retrieve</code> as the Attester indicates.<a href="#section-5.1-2.10.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.1-4.5">
+            <p id="section-5.1-4.5.1"><code>present-nonce</code> and <code>present-epoch</code> <span class="bcp14">MUST</span> include a Freshness Handle from the party chosen by the EST Server. <code>absent-*</code> Freshness Kinds carry no Freshness Handle.<a href="#section-5.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.1-2.11">
-            <p id="section-5.1-2.11.1">If the second leg fails because a <code>present-epoch</code> moved or a <code>present-nonce</code> is no longer valid, the Attester retries <code>attest-initiate</code>.<a href="#section-5.1-2.11.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.1-4.6">
+            <p id="section-5.1-4.6.1">The EST Client forwards the response to the Attester.<a href="#section-5.1-4.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-4.7">
+            <p id="section-5.1-4.7.1">The Attester produces Evidence as the Freshness Kind requires.<a href="#section-5.1-4.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-4.8">
+            <p id="section-5.1-4.8.1">The EST Client then POSTs <code>attest-enroll</code> or <code>attest-retrieve</code> as the Attester indicates.<a href="#section-5.1-4.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-4.9">
+            <p id="section-5.1-4.9.1">If the second leg fails because a <code>present-epoch</code> moved or a <code>present-nonce</code> is no longer valid, the Attester retries <code>attest-initiate</code>.<a href="#section-5.1-4.9.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1710,8 +1722,9 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
 <code>attest-initiate</code> (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>) covers the same first leg for the <code>present-nonce</code> Freshness Kind and, in addition, returns the Freshness Kind itself, the Credential Acquisition Mode and the acceptable CSK or CEK algorithms (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>), none of which the nonce resource carries.
 A <code>present-nonce</code> Handle is a nonce in the sense of <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span>, and the requirement of Section 5.1 of that document that the server associate the nonce with the subsequent request applies to <code>attest-initiate</code> and its second leg alike.
 An EST Server <span class="bcp14">MAY</span> offer both resources.<a href="#section-6-2" class="pilcrow">¶</a></p>
-<p id="section-6-3"><span>[<a href="#CSR-ATTEST" class="cite xref">CSR-ATTEST</a>]</span> conveys Evidence inside the CSR, in its <code>id-aa-attestation</code> attribute. It makes the Certification Authority or Registration Authority that processes the CSR responsible for validating the binding between the attestations and the CSR's public key (Section 6.1 of <span>[<a href="#CSR-ATTEST" class="cite xref">CSR-ATTEST</a>]</span>).
-This document conveys Evidence beside the CSR, in the AttestedEnrollmentRequest (<a href="#enrollment-request" class="auto internal xref">Section 9.1.1</a>), and binds the two through the Evidence itself (<a href="#key-binding" class="auto internal xref">Section 9.1.3</a>): the Evidence is produced over a digest that covers the finished CSR, so it cannot travel inside it.
+<p id="section-6-3"><span>[<a href="#CSR-ATTEST" class="cite xref">CSR-ATTEST</a>]</span> conveys Evidence inside the CSR, in its <code>id-aa-attestation</code> attribute.
+It makes the Certification Authority or Registration Authority that processes the CSR responsible for validating the binding between the attestations and the CSR's public key (Section 6.1 of <span>[<a href="#CSR-ATTEST" class="cite xref">CSR-ATTEST</a>]</span>).
+This document conveys Evidence beside the CSR, in the AttestedEnrollmentRequest (<a href="#enrollment-request" class="auto internal xref">Section 9.1.1</a>), and binds the two through the Evidence itself (<a href="#key-binding" class="auto internal xref">Section 9.1.3</a>): the Evidence is produced over a digest that includes the finished CSR, so it cannot travel inside it.
 Evidence beside the CSR is what this profile requires.
 Placing attestations in the CSR as well, per <span>[<a href="#CSR-ATTEST" class="cite xref">CSR-ATTEST</a>]</span>, is an optional interoperability path for an Attester whose platform can make claims about the CSR key; whether a Credential Authority requires it is agreed out of band.
 This choice is specific to Enrollment; Retrieval has no CSR and binds Evidence to CEKpub (<a href="#evidence-to-cek" class="auto internal xref">Section 9.2.2</a>).<a href="#section-6-3" class="pilcrow">¶</a></p>
@@ -1743,7 +1756,7 @@ Evidence is an opaque byte string.<a href="#section-7-1" class="pilcrow">¶</a><
             <td class="text-left" rowspan="1" colspan="1">
               <code>attest-initiate</code>
 </td>
-            <td class="text-left" rowspan="1" colspan="1">none: a GET, no body</td>
+            <td class="text-left" rowspan="1" colspan="1">none: a GET, query string, no body</td>
             <td class="text-left" rowspan="1" colspan="1">
               <code>application/est-attest-initiate+json</code>
 </td>
@@ -1771,7 +1784,8 @@ Evidence is an opaque byte string.<a href="#section-7-1" class="pilcrow">¶</a><
           </tr>
         </tbody>
       </table>
-<p id="section-7-4">A client <span class="bcp14">MUST</span> send a request of the resource's media type.
+<p id="section-7-4">A client <span class="bcp14">MUST</span> send a POST of the resource's media type.
+An <code>attest-initiate</code> GET has no body; the client <span class="bcp14">SHOULD</span> set Accept to <code>application/est-attest-initiate+json</code>.
 An EST Server responds to a request of another media type with 415 (Unsupported Media Type) and <span class="bcp14">SHOULD</span> name the resource's media type in an Accept header field (Section 15.5.16 of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>).<a href="#section-7-4" class="pilcrow">¶</a></p>
 <div id="cddl">
 <section id="section-7.1">
@@ -2102,7 +2116,7 @@ The <code>binding</code> object is as in Enrollment (<a href="#key-binding" clas
               <p id="section-9.2.4-2.3.1">metadata (optional): validity, refresh hints, rotation epoch, key identifiers<a href="#section-9.2.4-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.2.4-2.4">
-              <p id="section-9.2.4-2.4.1">(implicit or explicit): associated data binding at least {group_id, handle if any, credential_hint, server_id}<a href="#section-9.2.4-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-9.2.4-2.4.1">(implicit or explicit): associated data binding at least {group_id, handle if any, credential_hint}<a href="#section-9.2.4-2.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-9.2.4-3">Mandatory-to-implement encryption mechanism: The specification <span class="bcp14">MUST</span> choose one baseline.<a href="#section-9.2.4-3" class="pilcrow">¶</a></p>
@@ -2158,13 +2172,13 @@ The <code>binding</code> object is as in Enrollment (<a href="#key-binding" clas
 <p id="section-10-1">An error response carries one of the status codes below, and a human-readable body as a simpleenroll error does (Section 4.2.3 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>, updated by Section 5.1 of <span>[<a href="#RFC8951" class="cite xref">RFC8951</a>]</span>):<a href="#section-10-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10-2.1">
-          <p id="section-10-2.1.1">400 Bad Request: a request that does not match its definition (<a href="#cddl" class="auto internal xref">Section 7.1</a>)<a href="#section-10-2.1.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.1.1">400 Bad Request: a request that does not match its definition (<a href="#cddl" class="auto internal xref">Section 7.1</a>), or an <code>attest-initiate</code> with no <code>target</code><a href="#section-10-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.2">
           <p id="section-10-2.2.1">401 Unauthorized: missing/invalid authentication required by deployment policy<a href="#section-10-2.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.3">
-          <p id="section-10-2.3.1">403 Forbidden: attestation failed, policy denies enrollment/retrieval, or the request's <code>target</code> or <code>freshness_kind</code>, or <code>credential_type</code> when it is carried, differ from those of the <code>attest-initiate</code> that returned its Handle<a href="#section-10-2.3.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.3.1">403 Forbidden: attestation failed, policy denies enrollment/retrieval, the EST server does not serve the <code>target</code> of <code>attest-initiate</code> or the <code>credential_type</code> for it, or the request's <code>target</code> or <code>freshness_kind</code>, or <code>credential_type</code> when it is carried, differ from those of the <code>attest-initiate</code> that returned its Handle<a href="#section-10-2.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.4">
           <p id="section-10-2.4.1">409 Conflict: Freshness Handle replay detected, a Handle that no <code>attest-initiate</code> returned or that has expired, or <code>present-epoch</code> marker has moved<a href="#section-10-2.4.1" class="pilcrow">¶</a></p>
@@ -2710,7 +2724,7 @@ No registry of EST operation paths exists, so none is requested.<a href="#sectio
 <dd class="break"></dd>
 <dt id="TACRA">[TACRA]</dt>
         <dd>
-<span class="refAuthor">Novak, M.</span>, <span class="refAuthor">Richardson, M.</span>, and <span class="refAuthor">H. Birkholz</span>, <span class="refTitle">"Trustworthy Acquisition of Credentials via Remote Attestation"</span>, <span>n.d.</span>, <span>&lt;<a href="https://TheBankster.github.io/rats-tacra/draft-novak-rats-tacra.html">https://TheBankster.github.io/rats-tacra/draft-novak-rats-tacra.html</a>&gt;</span>. </dd>
+<span class="refAuthor">Novak, M.</span>, <span class="refAuthor">Richardson, M.</span>, and <span class="refAuthor">H. Birkholz</span>, <span class="refTitle">"Trustworthy Acquisition of Credentials via Remote Attestation"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-novak-rats-tacra-01</span>, <time datetime="2026-09-11" class="refDate">11 September 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-novak-rats-tacra-01">https://datatracker.ietf.org/doc/html/draft-novak-rats-tacra-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="TWISIGDef">[TWISIGDef]</dt>
         <dd>
@@ -2756,7 +2770,7 @@ No registry of EST operation paths exists, so none is requested.<a href="#sectio
 </address>
 <address class="vcard">
         <div dir="auto" class="left"><span class="fn nameRole">Henk Birkholz</span></div>
-<div dir="auto" class="left"><span class="org">Fraunhofer Inst.</span></div>
+<div dir="auto" class="left"><span class="org">Fraunhofer SIT</span></div>
 <div class="email">
 <span>Email:</span>
 <a href="mailto:Henk.Birkholz@ietf.contact" class="email">Henk.Birkholz@ietf.contact</a>
