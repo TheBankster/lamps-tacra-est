@@ -46,6 +46,10 @@ author:
 
 normative:
   RFC7030: EST
+  RFC9180: HPKE
+  HPKE-PQ: I-D.ietf-hpke-pq
+  RFC8785: JCS
+  RFC5480:
   RFC9334: RATS
   RFC4648:
   RFC6838:
@@ -66,6 +70,14 @@ informative:
   RFC5280:
   RFC7519:
   WIMSE: I-D.ietf-wimse-workload-creds
+  FIPS186:
+    target: https://doi.org/10.6028/NIST.FIPS.186-5
+    title: Digital Signature Standard (DSS)
+    author:
+      org: National Institute of Standards and Technology
+    date: 2023-02
+    seriesinfo:
+      NIST: FIPS 186-5
   TWISIGDef:
     -: TWISIGDef
     target: https://github.com/confidential-computing/twi/blob/main/TWI_Definitions.md
@@ -143,7 +155,7 @@ Two modes are defined:
 * CSR: PKCS#10 certification request
 * PoP: proof-of-possession of the private key corresponding to the CSR public key
 * CEK: Credential Encryption Key; when used, CEKpub is carried in Evidence, the response is encrypted to CEKpub
-* Credential Bundle: container that may include an X.509 chain, WIMSE WIC(s), and optionally a signing key and metadata
+* Credential Bundle: the plaintext the Secret Vault seals ({{bundle}}): credential items with their attributes, and metadata
 * Credential Hint: optional, implementation-defined information supplied by the Attester about the credential it expects. The Credential Authority or Secret Vault MAY use the hint, ignore it, or reject the request. The hint does not authorize issuance or release.
 * Freshness Kind: the recency method, one of `absent-timestamp`, `absent-none`, `absent-epoch`, `present-nonce` or `present-epoch` ({{TACRA}})
 * Freshness Handle: the value `attest-initiate` returns for `present-nonce` and `present-epoch` ({{TACRA}}, {{INTERACTION-MODELS}})
@@ -194,7 +206,7 @@ Both are subject to the following restrictions:
 4. Attester generates CEK and Evidence including CEKpub, bound to Freshness
 5. EST Client POSTs Evidence (`attest-retrieve`)
 6. EST Server forwards Evidence to the Verifier
-7. EST Server forwards Attestation Results to the Secret Vault, which encrypts the matching credential to CEKpub; the EST Server, through EST Client, returns that encrypted blob to the Attester, which decrypts it with CEKpri
+7. EST Server forwards Attestation Results to the Secret Vault, which seals the matching credential to CEKpub, and signs the container where the Target requires origin authentication. The EST Server, through the EST Client, returns that container to the Attester, which checks it and decrypts it with CEKpri
 
 
 # Protocol Overview
@@ -292,7 +304,7 @@ An EST Server responds to a request of another media type with 415 (Unsupported 
 
 In the definitions below, a byte string is carried as a text string holding its unpadded base64url encoding (Section 5 of {{RFC4648}}), as the control operator `.b64u` defines it (Section 2.1 of {{RFC9741}}): only characters of the base64url alphabet, no padding, and the bits that encode no octet set to zero.
 The group choices tie each member to the Freshness Kinds and modes its description below names: in a response, `handle` and `expires_in` to `present-nonce` and `present-epoch`, `max_age` to `absent-timestamp`, `acceptable_csk` to `enroll` and `acceptable_cek` to `retrieve`; in a request, `handle` to every Freshness Kind but `absent-none`.
-The EncryptedCredentialBundle is not defined here ({{bundle}}).
+The EncryptedCredentialBundle and its plaintext are the last three rules ({{bundle}}).
 
 ~~~ cddl
 {::include est-attest.cddl}
@@ -418,7 +430,7 @@ Fields:
 * freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
 * handle (bytes): the freshness element ({{est-binding}}) - REQUIRED when `freshness_kind` is not `absent-none` and MUST be absent otherwise. For `present-nonce` and `present-epoch` it MUST equal the Freshness Handle returned by `attest-initiate`. For `absent-timestamp` it is the 8-octet timestamp and for `absent-epoch` the locally held epoch marker.
 * evidence (bytes, REQUIRED) -- MUST include CEKpub; MUST be bound to the Freshness returned by `attest-initiate`, if any
-* cek_pub (bytes, REQUIRED): CEKpub, to which the Secret Vault encrypts
+* cek_pub (bytes, REQUIRED): CEKpub in the encoding of its KEM ({{bundle}}), to which the Secret Vault seals the bundle
 * profile (string, OPTIONAL): the format of `evidence`, one of `acceptable_evidence`
 * binding (object, REQUIRED): declares how CEKpub is bound to Evidence
 * credential_type (string, OPTIONAL): one of the tokens of {{credential-type}}
@@ -442,23 +454,34 @@ Where attestation_subject is derived from Attestation Results (not raw Evidence)
 
 ### Response: EncryptedCredentialBundle {#bundle}
 
-The response MUST be an authenticated-encryption container encrypted to CEKpub. It contains:
+The EST Server returns the container the Secret Vault produced, as Section "Sealing the Released Credential" of {{TACRA}} constructs it, as JSON of media type `application/est-attest-bundle+json`: the `encrypted-credential-bundle` of {{cddl}}.
+The EST Client and the EST Server MUST treat it as opaque.
 
-* group_id
-* `credential_items` (array):
-    * X.509 chain (if requested/authorized)
-    * WIMSE WIT(s) or WIC(s) (if requested/authorized)
-    * a shared signing key (high risk; see {{security}})
-* metadata (optional): validity, refresh hints, rotation epoch, key identifiers
-* (implicit or explicit): associated data binding at least {group_id, handle if any, credential_hint}
+This profile sets the parameters of that construction as follows.
 
-Mandatory-to-implement encryption mechanism: The specification MUST choose one baseline.
+* The mandatory HPKE suite is KEM DHKEM(P-256, HKDF-SHA256) (identifier 0x0010), KDF HKDF-SHA256 (0x0001) and AEAD AES-256-GCM (0x0002), all of {{RFC9180}}. Its name in `acceptable_cek` is `DHKEM(P-256, HKDF-SHA256)+HKDF-SHA256+AES-256-GCM`. Implementations MUST support it.
+* The suite with KEM MLKEM768-P256 (Section 4 of {{HPKE-PQ}}, identifier 0x0050) and the same KDF and AEAD, named `MLKEM768-P256+HKDF-SHA256+AES-256-GCM`, is RECOMMENDED where a released secret must stay confidential against a later quantum computer. A Secret Vault names in `acceptable_cek` the suites it takes for the Target, and the Attester generates its CEK for one of them.
+* CEKpub is carried in `cek_pub` and is the subject of the binding ({{est-binding}}). For DHKEM(P-256, HKDF-SHA256) it is the DER encoding of a SubjectPublicKeyInfo for id-ecPublicKey on prime256v1 ({{RFC5480}}). For MLKEM768-P256 it is the encapsulation key, 1249 octets.
+* The label of `info` is the ASCII string `tacra-est bundle v1`. The label of the signed octets is `tacra-est bundle signature v1`. Neither carries a terminating NUL.
+* The associated data is the JSON Canonicalization Scheme serialization ({{RFC8785}}) of the `aad` object below. The plaintext is the JCS serialization of a `credential-bundle` object ({{cddl}}).
+* Origin authentication, where the Target requires it, is ECDSA with P-256 and SHA-256 ({{FIPS186}}). The signature is an ECDSA-Sig-Value ({{RFC5480}}) over the SHA-256 digest of the signed octets. The name of the algorithm, in `origin` and among the signed octets alike, is `ECDSA-P256-SHA256`.
 
-* CMS EnvelopedData (aligned with EST's CMS usage), OR
-* HPKE (RFC 9180) with a specific required ciphersuite, or
-* COSE_Encrypt0 with a required AEAD suite.
+Members of the container:
 
-TODO: Ensure that TACRA architecture can carry these and other encryption mechanisms to the Attester in a predictable format.
+* `container` (string, REQUIRED): `hpke-base`.
+* `suite` (object, REQUIRED): `kem`, `kdf` and `aead`, the names above.
+* `enc` (bytes, REQUIRED): the HPKE encapsulated key.
+* `ciphertext` (bytes, REQUIRED): the HPKE ciphertext.
+* `aad` (object, REQUIRED): `group_id` (string), `target` (string), `handle` (bytes, when the request carried one) and `credential_hint` (string, when the request carried one). The Attester rebuilds the associated data from these members and checks them against what its Evidence bound before it decrypts.
+* `origin` (object, OPTIONAL): the Secret Vault's authentication of itself as the origin of the container, `alg` (string) and `signature` (bytes): the name above and the ECDSA-Sig-Value. Present where the Target requires origin authentication.
+
+The plaintext, a `credential-bundle`, has `credential_items` (array, at least one item) and `metadata` (object, OPTIONAL, string keys).
+Each item has `type` (string, a token of {{credential-type}}) and `value` (string, the credential), and MAY have `format`, `kid`, `purpose` (array of strings), `algorithm`, `exportable` (boolean) and `shared` (boolean): the key-block attributes the Secret Vault's policy sets.
+`metadata` MAY carry `validity_seconds` (integer) and `secret_version` (string).
+
+The Attester proceeds as {{TACRA}} requires: it checks that `aad` names its Target, its freshness element and its Credential Hint, checks the suite, verifies `origin` under the Secret Vault's key for the Target, and only then opens the ciphertext.
+It MUST refuse the container otherwise.
+Where its policy for the Target requires origin authentication, it MUST refuse a container without `origin`. Where it does not, it opens the container without one, and accepts what {{security}} states.
 
 ### Retrieval Server Processing
 
@@ -467,10 +490,10 @@ Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 1. Validate syntax, media type, and size limits.
 2. For `present-nonce` and `present-epoch`, correlate `handle` with the `attest-initiate` that returned it, as in Enrollment: 409 Conflict when no `attest-initiate` returned this Handle or it has expired, 403 Forbidden when the request's `target` or `freshness_kind`, or `credential_type` when it is carried, differ from that `attest-initiate`'s, and a `present-nonce` Handle is single-use. For the `absent-*` Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target ({{TACRA}}).
 3. Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Secret Vault obtains Attestation Results itself.
-4. Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle, and encrypts it to CEKpub.
+4. Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle, seals it to CEKpub, and signs the container where the Target requires origin authentication ({{bundle}}).
 5. Return the EncryptedCredentialBundle produced by the Secret Vault.
 
-A variant in which the EST Server receives a plaintext secret from the Secret Vault and re-encrypts to CEKpub is possible but discouraged.
+A variant in which the EST Server receives a plaintext secret from the Secret Vault and seals it to CEKpub itself is not permitted: it would expose the secret to the EST Server. Where the Target requires origin authentication, it could not produce the Secret Vault's signature either ({{bundle}}, {{TACRA}}).
 
 
 # Error Handling
@@ -504,6 +527,7 @@ Error bodies MUST NOT leak sensitive attestation details. Servers MAY provide a 
 
 * Shared Signing Key distribution: If the credential bundle includes a private signing key shared across replicas, compromise of one replica compromises the group. This mode SHOULD be restricted to environments where unwrap and key use are strongly protected.
 * Non-Exportability Requirements: Deployments that transport a signing key SHOULD require Evidence to attest that CEKpri is non-exportable and that decryption/unwrapping occurs only within an approved protected environment (e.g., TEE/TPM-sealed key usage).
+* Origin of the bundle: the EST Client and the EST Server saw CEKpub and can return a container of their own, sealed to it. The Secret Vault's secret stays confidential: a container the Secret Vault sealed opens only under CEKpri, and one of their making carries none of it. The Attester then holds a credential they chose, and what follows depends on the Credential Type: with an `api-key`, its calls run under the account they chose, and what it sends goes there. This profile accepts that risk by default. A deployment that does not sets the Attester's policy for the Target to require origin authentication, and the Secret Vault signs its containers for that Target ({{bundle}}, {{TACRA}}).
 * Attribution: Shared keys eliminate per-instance attribution. If accountability is required, consider per-instance keys with identical identity claims, or a centralized signing service.
 
 ## Common to Both Modes
