@@ -63,6 +63,9 @@ informative:
   RFC6585:
   RFC9148:
   RFC9457:
+  RFC5280:
+  RFC7519:
+  WIMSE: I-D.ietf-wimse-workload-creds
   TWISIGDef:
     -: TWISIGDef
     target: https://github.com/confidential-computing/twi/blob/main/TWI_Definitions.md
@@ -142,8 +145,9 @@ Two modes are defined:
 * CEK: Credential Encryption Key; when used, CEKpub is carried in Evidence, the response is encrypted to CEKpub
 * Credential Bundle: container that may include an X.509 chain, WIMSE WIC(s), and optionally a signing key and metadata
 * Credential Hint: optional, implementation-defined information supplied by the Attester about the credential it expects. The Credential Authority or Secret Vault MAY use the hint, ignore it, or reject the request. The hint does not authorize issuance or release.
-* Freshness Kind: the recency method; can be one of `absent-timestamp`, `absent-none`, `absent-epoch`, `present-nonce`, or `present-epoch` ({{INTERACTION-MODELS}}, Section 10 of {{RFC9334}})
-* Freshness Handle: freshness element included in Evidence when Freshness Kind is not `absent-none` ({{INTERACTION-MODELS}})
+* Freshness Kind: the recency method, one of `absent-timestamp`, `absent-none`, `absent-epoch`, `present-nonce` or `present-epoch` ({{TACRA}})
+* Freshness Handle: the value `attest-initiate` returns for `present-nonce` and `present-epoch` ({{TACRA}}, {{INTERACTION-MODELS}})
+* Freshness element: the octets the binding digest covers ({{TACRA}}): the Freshness Handle, the Attester's timestamp, a locally held epoch marker, or nothing for `absent-none`. On `attest-enroll` and `attest-retrieve` it is the `handle` member, when present
 
 
 # Architecture
@@ -218,12 +222,12 @@ The first leg of both modes is where the Attester initiates Remote Attestation b
 * Request: no body; query parameters `target` (REQUIRED) and `credential_type` (OPTIONAL)
 * Success: 200 OK
 * Response: AttestationInitiationResponse ({{initiation-response}}): Freshness kind, Credential Acquisition Mode (`enroll` or `retrieve`), acceptable ciphers
-* Error: 400 if `target` is absent; 403 if the EST Server does not server that Target, or that `credential_type` for it
+* Error: 400 if `target` is absent; 403 if the EST Server does not serve that Target, or that `credential_type` for it
 
 Query parameters:
 
 * `target`: the Target of Initiate-Credential-Acquisition (Section 5.1 of {{TACRA}}). The client URI-encodes it; the EST Server compares the decoded UTF-8 string.
-* `credential_type`: the Credential Type the Attester plans to use with this Target. If omitted, the EST Server returns the mode and algorithms its policy sets for the Target.
+* `credential_type`: the Credential Type the Attester plans to use with this Target ({{credential-type}}). If omitted, the EST Server returns the mode and algorithms its policy sets for the Target.
 
 * If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (`absent-timestamp`, `absent-none`, or `absent-epoch`), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it MAY complete `attest-initiate` locally and, in that case, MUST NOT contact the EST Server.
 * The EST Server, if contacted, obtains the Freshness Kind and Handle, if any, from the configured Verifier or Relying Party and returns that result.
@@ -259,7 +263,7 @@ An EST Server MAY offer both resources.
 
 {{CSR-ATTEST}} conveys Evidence inside the CSR, in its `id-aa-attestation` attribute.
 It makes the Certification Authority or Registration Authority that processes the CSR responsible for validating the binding between the attestations and the CSR's public key (Section 6.1 of {{CSR-ATTEST}}).
-This document conveys Evidence beside the CSR, in the AttestedEnrollmentRequest ({{enrollment-request}}), and binds the two through the Evidence itself ({{key-binding}}): the Evidence is produced over a digest that includes the finished CSR, so it cannot travel inside it.
+This document conveys Evidence beside the CSR, in the AttestedEnrollmentRequest ({{enrollment-request}}), and binds the two through the Evidence itself ({{key-binding}}): the Evidence is produced over the digest of {{est-binding}}, which includes the finished CSR, so it cannot travel inside it.
 Evidence beside the CSR is what this profile requires.
 Placing attestations in the CSR as well, per {{CSR-ATTEST}}, is an optional interoperability path for an Attester whose platform can make claims about the CSR key; whether a Credential Authority requires it is agreed out of band.
 This choice is specific to Enrollment; Retrieval has no CSR and binds Evidence to CEKpub ({{evidence-to-cek}}).
@@ -301,8 +305,8 @@ The EncryptedCredentialBundle is not defined here ({{bundle}}).
 
 Fields:
 
-* `freshness_kind` (string, REQUIRED): one of
-    * `absent-timestamp`: stamp Evidence from a trusted clock ({{RFC9334}}, Section 10.1)
+* `freshness_kind` (string, REQUIRED): one of the Freshness Kinds of {{TACRA}}
+    * `absent-timestamp`: stamp Evidence from a trusted clock
     * `absent-none`: no freshness claim
     * `absent-epoch`: embed an epoch marker already held locally
     * `present-nonce`: single-use Freshness Handle; embed it in Evidence
@@ -319,6 +323,50 @@ The Freshness Handle originator MUST ensure `present-nonce` uniqueness and MUST 
 The Verifier appraises whether Evidence is bound to a still-valid Freshness Handle.
 
 
+## The Binding in This Profile {#est-binding}
+
+This profile uses the digest of Section "Binding Credential Keys to Evidence" of {{TACRA}}.
+The Attester writes that digest into the freshness input of its Evidence, the Direct form of that section.
+The Verifier reports the value it read.
+The Credential Authority or the Secret Vault recomputes the digest from the request and refuses the request with 403 Forbidden unless the two are equal.
+
+The three octet strings of that construction are, in this profile:
+
+* `freshness`: the freshness element of the request, the octets of `handle`. For `present-nonce` and `present-epoch` that is the Freshness Handle `attest-initiate` returned. For `absent-epoch` it is the epoch marker the Attester holds. For `absent-timestamp` it is the Attester's timestamp, 8 octets, as {{TACRA}} encodes it. For `absent-none` it is empty, and `handle` is absent.
+* `target`: the UTF-8 encoding of the `target` member, used as an exact octet string.
+* `subject`: for Enrollment, the DER encoding of the PKCS#10 CSR, the octets of `csr`. For Retrieval, CEKpub as the request carries it, the octets of `cek_pub`, in the encoding of its KEM ({{bundle}}).
+
+The digest is SHA-512, as {{TACRA}} sets for a freshness input of 64 octets, which REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are.
+A platform whose freshness input is not 64 octets is outside this document's mandatory method.
+
+The `binding` object ({{cddl}}) carries no octets of its own. It names the method and the hash:
+
+* `method` (string, REQUIRED): `binding-input`, the construction above and the only method this document defines.
+* `hash` (string, REQUIRED): `sha512`.
+
+A Credential Authority or Secret Vault that does not recognize `method` refuses the request with 400 Bad Request.
+
+## Credential Type Tokens {#credential-type}
+
+`credential_type`, on `attest-initiate` and in both requests, takes one of these tokens:
+
+* `x509`: an X.509 certificate ({{RFC5280}}). Enrollment mints one. Retrieval MAY return one that was issued before.
+* `wic`: a WIMSE Workload Identity Certificate ({{WIMSE}}). Retrieval only in this version.
+* `wit`: a WIMSE Workload Identity Token ({{WIMSE}}). Retrieval only.
+* `jwt`: a JSON Web Token used as a bearer token ({{RFC7519}}). Retrieval only.
+* `api-key`: an API key. Retrieval only.
+* `psk`: a pre-shared symmetric key. Retrieval only.
+* `private-key`: a private key shared by the instances of a replicated service. Retrieval only, under the conditions of {{security}}.
+
+`attest-enroll` mints `x509`.
+A `credential_type` other than `x509` on `attest-enroll` is a Credential Type the Target does not serve, and the EST Server refuses the request with 403 Forbidden.
+When `credential_type` is absent, the Credential Authority mints `x509`.
+`attest-retrieve` MAY carry any token above.
+The Secret Vault selects what it releases from the Attestation Results, its policy and the Credential Hint, and MAY use `credential_type` to narrow it.
+A Credential Type the Target does not serve is refused with 403 Forbidden.
+The `type` of a credential item in the released bundle ({{bundle}}) uses the same tokens.
+
+
 # Attested Credential Acquisition Modes
 
 ## Credential Enrollment Mode
@@ -329,12 +377,12 @@ Fields:
 
 * target (string, REQUIRED): the Target of Enroll-Credential (Section 5.2 of {{TACRA}})
 * freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
-* handle (bytes): Freshness Handle - REQUIRED when `freshness_kind` is not `absent-none`; MUST be absent otherwise. MUST equal the Handle returned by `attest-initiate` when present.
+* handle (bytes): the freshness element ({{est-binding}}) - REQUIRED when `freshness_kind` is not `absent-none` and MUST be absent otherwise. For `present-nonce` and `present-epoch` it MUST equal the Freshness Handle returned by `attest-initiate`. For `absent-timestamp` it is the 8-octet timestamp and for `absent-epoch` the locally held epoch marker.
 * csr (bytes, REQUIRED): DER-encoded PKCS#10 CSR
 * evidence (bytes, REQUIRED): MUST be bound to the Freshness returned by `attest-initiate`, if any
 * profile (string, OPTIONAL): the format of `evidence`, one of `acceptable_evidence`
 * binding (object, REQUIRED): declares how the CSR key is bound to Evidence
-* credential_type (string, OPTIONAL): e.g., x509, wimse-wit
+* credential_type (string, OPTIONAL): `x509` ({{credential-type}}), the only Credential Type Enrollment mints in this version
 * credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the Credential Authority MAY use it, ignore it, or reject the request
 
 ### Response (Success)
@@ -344,9 +392,9 @@ On success, the EST Server returns the enrollment response produced by the Crede
 ### Key Binding and PoP Requirements {#key-binding}
 
 1. PoP: The Credential Authority MUST verify possession of the CSR private key.
-2. Evidence-to-CSR and Evidence-to-Freshness: the Evidence MUST carry the binding of Section "Binding Credential Keys to Evidence" of {{TACRA}}, with the DER-encoded CSR as its subject. As that section requires, the Verifier reports the bound value in the Attestation Results, and the Credential Authority recomputes it from the request and refuses the request with 403 Forbidden on a mismatch; a substituted CSR, or Evidence produced under another Freshness, fails that check.
+2. Evidence-to-CSR, Evidence-to-Target and Evidence-to-Freshness: the Evidence MUST carry the digest of {{est-binding}}, the binding of Section "Binding Credential Keys to Evidence" of {{TACRA}}, with the DER-encoded CSR as its subject. As that section requires, the Verifier reports the bound value in the Attestation Results, and the Credential Authority recomputes it from the request and refuses the request with 403 Forbidden on a mismatch. A substituted CSR, Target or freshness element fails that check.
 
-The `binding` object ({{cddl}}) has two members. Its `method` is the text `binding-input`, the binding of item 2 and the only method this document defines. Its `hash` names the digest of the binding input: `sha512` where the Evidence's freshness input is 64 octets, as REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are ({{TACRA}}).
+The `binding` object ({{cddl}}) is as {{est-binding}} defines it.
 
 ### Enrollment Server Processing
 
@@ -368,19 +416,19 @@ Fields:
 
 * target (string, REQUIRED): the Target of Retrieve-Credential (Section 5.3 of {{TACRA}})
 * freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
-* handle (bytes): Freshness Handle - REQUIRED when `freshness_kind` is not `absent-none`; MUST be absent otherwise. MUST equal the Handle returned by `attest-initiate` when present.
+* handle (bytes): the freshness element ({{est-binding}}) - REQUIRED when `freshness_kind` is not `absent-none` and MUST be absent otherwise. For `present-nonce` and `present-epoch` it MUST equal the Freshness Handle returned by `attest-initiate`. For `absent-timestamp` it is the 8-octet timestamp and for `absent-epoch` the locally held epoch marker.
 * evidence (bytes, REQUIRED) -- MUST include CEKpub; MUST be bound to the Freshness returned by `attest-initiate`, if any
 * cek_pub (bytes, REQUIRED): CEKpub, to which the Secret Vault encrypts
 * profile (string, OPTIONAL): the format of `evidence`, one of `acceptable_evidence`
 * binding (object, REQUIRED): declares how CEKpub is bound to Evidence
-* credential_type (string, OPTIONAL): e.g., x509, wimse-wit
+* credential_type (string, OPTIONAL): one of the tokens of {{credential-type}}
 * credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) MAY use it, ignore it, or reject the request
 
 ### Evidence-to-CEK Binding {#evidence-to-cek}
 
-The Evidence MUST carry the binding of Section "Binding Credential Keys to Evidence" of {{TACRA}} with CEKpub, the octets of `cek_pub`, as its subject.
-As that section requires, the Verifier reports the bound value in the Attestation Results, and the Secret Vault recomputes it from the request and denies release with 403 Forbidden on a mismatch.
-The `binding` object is as in Enrollment ({{key-binding}}).
+The Evidence MUST carry the digest of {{est-binding}} with the octets of `cek_pub` as its subject.
+As Section "Binding Credential Keys to Evidence" of {{TACRA}} requires, the Verifier reports the bound value in the Attestation Results, and the Secret Vault recomputes it from the request and denies release with 403 Forbidden on a mismatch.
+The `binding` object is as {{est-binding}} defines it.
 
 ### Credential Group ID Determination
 
@@ -460,7 +508,7 @@ Error bodies MUST NOT leak sensitive attestation details. Servers MAY provide a 
 
 ## Common to Both Modes
 
-* Freshness: a nonce Handle MAY come from the Verifier or the Relying Party; a timestamp from the Attester's clock; an epoch marker from a local hold or a returned Handle (Section 10 of {{RFC9334}}). Evidence MUST be bound as required by the kind from `attest-initiate`. The originator MUST reject `present-nonce` reuse and a stale `present-epoch`.
+* Freshness: the Freshness Kinds and the freshness element are those of {{TACRA}}, built on the recency methods of Section 10 of {{RFC9334}}. A `present-*` Handle comes from the Verifier or the RATS Relying Party, a timestamp from the Attester's clock, and an epoch marker from a local hold or a returned Handle. Evidence MUST carry the freshness element in the binding ({{est-binding}}). The originator of a Handle MUST reject `present-nonce` reuse and a stale `present-epoch`.
 * The channel from EST Server to Verifier MUST provide integrity, authenticity, and replay protection.
 * The EST Server SHOULD enforce size and rate limits on Evidence.
 * If classic EST and attested resources both exist, the Relying Party MUST be able to require attestation. The EST Server MUST NOT substitute a classic EST operation for an attested request.
@@ -473,7 +521,7 @@ No registry of EST operation paths exists, so none is requested.
 
 IANA is requested to register the media types of {{media-types}} in the "Media Types" registry ({{RFC6838}}).
 
-This document also requests a registry of acceptable_evidence identifiers and credential_type identifiers (if not reused from existing registries).
+The Credential Type tokens of {{credential-type}} are defined in this document. No registry is requested for them in this version.
 
 ## application/est-attest-initiate+json
 
