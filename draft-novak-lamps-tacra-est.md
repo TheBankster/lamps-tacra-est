@@ -36,7 +36,7 @@ author:
 
  - ins: H. Birkholz
    name: Henk Birkholz
-   org:  Fraunhofer Inst.
+   org:  Fraunhofer SIT
    email: Henk.Birkholz@ietf.contact
 
  - ins: S. Nikolaichuk
@@ -59,19 +59,10 @@ informative:
   INTERACTION-MODELS: I-D.ietf-rats-reference-interaction-models
   ATTESTATION-FRESHNESS: I-D.ietf-lamps-attestation-freshness
   CSR-ATTEST: I-D.ietf-lamps-csr-attestation
+  TACRA: I-D.novak-rats-tacra
   RFC6585:
   RFC9148:
   RFC9457:
-  TACRA:
-    target: https://TheBankster.github.io/rats-tacra/draft-novak-rats-tacra.html
-    title: Trustworthy Acquisition of Credentials via Remote Attestation
-    author:
-      - ins: M. Novak
-        name: Mark F. Novak
-      - ins: M. Richardson
-        name: Michael Richardson
-      - ins: H. Birkholz
-        name: Henk Birkholz
   TWISIGDef:
     -: TWISIGDef
     target: https://github.com/confidential-computing/twi/blob/main/TWI_Definitions.md
@@ -224,11 +215,17 @@ EST Server authentication via TLS is REQUIRED.
 The first leg of both modes is where the Attester initiates Remote Attestation by invoking the EST Client.
 
 * Method: GET
-* Request: None
+* Request: no body; query parameters `target` (REQUIRED) and `credential_type` (OPTIONAL)
 * Success: 200 OK
 * Response: AttestationInitiationResponse ({{initiation-response}}): Freshness kind, Credential Acquisition Mode (`enroll` or `retrieve`), acceptable ciphers
+* Error: 400 if `target` is absent; 403 if the EST Server does not server that Target, or that `credential_type` for it
 
-* If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (`absent-timestamp`, `absent-none`, or `absent-epoch`), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it MAY complete `attest-initiate` locally and, in that case, MUST NOT contact the EST Server. Otherwise, `attest-initiate` is a GET with no body and no query parameters.
+Query parameters:
+
+* `target`: the Target of Initiate-Credential-Acquisition (Section 5.1 of {{TACRA}}). The client URI-encodes it; the EST Server compares the decoded UTF-8 string.
+* `credential_type`: the Credential Type the Attester plans to use with this Target. If omitted, the EST Server returns the mode and algorithms its policy sets for the Target.
+
+* If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (`absent-timestamp`, `absent-none`, or `absent-epoch`), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it MAY complete `attest-initiate` locally and, in that case, MUST NOT contact the EST Server.
 * The EST Server, if contacted, obtains the Freshness Kind and Handle, if any, from the configured Verifier or Relying Party and returns that result.
 * `present-nonce` and `present-epoch` MUST include a Freshness Handle from the party chosen by the EST Server. `absent-*` Freshness Kinds carry no Freshness Handle.
 * The EST Client forwards the response to the Attester.
@@ -260,11 +257,13 @@ Two LAMPS documents cover parts of the exchange defined here.
 A `present-nonce` Handle is a nonce in the sense of {{ATTESTATION-FRESHNESS}}, and the requirement of Section 5.1 of that document that the server associate the nonce with the subsequent request applies to `attest-initiate` and its second leg alike.
 An EST Server MAY offer both resources.
 
-{{CSR-ATTEST}} conveys Evidence inside the CSR, in its `id-aa-attestation` attribute. It makes the Certification Authority or Registration Authority that processes the CSR responsible for validating the binding between the attestations and the CSR's public key (Section 6.1 of {{CSR-ATTEST}}).
-This document conveys Evidence beside the CSR, in the AttestedEnrollmentRequest ({{enrollment-request}}), and binds the two through the Evidence itself ({{key-binding}}): the Evidence is produced over a digest that covers the finished CSR, so it cannot travel inside it.
+{{CSR-ATTEST}} conveys Evidence inside the CSR, in its `id-aa-attestation` attribute.
+It makes the Certification Authority or Registration Authority that processes the CSR responsible for validating the binding between the attestations and the CSR's public key (Section 6.1 of {{CSR-ATTEST}}).
+This document conveys Evidence beside the CSR, in the AttestedEnrollmentRequest ({{enrollment-request}}), and binds the two through the Evidence itself ({{key-binding}}): the Evidence is produced over a digest that includes the finished CSR, so it cannot travel inside it.
 Evidence beside the CSR is what this profile requires.
 Placing attestations in the CSR as well, per {{CSR-ATTEST}}, is an optional interoperability path for an Attester whose platform can make claims about the CSR key; whether a Credential Authority requires it is agreed out of band.
 This choice is specific to Enrollment; Retrieval has no CSR and binds Evidence to CEKpub ({{evidence-to-cek}}).
+
 
 # Media Types and Encodings {#media-types}
 
@@ -276,12 +275,13 @@ As each EST message type has its own media type (Section 3.2.4 of {{RFC7030}}), 
 
 | Resource | Request | Response |
 |---|---|---|
-| `attest-initiate` | none: a GET, no body | `application/est-attest-initiate+json` |
+| `attest-initiate` | none: a GET, query string, no body | `application/est-attest-initiate+json` |
 | `attest-enroll` | `application/est-attest-enroll+json` | `application/pkcs7-mime; smime-type=certs-only`, as simpleenroll |
 | `attest-retrieve` | `application/est-attest-retrieve+json` | `application/est-attest-bundle+json` |
 {: title="Media types of the attest-* messages"}
 
-A client MUST send a request of the resource's media type.
+A client MUST send a POST of the resource's media type.
+An `attest-initiate` GET has no body; the client SHOULD set Accept to `application/est-attest-initiate+json`.
 An EST Server responds to a request of another media type with 415 (Unsupported Media Type) and SHOULD name the resource's media type in an Accept header field (Section 15.5.16 of {{RFC9110}}).
 
 ## Message Definitions {#cddl}
@@ -402,7 +402,7 @@ The response MUST be an authenticated-encryption container encrypted to CEKpub. 
     * WIMSE WIT(s) or WIC(s) (if requested/authorized)
     * a shared signing key (high risk; see {{security}})
 * metadata (optional): validity, refresh hints, rotation epoch, key identifiers
-* (implicit or explicit): associated data binding at least {group_id, handle if any, credential_hint, server_id}
+* (implicit or explicit): associated data binding at least {group_id, handle if any, credential_hint}
 
 Mandatory-to-implement encryption mechanism: The specification MUST choose one baseline.
 
@@ -429,9 +429,9 @@ A variant in which the EST Server receives a plaintext secret from the Secret Va
 
 An error response carries one of the status codes below, and a human-readable body as a simpleenroll error does (Section 4.2.3 of {{RFC7030}}, updated by Section 5.1 of {{RFC8951}}):
 
-* 400 Bad Request: a request that does not match its definition ({{cddl}})
+* 400 Bad Request: a request that does not match its definition ({{cddl}}), or an `attest-initiate` with no `target`
 * 401 Unauthorized: missing/invalid authentication required by deployment policy
-* 403 Forbidden: attestation failed, policy denies enrollment/retrieval, or the request's `target` or `freshness_kind`, or `credential_type` when it is carried, differ from those of the `attest-initiate` that returned its Handle
+* 403 Forbidden: attestation failed, policy denies enrollment/retrieval, the EST server does not serve the `target` of `attest-initiate` or the `credential_type` for it, or the request's `target` or `freshness_kind`, or `credential_type` when it is carried, differ from those of the `attest-initiate` that returned its Handle
 * 409 Conflict: Freshness Handle replay detected, a Handle that no `attest-initiate` returned or that has expired, or `present-epoch` marker has moved
 * 413 Content Too Large: a request larger than the server takes (Section 15.5.14 of {{RFC9110}})
 * 415 Unsupported Media Type: a request not of the resource's media type ({{media-types}}), or Evidence of a format that is not accepted
