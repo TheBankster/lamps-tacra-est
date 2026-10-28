@@ -58,6 +58,6 @@ request-freshness = (
 )
 
 binding = {
-  method: text,
-  ? hash: text,
+  method: "binding-input",
+  hash: text,
 }

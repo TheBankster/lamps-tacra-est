@@ -346,7 +346,7 @@ On success, the EST Server returns the enrollment response produced by the Crede
 1. PoP: The Credential Authority MUST verify possession of the CSR private key.
 2. Evidence-to-CSR and Evidence-to-Freshness: the Evidence MUST carry the binding of Section "Binding Credential Keys to Evidence" of {{TACRA}}, with the DER-encoded CSR as its subject. As that section requires, the Verifier reports the bound value in the Attestation Results, and the Credential Authority recomputes it from the request and refuses the request with 403 Forbidden on a mismatch; a substituted CSR, or Evidence produced under another Freshness, fails that check.
 
-The `binding` object ({{cddl}}) names the method, `binding-input`, and in `hash` the digest of the binding input: `sha512` where the Evidence's freshness input is 64 octets, as REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are ({{TACRA}}).
+The `binding` object ({{cddl}}) has two members. Its `method` is the text `binding-input`, the binding of item 2 and the only method this document defines. Its `hash` names the digest of the binding input: `sha512` where the Evidence's freshness input is 64 octets, as REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are ({{TACRA}}).
 
 ### Enrollment Server Processing
 
