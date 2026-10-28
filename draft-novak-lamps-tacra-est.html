@@ -1857,8 +1857,8 @@ request-freshness = (
 )
 
 binding = {
-  method: text,
-  ? hash: text,
+  method: "binding-input",
+  hash: text,
 }
 </pre><a href="#section-7.1-2" class="pilcrow">¶</a>
 </div>
@@ -1994,7 +1994,7 @@ The Verifier appraises whether Evidence is bound to a still-valid Freshness Hand
               <p id="section-9.1.3-1.2.1">Evidence-to-CSR and Evidence-to-Freshness: the Evidence <span class="bcp14">MUST</span> carry the binding of Section "Binding Credential Keys to Evidence" of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>, with the DER-encoded CSR as its subject. As that section requires, the Verifier reports the bound value in the Attestation Results, and the Credential Authority recomputes it from the request and refuses the request with 403 Forbidden on a mismatch; a substituted CSR, or Evidence produced under another Freshness, fails that check.<a href="#section-9.1.3-1.2.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-9.1.3-2">The <code>binding</code> object (<a href="#cddl" class="auto internal xref">Section 7.1</a>) names the method, <code>binding-input</code>, and in <code>hash</code> the digest of the binding input: <code>sha512</code> where the Evidence's freshness input is 64 octets, as REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.1.3-2" class="pilcrow">¶</a></p>
+<p id="section-9.1.3-2">The <code>binding</code> object (<a href="#cddl" class="auto internal xref">Section 7.1</a>) has two members. Its <code>method</code> is the text <code>binding-input</code>, the binding of item 2 and the only method this document defines. Its <code>hash</code> names the digest of the binding input: <code>sha512</code> where the Evidence's freshness input is 64 octets, as REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.1.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="enrollment-server-processing">

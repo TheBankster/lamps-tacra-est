@@ -568,8 +568,8 @@ Table of Contents
    )
 
    binding = {
-     method: text,
-     ? hash: text,
+     method: "binding-input",
+     hash: text,
    }
 
 8.  Common Structures
@@ -674,10 +674,11 @@ Table of Contents
        a mismatch; a substituted CSR, or Evidence produced under another
        Freshness, fails that check.
 
-   The binding object (Section 7.1) names the method, binding-input, and
-   in hash the digest of the binding input: sha512 where the Evidence's
-   freshness input is 64 octets, as REPORT_DATA of AMD SEV-SNP and
-   REPORTDATA of Intel TDX are ([TACRA]).
+   The binding object (Section 7.1) has two members.  Its method is the
+   text binding-input, the binding of item 2 and the only method this
+   document defines.  Its hash names the digest of the binding input:
+   sha512 where the Evidence's freshness input is 64 octets, as
+   REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are ([TACRA]).
 
 9.1.4.  Enrollment Server Processing
 
