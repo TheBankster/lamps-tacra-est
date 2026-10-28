@@ -5,12 +5,12 @@
 Limited Additional Mechanisms for PKIX and SMIME                M. Novak
 Internet-Draft                                   J.P. Morgan Chase & Co.
 Intended status: Informational                             M. Richardson
-Expires: 30 April 2027                          Sandelman Software Works
+Expires: 1 May 2027                             Sandelman Software Works
                                                              H. Birkholz
                                                         Fraunhofer Inst.
                                                           S. Nikolaichuk
                                                    The Capital Index LLC
-                                                         27 October 2026
+                                                         28 October 2026
 
 
                  Remote Attestation Extensions for EST
@@ -75,7 +75,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 April 2027.
+   This Internet-Draft will expire on 1 May 2027.
 
 Copyright Notice
 
@@ -261,16 +261,16 @@ Table of Contents
 
 3.1.  Attested Enrollment Mode
 
-                                                          ┌──────────┐
-                                                          │ Verifier │
-                                                          └────▲─────┘
-   ┌──────────┐ (1) ┌─────────────┐ (2) ┌────────────┐  (3,6)  │
-   │ Attester ├─────► EST Client  ├─────► EST Server ├─────────┤
-   └──────────┘ (4) └─────────────┘ (5) └────────────┘   (7)   │
-                                                         ┌─────▼──────┐
-                                                         │ Credential │
-                                                         │ Authority  │
-                                                         └────────────┘
+                                                          +----------+
+                                                          | Verifier |
+                                                          +----^-----+
+   +----------+ (1) +-------------+ (2) +------------+  (3,6)  |
+   | Attester +-----> EST Client  +-----> EST Server +---------+
+   +----------+ (4) +-------------+ (5) +------------+   (7)   |
+                                                         +-----v------+
+                                                         | Credential |
+                                                         | Authority  |
+                                                         +------------+
 
                Figure 1: Attested Enrollment Mode (Passport)
 
@@ -294,16 +294,16 @@ Table of Contents
 
 3.2.  Attested Retrieval Mode
 
-                                                          ┌──────────┐
-                                                          │ Verifier │
-                                                          └────▲─────┘
-   ┌──────────┐ (1) ┌─────────────┐ (2) ┌────────────┐  (3,6)  │
-   │ Attester ├─────► EST Client  ├─────► EST Server ├─────────┤
-   └──────────┘ (4) └─────────────┘ (5) └────────────┘   (7)   │
-                                                          ┌────▼─────┐
-                                                          │  Secret  │
-                                                          │  Vault   │
-                                                          └──────────┘
+                                                          +----------+
+                                                          | Verifier |
+                                                          +----^-----+
+   +----------+ (1) +-------------+ (2) +------------+  (3,6)  |
+   | Attester +-----> EST Client  +-----> EST Server +---------+
+   +----------+ (4) +-------------+ (5) +------------+   (7)   |
+                                                          +----v-----+
+                                                          |  Secret  |
+                                                          |  Vault   |
+                                                          +----------+
 
                 Figure 2: Attested Retrieval Mode (Passport)
 
@@ -328,8 +328,8 @@ Table of Contents
 
 4.  Protocol Overview
 
-   Three new EST resources are added under the existing EST “/.well-
-   known/” prefix:
+   Three new EST resources are added under the existing EST "/.well-
+   known/" prefix:
 
    1.  /.well-known/est/attest-initiate
 
@@ -775,7 +775,7 @@ Table of Contents
    Mandatory-to-implement encryption mechanism: The specification MUST
    choose one baseline.
 
-   *  CMS EnvelopedData (aligned with EST’s CMS usage), OR
+   *  CMS EnvelopedData (aligned with EST's CMS usage), OR
 
    *  HPKE (RFC 9180) with a specific required ciphersuite, or
 
@@ -1163,9 +1163,9 @@ Table of Contents
               Birkholz, H., Eckel, M., Pan, W., and E. Voit, "Reference
               Interaction Models for Remote Attestation Procedures",
               Work in Progress, Internet-Draft, draft-ietf-rats-
-              reference-interaction-models-18, 17 September 2026,
+              reference-interaction-models-20, 28 October 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-rats-
-              reference-interaction-models-18>.
+              reference-interaction-models-20>.
 
    [RFC6585]  Nottingham, M. and R. Fielding, "Additional HTTP Status
               Codes", RFC 6585, DOI 10.17487/RFC6585, April 2012,
@@ -1189,20 +1189,20 @@ Table of Contents
    [TWISIGDef]
               Confidential Computing Consortium Trustworthy Workload
               Identity SIG, "Trustworthy Workload Identity (TWI) Special
-              Interest Group — Definitions", n.d., <https://github.com/
+              Interest Group - Definitions", n.d., <https://github.com/
               confidential-computing/twi/blob/main/TWI_Definitions.md>.
 
    [TWISIGReq]
               Confidential Computing Consortium Trustworthy Workload
               Identity SIG, "Trustworthy Workload Identity (TWI) Special
-              Interest Group — Requirements", n.d., <https://github.com/
+              Interest Group - Requirements", n.d., <https://github.com/
               confidential-computing/twi/blob/main/TWI_Requirements.md>.
 
 Acknowledgments
 
    The authors thank the Confidential Computing Consortium's Trustworthy
-   Workload Identity (TWI) Special Interest Group for creating the TACRA
-   architecture.
+   Workload Identity (TWI) Special Interest Group ([TWISIGDef],
+   [TWISIGReq]) for creating the TACRA architecture.
 
 Authors' Addresses
 
