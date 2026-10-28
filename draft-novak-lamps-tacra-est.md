@@ -75,13 +75,13 @@ informative:
   TWISIGDef:
     -: TWISIGDef
     target: https://github.com/confidential-computing/twi/blob/main/TWI_Definitions.md
-    title: Trustworthy Workload Identity (TWI) Special Interest Group — Definitions
+    title: Trustworthy Workload Identity (TWI) Special Interest Group - Definitions
     author:
       org: Confidential Computing Consortium Trustworthy Workload Identity SIG
   TWISIGReq:
     -: TWISIGReq
     target: https://github.com/confidential-computing/twi/blob/main/TWI_Requirements.md
-    title: Trustworthy Workload Identity (TWI) Special Interest Group — Requirements
+    title: Trustworthy Workload Identity (TWI) Special Interest Group - Requirements
     author:
       org: Confidential Computing Consortium Trustworthy Workload Identity SIG
 
@@ -204,7 +204,7 @@ Both are subject to the following restrictions:
 
 # Protocol Overview
 
-Three new EST resources are added under the existing EST “/.well-known/” prefix:
+Three new EST resources are added under the existing EST "/.well-known/" prefix:
 
 1. `/.well-known/est/attest-initiate`
 2. `/.well-known/est/attest-enroll`
@@ -406,7 +406,7 @@ The response MUST be an authenticated-encryption container encrypted to CEKpub. 
 
 Mandatory-to-implement encryption mechanism: The specification MUST choose one baseline.
 
-* CMS EnvelopedData (aligned with EST’s CMS usage), OR
+* CMS EnvelopedData (aligned with EST's CMS usage), OR
 * HPKE (RFC 9180) with a specific required ciphersuite, or
 * COSE_Encrypt0 with a required AEAD suite.
 
@@ -680,4 +680,4 @@ Change controller:
 # Acknowledgments
 {:numbered="false"}
 
-The authors thank the Confidential Computing Consortium's Trustworthy Workload Identity (TWI) Special Interest Group for creating the TACRA architecture.
+The authors thank the Confidential Computing Consortium's Trustworthy Workload Identity (TWI) Special Interest Group ({{TWISIGDef}}, {{TWISIGReq}}) for creating the TACRA architecture.
