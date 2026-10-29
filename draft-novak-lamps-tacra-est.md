@@ -149,6 +149,7 @@ Two modes are defined:
 * PoP: proof-of-possession of the private key corresponding to the CSR public key
 * CEK: Credential Encryption Key; when used, CEKpub is carried in Evidence, the response is encrypted to CEKpub
 * Credential Bundle: the plaintext the Secret Vault seals ({{bundle}}): credential items with their attributes, and metadata
+* Container: the sealed object that carries a Credential Bundle to the Attester, the EncryptedCredentialBundle ({{bundle}})
 * Credential Hint: optional, implementation-defined information supplied by the Attester about the credential it expects. The Credential Authority or Secret Vault MAY use the hint, ignore it, or reject the request. The hint does not authorize issuance or release.
 * Freshness Kind: the recency method, one of `absent-timestamp`, `absent-none`, `absent-epoch`, `present-nonce` or `present-epoch` ({{TACRA}})
 * Freshness Handle: the value `attest-initiate` returns for `present-nonce` and `present-epoch` ({{TACRA}}, {{INTERACTION-MODELS}})
@@ -200,7 +201,7 @@ Both are subject to the following restrictions:
 4. Attester generates CEK and Evidence including CEKpub, bound to Freshness
 5. EST Client POSTs Evidence (`attest-retrieve`)
 6. EST Server forwards Evidence to the Verifier
-7. EST Server forwards Attestation Results to the Secret Vault, which seals the matching credential to CEKpub. The EST Server, through the EST Client, returns that container to the Attester, which checks it and decrypts it with CEKpri
+7. EST Server forwards Attestation Results to the Secret Vault, which seals the matching Credential Bundle to CEKpub in a container. The EST Server, through the EST Client, returns that container to the Attester, which checks it and decrypts it with CEKpri
 
 
 # Protocol Overview
@@ -570,7 +571,7 @@ Servers MAY provide a correlation identifier for debugging.
 
 * Shared Signing Key distribution: If the credential bundle includes a private signing key shared across replicas, compromise of one replica compromises the group. This mode SHOULD be restricted to environments where unwrap and key use are strongly protected.
 * Non-Exportability Requirements: Deployments that transport a signing key SHOULD require Evidence to attest that CEKpri is non-exportable and that decryption/unwrapping occurs only within an approved protected environment (e.g., TEE/TPM-sealed key usage).
-* Origin of the bundle: the EST Client and the EST Server saw CEKpub and can return a container of their own, sealed to it. The Secret Vault's secret stays confidential: a container the Secret Vault sealed opens only under CEKpri, and one of their making carries none of it. The Attester then holds a credential they chose, and what follows depends on the Credential Type: with an `api-key`, its calls run under the account they chose, and what it sends goes there. This profile accepts that risk ({{TACRA}}).
+* Origin of the container: the EST Client and the EST Server saw CEKpub and can return a container of their own, sealed to it. The Secret Vault's secret stays confidential: a container the Secret Vault sealed opens only under CEKpri, and one of their making carries none of it. The Attester then holds a credential they chose, and what follows depends on the Credential Type: with an `api-key`, its calls run under the account they chose, and what it sends goes there. This profile accepts that risk ({{TACRA}}).
 * Attribution: Shared keys eliminate per-instance attribution. If accountability is required, consider per-instance keys with identical identity claims, or a centralized signing service.
 
 ## Common to Both Modes
