@@ -245,7 +245,7 @@ Query parameters:
 
 * If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (`absent-timestamp`, `absent-none`, or `absent-epoch`), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it MAY complete `attest-initiate` locally and, in that case, MUST NOT contact the EST Server.
 * The EST Server, if contacted, obtains the Freshness Kind and Handle, if any, from the configured Verifier or RATS Relying Party and returns that result.
-* For `present-nonce`, that GET mints a single-use Handle, the side effect the nonce resource of {{ATTESTATION-FRESHNESS}} has as well ({{relationship}}).
+* For `present-nonce`, that GET mints a single-use Handle and records it, as the nonce resource of {{ATTESTATION-FRESHNESS}} does ({{relationship}}).
 * `present-nonce` and `present-epoch` MUST include a Freshness Handle from the party chosen by the EST Server. `absent-*` Freshness Kinds carry no Freshness Handle.
 * The EST Client forwards the response to the Attester.
 * The Attester produces Evidence as the Freshness Kind requires.
