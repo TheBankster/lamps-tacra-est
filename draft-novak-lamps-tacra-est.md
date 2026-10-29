@@ -414,7 +414,6 @@ CEK suites, for Retrieval: the HPKE suites of {{bundle}}, each named by its KEM,
 A Credential Authority or Secret Vault names in `acceptable_csk` or `acceptable_cek` the tokens it accepts, and the Attester generates its key for one of them.
 
 Evidence formats: the media type of the Evidence, in the format the Verifier recognizes, for example `application/vnd.veraison.tsm-report+cbor`.
-This version defines no token of its own for them.
 
 A client MUST NOT use a token the `attest-initiate` response did not list.
 A client that completed `attest-initiate` locally uses the tokens its configuration names.
