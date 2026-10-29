@@ -236,7 +236,7 @@ The first leg of both modes is where the Attester initiates Remote Attestation b
 * Request: no body; query parameters `target` (REQUIRED) and `credential_type` (OPTIONAL)
 * Success: 200 OK
 * Response: AttestationInitiationResponse ({{initiation-response}}): Freshness kind, Credential Acquisition Mode (`enroll` or `retrieve`), acceptable ciphers
-* Error: 400 when `target` is absent, 403 when the EST Server does not serve that Target, 406 when the RATS Relying Party does not serve that `credential_type` for it ({{errors}})
+* Error: 400 when `target` is absent, 404 when the EST Server does not serve that Target, 406 when the RATS Relying Party does not serve that `credential_type` for it ({{errors}})
 
 Query parameters:
 
@@ -543,8 +543,8 @@ An error response carries one of the status codes below, and a human-readable bo
 
 * 400 Bad Request: a request that does not match its definition ({{cddl}}), an `attest-initiate` with no `target`, a binding digest that does not recompute ({{est-binding}}), or a request that differs from the `attest-initiate` that returned its Handle ({{enrollment-processing}}, {{retrieval-processing}})
 * 401 Unauthorized: missing/invalid authentication required by deployment policy
-* 403 Forbidden, from the EST Server: it does not serve the `target` of `attest-initiate`
 * 403 Forbidden, forwarded from the RATS Relying Party: attestation failed, or its policy denies enrollment or retrieval, the Credential Hint included
+* 404 Not Found: a `target` the EST Server does not serve (Section 15.5.5 of {{RFC9110}}: the query is part of the target URI, and a request of the second leg names the same `target`)
 * 406 Not Acceptable: a `credential_type` the RATS Relying Party does not serve for the `target` (Section 15.5.7 of {{RFC9110}}). The body names the Credential Types it serves for that `target`
 * 409 Conflict: Freshness Handle replay detected, a Handle that no `attest-initiate` returned or that has expired, or `present-epoch` marker has moved
 * 413 Content Too Large: a request larger than the server takes (Section 15.5.14 of {{RFC9110}})
