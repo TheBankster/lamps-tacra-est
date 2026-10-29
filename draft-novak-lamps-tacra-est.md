@@ -275,7 +275,7 @@ The Target itself takes no part in this profile: it is the RATS-unaware Relying 
 Two LAMPS documents cover parts of the exchange defined here.
 
 {{ATTESTATION-FRESHNESS}} defines a nonce request and response for certificate management protocols, including an EST resource at `/.well-known/est/nonce` (GET, or POST with `application/est-attestation-freshness+json`) whose response carries a `nonce` of 8 to 64 bytes and an OPTIONAL `expiry` in seconds (Section 5.1 of {{ATTESTATION-FRESHNESS}}).
-For the `present-nonce` Freshness Kind, `attest-initiate` ({{attest-initiate}}) is the first leg that returns such a nonce, as the Freshness Handle.
+`attest-initiate` ({{attest-initiate}}) is the first leg that returns the Freshness Handle: such a nonce for `present-nonce`, the current epoch marker for `present-epoch`, and none for the `absent-*` kinds.
 It returns in addition the Freshness Kind itself, the Credential Acquisition Mode and the acceptable CSK or CEK algorithms ({{initiation-response}}), none of which the nonce resource carries.
 A `present-nonce` Handle of this profile is a nonce as {{TACRA}} and Section 5.1 of {{ATTESTATION-FRESHNESS}} specify: 8 to 64 octets, at least 64 bits of entropy, issued once and not reused.
 `expires_in` is that document's `expiry`.
