@@ -218,7 +218,7 @@ As that section requires, it serves them without the segment too.
 The label MUST NOT be `attest-initiate`, `attest-enroll` or `attest-retrieve`.
 The segment selects the Credential Authority or Secret Vault the EST Server uses, as it selects a CA in {{RFC7030}}.
 It is not the Target, which stays the `target` query parameter or member ({{TACRA}}).
-A client uses for `attest-*` the segment it uses for `simpleenroll` at that issuer.
+For `attest-*` the client uses the same segment it uses for `simpleenroll` at that issuer.
 Example exchanges are in {{examples}}.
 They support TACRA Initiate-Credential-Acquisition, Enroll-Credential, and Retrieve-Credential {{TACRA}} commands, encoded with EST semantics.
 
