@@ -212,9 +212,12 @@ Three new EST operations are added under the EST well-known prefix (Section 3.2.
 3. `/.well-known/est/attest-retrieve`
 
 They sit beside the operations of {{RFC7030}}.
-An EST Server that uses the optional path segment of Section 3.2.2 of {{RFC7030}}, `/.well-known/est/arbitraryLabel1/simpleenroll` for instance, MUST offer the `attest-*` operations under that segment as well, `/.well-known/est/arbitraryLabel1/attest-initiate` and likewise for the other two. As that section requires, it serves them without the segment too.
+An EST Server that uses the optional path segment of Section 3.2.2 of {{RFC7030}}, `/.well-known/est/arbitraryLabel1/simpleenroll` for instance, MUST offer the `attest-*` operations under that segment as well, `/.well-known/est/arbitraryLabel1/attest-initiate` and likewise for the other two.
+As that section requires, it serves them without the segment too.
 The label MUST NOT be `attest-initiate`, `attest-enroll` or `attest-retrieve`.
-The segment selects the Credential Authority or Secret Vault the EST Server uses, as it selects a CA in {{RFC7030}}. It is not the Target, which stays the `target` query parameter or member ({{TACRA}}). A client uses for `attest-*` the segment it uses for `simpleenroll` at that issuer.
+The segment selects the Credential Authority or Secret Vault the EST Server uses, as it selects a CA in {{RFC7030}}.
+It is not the Target, which stays the `target` query parameter or member ({{TACRA}}).
+A client uses for `attest-*` the segment it uses for `simpleenroll` at that issuer.
 Example exchanges are in {{examples}}.
 They support TACRA Initiate-Credential-Acquisition, Enroll-Credential, and Retrieve-Credential {{TACRA}} commands, encoded with EST semantics.
 
@@ -247,7 +250,8 @@ Query parameters:
 * The Attester produces Evidence as the Freshness Kind requires.
 * The EST Client then POSTs `attest-enroll` or `attest-retrieve` as the Attester indicates.
 
-A Credential Authority or Secret Vault issues or releases credentials for a Target as its policy for that Target says, since a Target works only with credentials from an issuer it already trusts. The Target itself takes no part in this profile: it is the RATS-unaware Relying Party of {{TACRA}}, named in the request and in the binding.
+A Credential Authority or Secret Vault issues or releases credentials for a Target as its policy for that Target says, since a Target works only with credentials from an issuer it already trusts.
+The Target itself takes no part in this profile: it is the RATS-unaware Relying Party of {{TACRA}}, named in the request and in the binding.
 * If the second leg fails because a `present-epoch` moved or a `present-nonce` is no longer valid, the Attester retries `attest-initiate`.
 
 ## attest-enroll {#attest-enroll}
@@ -270,17 +274,24 @@ A Credential Authority or Secret Vault issues or releases credentials for a Targ
 Two LAMPS documents cover parts of the exchange defined here.
 
 {{ATTESTATION-FRESHNESS}} defines a nonce request and response for certificate management protocols, including an EST resource at `/.well-known/est/nonce` (GET, or POST with `application/est-attestation-freshness+json`) whose response carries a `nonce` of 8 to 64 bytes and an OPTIONAL `expiry` in seconds (Section 5.1 of {{ATTESTATION-FRESHNESS}}).
-For the `present-nonce` Freshness Kind, `attest-initiate` ({{attest-initiate}}) is the first leg that returns such a nonce, as the Freshness Handle. It returns in addition the Freshness Kind itself, the Credential Acquisition Mode and the acceptable CSK or CEK algorithms ({{initiation-response}}), none of which the nonce resource carries.
-A `present-nonce` Handle of this profile is a nonce as {{TACRA}} and Section 5.1 of {{ATTESTATION-FRESHNESS}} specify: 8 to 64 octets, at least 64 bits of entropy, issued once and not reused. `expires_in` is that document's `expiry`.
-That section requires the server to associate the nonce with the subsequent request. This profile does so by correlating the Handle with the `attest-initiate` that returned it, in the server processing of both modes, and by the RATS Relying Party's recomputation of the digest that carries the Handle ({{est-binding}}). It does not use a TLS session or a cookie for that: either would bind the EST Client, the conduit, and not the Attester.
+For the `present-nonce` Freshness Kind, `attest-initiate` ({{attest-initiate}}) is the first leg that returns such a nonce, as the Freshness Handle.
+It returns in addition the Freshness Kind itself, the Credential Acquisition Mode and the acceptable CSK or CEK algorithms ({{initiation-response}}), none of which the nonce resource carries.
+A `present-nonce` Handle of this profile is a nonce as {{TACRA}} and Section 5.1 of {{ATTESTATION-FRESHNESS}} specify: 8 to 64 octets, at least 64 bits of entropy, issued once and not reused.
+`expires_in` is that document's `expiry`.
+That section requires the server to associate the nonce with the subsequent request.
+This profile does so by correlating the Handle with the `attest-initiate` that returned it, in the server processing of both modes, and by the RATS Relying Party's recomputation of the digest that carries the Handle ({{est-binding}}).
+It does not use a TLS session or a cookie for that: either would bind the EST Client, the conduit, and not the Attester.
 A request of this profile takes no nonce length: the Handle reaches the Evidence through the digest, so no platform needs a Handle of a particular size.
-An EST Server MAY offer both resources. They are not interchangeable: a nonce the nonce resource returned is not a Freshness Handle of this profile, and `attest-enroll` and `attest-retrieve` take a Handle from `attest-initiate`, or none for the `absent-*` kinds.
+An EST Server MAY offer both resources.
+They are not interchangeable: a nonce the nonce resource returned is not a Freshness Handle of this profile, and `attest-enroll` and `attest-retrieve` take a Handle from `attest-initiate`, or none for the `absent-*` kinds.
 
 {{CSR-ATTEST}} conveys attestations inside the CSR, in its `id-aa-attestation` attribute.
 It makes the Certification Authority or Registration Authority that processes the CSR responsible for ensuring that the binding between those attestations and the CSR's public key has been validated (Section 6.1 of {{CSR-ATTEST}}).
-This profile conveys the Evidence that carries the binding of {{TACRA}} beside the CSR, in the AttestedEnrollmentRequest ({{enrollment-request}}). That Evidence is produced over the digest of {{est-binding}}, which includes the finished CSR, so it cannot travel inside it, and {{CSR-ATTEST}} does not replace it.
+This profile conveys the Evidence that carries the binding of {{TACRA}} beside the CSR, in the AttestedEnrollmentRequest ({{enrollment-request}}).
+That Evidence is produced over the digest of {{est-binding}}, which includes the finished CSR, so it cannot travel inside it, and {{CSR-ATTEST}} does not replace it.
 Evidence beside the CSR is what this profile requires.
-Attestations in the CSR as well, per {{CSR-ATTEST}}, are a second attestation, optional, about properties of the CSR key that this digest does not prove, under the rules of {{TACRA}} and of Section 6.1 of {{CSR-ATTEST}}. Whether a Credential Authority requires them is agreed out of band.
+Attestations in the CSR as well, per {{CSR-ATTEST}}, are a second attestation, optional, about properties of the CSR key that this digest does not prove, under the rules of {{TACRA}} and of Section 6.1 of {{CSR-ATTEST}}.
+Whether a Credential Authority requires them is agreed out of band.
 This choice is specific to Enrollment; Retrieval has no CSR and binds Evidence to CEKpub ({{evidence-to-cek}}).
 
 
@@ -354,7 +365,8 @@ The three octet strings of that construction are, in this profile:
 The digest is SHA-512, as {{TACRA}} sets for a freshness input of 64 octets, which REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are.
 A platform whose freshness input is not 64 octets is outside this document's mandatory method.
 
-The `binding` object ({{cddl}}) carries no octets of its own. It names the method and the hash:
+The `binding` object ({{cddl}}) carries no octets of its own.
+It names the method and the hash:
 
 * `method` (string, REQUIRED): `binding-input`, the construction above and the only method this document defines.
 * `hash` (string, REQUIRED): `sha512`.
@@ -375,16 +387,19 @@ A Credential Authority or Secret Vault that does not recognize `method` refuses 
 
 `attest-enroll` mints `x509` or `wic`.
 A `credential_type` other than these on `attest-enroll` is a Credential Type the RATS Relying Party does not serve, and the EST Server refuses the request with 406 Not Acceptable ({{errors}}).
-When `credential_type` is absent, on `attest-enroll` and on `attest-retrieve` alike, the client takes what the RATS Relying Party issues or releases under its policy. A client that needs a Credential Type names it.
+When `credential_type` is absent, on `attest-enroll` and on `attest-retrieve` alike, the client takes what the RATS Relying Party issues or releases under its policy.
+A client that needs a Credential Type names it.
 `attest-retrieve` MAY carry any token above.
-The Secret Vault selects what it releases from the Attestation Results, its policy and the Credential Hint. Where the request names a `credential_type`, it releases that Credential Type or refuses the request.
+The Secret Vault selects what it releases from the Attestation Results, its policy and the Credential Hint.
+Where the request names a `credential_type`, it releases that Credential Type or refuses the request.
 A Credential Type the RATS Relying Party does not serve is refused with 406 Not Acceptable, and the response names the Credential Types it serves for that `target` ({{errors}}).
 The `type` of a credential item in the released bundle ({{bundle}}) uses the same tokens.
 
 
 ## Protocol Tokens {#alg-tokens}
 
-`acceptable_csk`, `acceptable_cek` and `acceptable_evidence` are arrays of ASCII tokens, and `profile` is one such token. This document defines them, and requests no registry for them ({{iana}}).
+`acceptable_csk`, `acceptable_cek` and `acceptable_evidence` are arrays of ASCII tokens, and `profile` is one such token.
+This document defines them, and requests no registry for them ({{iana}}).
 
 CSK algorithms, for Enrollment:
 
@@ -397,9 +412,11 @@ CEK suites, for Retrieval: the HPKE suites of {{bundle}}, each named by its KEM,
 
 A Credential Authority or Secret Vault names in `acceptable_csk` or `acceptable_cek` the tokens it accepts, and the Attester generates its key for one of them.
 
-Evidence formats: the media type of the Evidence, as the Verifier takes it, for example `application/vnd.veraison.tsm-report+cbor`. This version defines no token of its own for them.
+Evidence formats: the media type of the Evidence, as the Verifier takes it, for example `application/vnd.veraison.tsm-report+cbor`.
+This version defines no token of its own for them.
 
-A client MUST NOT use a token the `attest-initiate` response did not list. A client that completed `attest-initiate` locally uses the tokens its configuration names.
+A client MUST NOT use a token the `attest-initiate` response did not list.
+A client that completed `attest-initiate` locally uses the tokens its configuration names.
 
 
 # Attested Credential Acquisition Modes
@@ -468,11 +485,14 @@ The `binding` object is as {{est-binding}} defines it.
 ### Credential Group ID Determination {#group-id}
 
 The Secret Vault maps Attestation Results to a credential group, as {{TACRA}} requires: stable for replica workloads, and distinct across security domains, tenants and the credentials it releases.
-The mapping is the Secret Vault's policy. This profile does not specify the construction of `group_id`, and two Secret Vaults need not compute the same value.
-`credential_hint` MAY select among the credentials the policy allows for the attested context and MUST NOT enlarge that set. A Credential Hint the policy does not know is ignored, or the request is refused with 403 Forbidden.
+The mapping is the Secret Vault's policy.
+This profile does not specify the construction of `group_id`, and two Secret Vaults need not compute the same value.
+`credential_hint` MAY select among the credentials the policy allows for the attested context and MUST NOT enlarge that set.
+A Credential Hint the policy does not know is ignored, or the request is refused with 403 Forbidden.
 The `group_id` the container carries ({{bundle}}) is the one the Secret Vault chose, an opaque string to everyone else.
 
-An example of a mapping, not a requirement: SHA-256 over the length-prefixed concatenation, as {{TACRA}} prefixes, of an octet string the Secret Vault derives from the Attestation Results, the Target and an octet string that names the release policy. Derived from the Attestation Results and not from the Evidence, so that freshness does not move the group.
+An example of a mapping, not a requirement: SHA-256 over the length-prefixed concatenation, as {{TACRA}} prefixes, of an octet string the Secret Vault derives from the Attestation Results, the Target and an octet string that names the release policy.
+Derived from the Attestation Results and not from the Evidence, so that freshness does not move the group.
 
 ### Response: EncryptedCredentialBundle {#bundle}
 
@@ -501,7 +521,8 @@ Each item has `type` (string, a token of {{credential-type}}) and `value` (strin
 
 The Attester proceeds as {{TACRA}} requires: it checks that `aad` names its Target, its freshness element and its Credential Hint, checks the suite, and only then opens the ciphertext.
 It MUST refuse the container otherwise.
-Who sealed the container, the Attester cannot tell: anyone who saw CEKpub can seal to it. This profile accepts that, and {{security}} states the consequence and what a deployment can add.
+Who sealed the container, the Attester cannot tell: anyone who saw CEKpub can seal to it.
+This profile accepts that, and {{security}} states the consequence and what a deployment can add.
 
 ### Retrieval Server Processing {#retrieval-processing}
 
@@ -533,9 +554,11 @@ An error response carries one of the status codes below, and a human-readable bo
 * 502 Bad Gateway: the RATS Relying Party did not answer, or answered with a message the EST Server cannot pass on
 * 503 Service Unavailable: the Verifier is unavailable
 
-A client acts on the status code. A machine-readable body ({{RFC9457}}) is left for a revision in which a client needs the reason.
+A client acts on the status code.
+A machine-readable body ({{RFC9457}}) is left for a revision in which a client needs the reason.
 
-Error bodies MUST NOT leak sensitive attestation details. Servers MAY provide a correlation identifier for debugging.
+Error bodies MUST NOT leak sensitive attestation details.
+Servers MAY provide a correlation identifier for debugging.
 
 
 # Security Considerations {#security}
@@ -566,7 +589,10 @@ Error bodies MUST NOT leak sensitive attestation details. Servers MAY provide a 
 
 # Privacy Considerations {#privacy}
 
-Evidence can identify the device, its firmware level and the launched software (Section 11 of {{RFC9334}}). The EST Client, the EST Server, the Verifier and the RATS Relying Party see it. {{TACRA}} states what the Credential Acquisition System reads and what a deployment accepts by that. Error bodies MUST NOT echo Evidence or Attestation Results.
+Evidence can identify the device, its firmware level and the launched software (Section 11 of {{RFC9334}}).
+The EST Client, the EST Server, the Verifier and the RATS Relying Party see it.
+{{TACRA}} states what the Credential Acquisition System reads and what a deployment accepts by that.
+Error bodies MUST NOT echo Evidence or Attestation Results.
 
 
 # IANA Considerations {#iana}
@@ -577,7 +603,8 @@ No registry of EST operation paths exists, so none is requested.
 IANA is requested to register the media types of {{media-types}} in the "Media Types" registry ({{RFC6838}}).
 
 This document requests no registry for `credential_type`, `acceptable_evidence`, `acceptable_csk` or `acceptable_cek`: those are protocol tokens this document defines ({{credential-type}}, {{alg-tokens}}).
-The optional path segment of Section 3.2.2 of {{RFC7030}} is that document's. The operation names this document adds are `attest-initiate`, `attest-enroll` and `attest-retrieve`.
+The optional path segment of Section 3.2.2 of {{RFC7030}} is that document's.
+The operation names this document adds are `attest-initiate`, `attest-enroll` and `attest-retrieve`.
 
 ## application/est-attest-initiate+json
 
@@ -609,13 +636,15 @@ Applications that use this media type:
 : EST implementations of the `attest-*` resources of this document.
 
 Fragment identifier considerations:
-: The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".
+: The syntax and semantics of fragment identifiers are as specified for "application/json".
+At publication of this specification, no fragment identification syntax is defined for "application/json".
 
 Additional information:
 : Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
 
 Person & email address to contact for further information:
-: Mark F. Novak <mark.f.novak@jpmchase.com>
+: Mark F.
+Novak <mark.f.novak@jpmchase.com>
 
 Intended usage:
 : COMMON
@@ -659,13 +688,15 @@ Applications that use this media type:
 : EST implementations of the `attest-*` resources of this document.
 
 Fragment identifier considerations:
-: The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".
+: The syntax and semantics of fragment identifiers are as specified for "application/json".
+At publication of this specification, no fragment identification syntax is defined for "application/json".
 
 Additional information:
 : Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
 
 Person & email address to contact for further information:
-: Mark F. Novak <mark.f.novak@jpmchase.com>
+: Mark F.
+Novak <mark.f.novak@jpmchase.com>
 
 Intended usage:
 : COMMON
@@ -709,13 +740,15 @@ Applications that use this media type:
 : EST implementations of the `attest-*` resources of this document.
 
 Fragment identifier considerations:
-: The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".
+: The syntax and semantics of fragment identifiers are as specified for "application/json".
+At publication of this specification, no fragment identification syntax is defined for "application/json".
 
 Additional information:
 : Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
 
 Person & email address to contact for further information:
-: Mark F. Novak <mark.f.novak@jpmchase.com>
+: Mark F.
+Novak <mark.f.novak@jpmchase.com>
 
 Intended usage:
 : COMMON
@@ -759,13 +792,15 @@ Applications that use this media type:
 : EST implementations of the `attest-*` resources of this document.
 
 Fragment identifier considerations:
-: The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".
+: The syntax and semantics of fragment identifiers are as specified for "application/json".
+At publication of this specification, no fragment identification syntax is defined for "application/json".
 
 Additional information:
 : Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
 
 Person & email address to contact for further information:
-: Mark F. Novak <mark.f.novak@jpmchase.com>
+: Mark F.
+Novak <mark.f.novak@jpmchase.com>
 
 Intended usage:
 : COMMON
@@ -783,7 +818,11 @@ Change controller:
 
 # Example Messages {#examples}
 
-These examples are informative. They are exchanges recorded on 29 October 2026 between an EST Client and an EST Server that implement this profile, on an AMD SEV-SNP guest, with the mandatory CEK suite. The Targets, the Handles and the structures are as they crossed the wire. The base64url values are cut to their first 24 characters and marked `...`, and the Host header names the EST Server as this document's examples do. Lines longer than 69 characters are folded as {{RFC8792}} describes.
+These examples are informative.
+They are exchanges recorded on 29 October 2026 between an EST Client and an EST Server that implement this profile, on an AMD SEV-SNP guest, with the mandatory CEK suite.
+The Targets, the Handles and the structures are as they crossed the wire.
+The base64url values are cut to their first 24 characters and marked `...`, and the Host header names the EST Server as this document's examples do.
+Lines longer than 69 characters are folded as {{RFC8792}} describes.
 
 ## attest-initiate for Enrollment {#ex-initiate-enroll}
 
