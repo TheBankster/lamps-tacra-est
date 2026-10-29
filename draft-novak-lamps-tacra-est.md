@@ -251,7 +251,7 @@ Query parameters:
 * The Attester produces Evidence as the Freshness Kind requires.
 * The EST Client then POSTs `attest-enroll` or `attest-retrieve` as the Attester indicates.
 
-A Credential Authority or Secret Vault issues or releases credentials for a Target as its policy for that Target says, since a Target works only with credentials from an issuer it already trusts.
+A Credential Authority or Secret Vault issues or releases credentials for a Target per its policy for that Target, since the Target only recognizes credentials from an issuer it already trusts.
 The Target itself takes no part in this profile: it is the RATS-unaware Relying Party of {{TACRA}}, named in the request and in the binding.
 * If the second leg fails because a `present-epoch` moved or a `present-nonce` is no longer valid, the Attester retries `attest-initiate`.
 
