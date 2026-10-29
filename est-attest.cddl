@@ -11,7 +11,7 @@ attestation-initiation-response = {
 
 initiation-freshness = (
   freshness_kind: "present-nonce" / "present-epoch",
-  handle: text .b64u bytes,
+  handle: text .b64u (bytes .size (8..64)),
   ? expires_in: uint,
 //
   freshness_kind: "absent-timestamp",
