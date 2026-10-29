@@ -336,9 +336,9 @@ Fields:
 * `expires_in` (integer, OPTIONAL): seconds until a `present-nonce` or `present-epoch` Handle is no longer valid, the `expiry` of {{ATTESTATION-FRESHNESS}}
 * `max_age` (integer, OPTIONAL): for `absent-timestamp`, the maximum Evidence age in seconds acceptable to the Verifier or Relying Party
 * `mode` (string, REQUIRED): `enroll` or `retrieve`
-* `acceptable_cek` (array, only when `mode` is `retrieve`): the CEK suites the Secret Vault takes for the Target, tokens of {{alg-tokens}}
-* `acceptable_csk` (array, only when `mode` is `enroll`): the CSK algorithms the Credential Authority takes for the Target, tokens of {{alg-tokens}}
-* `acceptable_evidence` (array, OPTIONAL): the Evidence formats the EST Server forwards for the Target, each named by its media type ({{alg-tokens}}). A request of the second leg names the format of its Evidence in `profile`, one of them. Without `profile` the EST Server takes the first format it listed. When the list is absent, or `attest-initiate` was completed locally, the EST Client sends the format its configuration names, or none
+* `acceptable_cek` (array, only when `mode` is `retrieve`): the CEK suites the Secret Vault accepts, tokens of {{alg-tokens}}
+* `acceptable_csk` (array, only when `mode` is `enroll`): the CSK algorithms the Credential Authority accepts, tokens of {{alg-tokens}}
+* `acceptable_evidence` (array, OPTIONAL): the Evidence formats the EST Server forwards, each named by its media type ({{alg-tokens}}). A request of the second leg names the format of its Evidence in `profile`, one of them. Without `profile` the EST Server takes the first format it listed. When the list is absent, or `attest-initiate` was completed locally, the EST Client sends the format its configuration names, or none
 
 The Freshness Handle originator MUST ensure `present-nonce` uniqueness and MUST correlate the second-leg request with the Handle from this `attest-initiate`.
 The Verifier appraises whether Evidence is bound to a still-valid Freshness Handle.
@@ -401,7 +401,7 @@ CEK suites, for Retrieval: the HPKE suites of {{bundle}}, each named by its KEM,
 * `DHKEM(P-256, HKDF-SHA256)+HKDF-SHA256+AES-256-GCM`: the mandatory suite. Implementations MUST support it.
 * `MLKEM768-P256+HKDF-SHA256+AES-256-GCM`: the recommended suite.
 
-A Credential Authority or Secret Vault names in `acceptable_csk` or `acceptable_cek` the tokens it takes for the Target, and the Attester generates its key for one of them.
+A Credential Authority or Secret Vault names in `acceptable_csk` or `acceptable_cek` the tokens it accepts, and the Attester generates its key for one of them.
 
 Evidence formats: the media type of the Evidence, as the Verifier takes it, for example `application/vnd.veraison.tsm-report+cbor`. This version defines no token of its own for them.
 
