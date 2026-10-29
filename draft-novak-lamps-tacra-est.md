@@ -378,7 +378,7 @@ A Credential Authority or Secret Vault that does not recognize `method` refuses 
 `credential_type`, on `attest-initiate` and in both requests, takes one of these tokens:
 
 * `x509`: an X.509 certificate ({{RFC5280}}). Enrollment mints one. Retrieval MAY return one that was issued before.
-* `wic`: a WIMSE Workload Identity Certificate (Section 6.1 of {{WIMSE}}), an X.509 certificate whose Workload Identifier is its one URI SubjectAltName. Enrollment mints one, the Credential Authority setting the Workload Identifier under its policy as it sets the names of an `x509`. Retrieval MAY return one that was issued before.
+* `wic`: a WIMSE Workload Identity Certificate (Section 6.1 of {{WIMSE}}), an X.509 certificate whose Workload Identifier is its one URI SubjectAltName. Enrollment mints one, and the Credential Authority sets the Workload Identifier under its policy, as it sets the subject names of any certificate it issues. Retrieval MAY return one that was issued before.
 * `wit`: a WIMSE Workload Identity Token ({{WIMSE}}). Retrieval only.
 * `jwt`: a JSON Web Token used as a bearer token ({{RFC7519}}). Retrieval only.
 * `api-key`: an API key. Retrieval only.
