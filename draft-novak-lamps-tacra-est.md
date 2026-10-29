@@ -478,7 +478,7 @@ Each item has `type` (string, a token of {{credential-type}}) and `value` (strin
 The Attester proceeds as {{TACRA}} requires: it checks that `aad` names its Target, its freshness element and its Credential Hint, checks the suite, and only then opens the ciphertext.
 It MUST refuse the container otherwise.
 Who sealed the container, the Attester cannot tell: anyone who saw CEKpub can seal to it.
-This profile accepts that, and {{security}} states the consequence and what a deployment can add.
+This profile accepts that, and {{security}} states the consequence.
 
 ### Retrieval Server Processing {#retrieval-processing}
 
@@ -527,7 +527,7 @@ Servers MAY provide a correlation identifier for debugging.
 
 * Shared Signing Key distribution: If the credential bundle includes a private signing key shared across replicas, compromise of one replica compromises the group. This mode SHOULD be restricted to environments where unwrap and key use are strongly protected.
 * Non-Exportability Requirements: Deployments that transport a signing key SHOULD require Evidence to attest that CEKpri is non-exportable and that decryption/unwrapping occurs only within an approved protected environment (e.g., TEE/TPM-sealed key usage).
-* Origin of the bundle: the EST Client and the EST Server saw CEKpub and can return a container of their own, sealed to it. The Secret Vault's secret stays confidential: a container the Secret Vault sealed opens only under CEKpri, and one of their making carries none of it. The Attester then holds a credential they chose, and what follows depends on the Credential Type: with an `api-key`, its calls run under the account they chose, and what it sends goes there. This profile accepts that risk. A deployment that does not accept it can have the Secret Vault sign its containers under a key the Attester holds for the Target, a security configuration this version of the profile does not specify ({{TACRA}}).
+* Origin of the bundle: the EST Client and the EST Server saw CEKpub and can return a container of their own, sealed to it. The Secret Vault's secret stays confidential: a container the Secret Vault sealed opens only under CEKpri, and one of their making carries none of it. The Attester then holds a credential they chose. At the least that is a denial of service: the Target refuses a credential it did not issue. With an `api-key` of an account they hold at the Target, the Attester's calls run under that account, and what it sends goes there. This profile accepts that risk ({{TACRA}}).
 * Attribution: Shared keys eliminate per-instance attribution. If accountability is required, consider per-instance keys with identical identity claims, or a centralized signing service.
 
 ## Common to Both Modes
