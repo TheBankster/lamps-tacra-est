@@ -515,7 +515,6 @@ A machine-readable body ({{RFC9457}}) is left for a revision in which a client n
 Error bodies MUST NOT leak sensitive attestation details.
 Servers MAY provide a correlation identifier for debugging.
 
-
 # Security Considerations {#security}
 
 ## Specific to Attested Enrollment Mode
@@ -536,7 +535,6 @@ Servers MAY provide a correlation identifier for debugging.
 * The channel from EST Server to Verifier MUST provide integrity, authenticity, and replay protection.
 * The EST Server SHOULD enforce size and rate limits on Evidence.
 * If classic EST and attested resources both exist, the RATS Relying Party MUST be able to require attestation. The EST Server MUST NOT substitute a classic EST operation for an attested request.
-
 
 # IANA Considerations {#iana}
 
