@@ -418,7 +418,6 @@ This version defines no token of its own for them.
 A client MUST NOT use a token the `attest-initiate` response did not list.
 A client that completed `attest-initiate` locally uses the tokens its configuration names.
 
-
 # Attested Credential Acquisition Modes
 
 ## Credential Enrollment Mode
@@ -560,7 +559,6 @@ A machine-readable body ({{RFC9457}}) is left for a revision in which a client n
 Error bodies MUST NOT leak sensitive attestation details.
 Servers MAY provide a correlation identifier for debugging.
 
-
 # Security Considerations {#security}
 
 ## Specific to Attested Enrollment Mode
@@ -586,14 +584,12 @@ Servers MAY provide a correlation identifier for debugging.
 * The Credential Type and the Credential Hint are not in the binding. The RATS Relying Party decides on them by its policy, and the EST Server's correlation of a Handle with its `attest-initiate` is not that decision ({{TACRA}}).
 * If classic EST and attested resources both exist, the RATS Relying Party MUST be able to require attestation. The EST Server MUST NOT substitute a classic EST operation for an attested request.
 
-
 # Privacy Considerations {#privacy}
 
 Evidence can identify the device, its firmware level and the launched software (Section 11 of {{RFC9334}}).
 The EST Client, the EST Server, the Verifier and the RATS Relying Party see it.
 {{TACRA}} states what the Credential Acquisition System reads and what a deployment accepts by that.
 Error bodies MUST NOT echo Evidence or Attestation Results.
-
 
 # IANA Considerations {#iana}
 
