@@ -5,12 +5,12 @@
 Limited Additional Mechanisms for PKIX and SMIME                M. Novak
 Internet-Draft                                   J.P. Morgan Chase & Co.
 Intended status: Informational                             M. Richardson
-Expires: 1 May 2027                             Sandelman Software Works
+Expires: 2 May 2027                             Sandelman Software Works
                                                              H. Birkholz
                                                           Fraunhofer SIT
                                                           S. Nikolaichuk
                                                    The Capital Index LLC
-                                                         28 October 2026
+                                                         29 October 2026
 
 
                  Remote Attestation Extensions for EST
@@ -75,7 +75,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 May 2027.
+   This Internet-Draft will expire on 2 May 2027.
 
 Copyright Notice
 
@@ -112,6 +112,8 @@ Table of Contents
      7.1.  Message Definitions
    8.  Common Structures
      8.1.  AttestationInitiationResponse
+     8.2.  The Binding in This Profile
+     8.3.  Credential Type Tokens
    9.  Attested Credential Acquisition Modes
      9.1.  Credential Enrollment Mode
        9.1.1.  Request: AttestedEnrollmentRequest
@@ -230,12 +232,17 @@ Table of Contents
       or reject the request.  The hint does not authorize issuance or
       release.
 
-   *  Freshness Kind: the recency method; can be one of absent-
-      timestamp, absent-none, absent-epoch, present-nonce, or present-
-      epoch ([INTERACTION-MODELS], Section 10 of [RFC9334])
+   *  Freshness Kind: the recency method, one of absent-timestamp,
+      absent-none, absent-epoch, present-nonce or present-epoch
+      ([TACRA])
 
-   *  Freshness Handle: freshness element included in Evidence when
-      Freshness Kind is not absent-none ([INTERACTION-MODELS])
+   *  Freshness Handle: the value attest-initiate returns for present-
+      nonce and present-epoch ([TACRA], [INTERACTION-MODELS])
+
+   *  Freshness element: the octets the binding digest covers ([TACRA]):
+      the Freshness Handle, the Attester's timestamp, a locally held
+      epoch marker, or nothing for absent-none.  On attest-enroll and
+      attest-retrieve it is the handle member, when present
 
 3.  Architecture
 
@@ -363,7 +370,7 @@ Table of Contents
       ciphers
 
    *  Error: 400 if target is absent; 403 if the EST Server does not
-      server that Target, or that credential_type for it
+      serve that Target, or that credential_type for it
 
    Query parameters:
 
@@ -372,8 +379,8 @@ Table of Contents
       the decoded UTF-8 string.
 
    *  credential_type: the Credential Type the Attester plans to use
-      with this Target.  If omitted, the EST Server returns the mode and
-      algorithms its policy sets for the Target.
+      with this Target (Section 8.3).  If omitted, the EST Server
+      returns the mode and algorithms its policy sets for the Target.
 
    *  If the EST Client already knows all the information the Attester
       needs to proceed, i.e., it is already configured for an absent
@@ -450,14 +457,14 @@ Table of Contents
    key (Section 6.1 of [CSR-ATTEST]).  This document conveys Evidence
    beside the CSR, in the AttestedEnrollmentRequest (Section 9.1.1), and
    binds the two through the Evidence itself (Section 9.1.3): the
-   Evidence is produced over a digest that includes the finished CSR, so
-   it cannot travel inside it.  Evidence beside the CSR is what this
-   profile requires.  Placing attestations in the CSR as well, per
-   [CSR-ATTEST], is an optional interoperability path for an Attester
-   whose platform can make claims about the CSR key; whether a
-   Credential Authority requires it is agreed out of band.  This choice
-   is specific to Enrollment; Retrieval has no CSR and binds Evidence to
-   CEKpub (Section 9.2.2).
+   Evidence is produced over the digest of Section 8.2, which includes
+   the finished CSR, so it cannot travel inside it.  Evidence beside the
+   CSR is what this profile requires.  Placing attestations in the CSR
+   as well, per [CSR-ATTEST], is an optional interoperability path for
+   an Attester whose platform can make claims about the CSR key; whether
+   a Credential Authority requires it is agreed out of band.  This
+   choice is specific to Enrollment; Retrieval has no CSR and binds
+   Evidence to CEKpub (Section 9.2.2).
 
 7.  Media Types and Encodings
 
@@ -569,7 +576,7 @@ Table of Contents
 
    binding = {
      method: "binding-input",
-     hash: text,
+     hash: "sha512",
    }
 
 8.  Common Structures
@@ -578,10 +585,10 @@ Table of Contents
 
    Fields:
 
-   *  freshness_kind (string, REQUIRED): one of
+   *  freshness_kind (string, REQUIRED): one of the Freshness Kinds of
+      [TACRA]
 
       -  absent-timestamp: stamp Evidence from a trusted clock
-         ([RFC9334], Section 10.1)
 
       -  absent-none: no freshness claim
 
@@ -620,6 +627,81 @@ Table of Contents
    attest-initiate.  The Verifier appraises whether Evidence is bound to
    a still-valid Freshness Handle.
 
+8.2.  The Binding in This Profile
+
+   This profile uses the digest of Section "Binding Credential Keys to
+   Evidence" of [TACRA].  The Attester writes that digest into the
+   freshness input of its Evidence, the Direct form of that section.
+   The Verifier reports the value it read.  The Credential Authority or
+   the Secret Vault recomputes the digest from the request and refuses
+   the request with 403 Forbidden unless the two are equal.
+
+   The three octet strings of that construction are, in this profile:
+
+   *  freshness: the freshness element of the request, the octets of
+      handle.  For present-nonce and present-epoch that is the Freshness
+      Handle attest-initiate returned.  For absent-epoch it is the epoch
+      marker the Attester holds.  For absent-timestamp it is the
+      Attester's timestamp, 8 octets, as [TACRA] encodes it.  For
+      absent-none it is empty, and handle is absent.
+
+   *  target: the UTF-8 encoding of the target member, used as an exact
+      octet string.
+
+   *  subject: for Enrollment, the DER encoding of the PKCS#10 CSR, the
+      octets of csr.  For Retrieval, CEKpub as the request carries it,
+      the octets of cek_pub, in the encoding of its KEM (Section 9.2.4).
+
+   The digest is SHA-512, as [TACRA] sets for a freshness input of 64
+   octets, which REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX
+   are.  A platform whose freshness input is not 64 octets is outside
+   this document's mandatory method.
+
+   The binding object (Section 7.1) carries no octets of its own.  It
+   names the method and the hash:
+
+   *  method (string, REQUIRED): binding-input, the construction above
+      and the only method this document defines.
+
+   *  hash (string, REQUIRED): sha512.
+
+   A Credential Authority or Secret Vault that does not recognize method
+   refuses the request with 400 Bad Request.
+
+8.3.  Credential Type Tokens
+
+   credential_type, on attest-initiate and in both requests, takes one
+   of these tokens:
+
+   *  x509: an X.509 certificate ([RFC5280]).  Enrollment mints one.
+      Retrieval MAY return one that was issued before.
+
+   *  wic: a WIMSE Workload Identity Certificate ([WIMSE]).  Retrieval
+      only in this version.
+
+   *  wit: a WIMSE Workload Identity Token ([WIMSE]).  Retrieval only.
+
+   *  jwt: a JSON Web Token used as a bearer token ([RFC7519]).
+      Retrieval only.
+
+   *  api-key: an API key.  Retrieval only.
+
+   *  psk: a pre-shared symmetric key.  Retrieval only.
+
+   *  private-key: a private key shared by the instances of a replicated
+      service.  Retrieval only, under the conditions of Section 11.
+
+   attest-enroll mints x509.  A credential_type other than x509 on
+   attest-enroll is a Credential Type the Target does not serve, and the
+   EST Server refuses the request with 403 Forbidden.  When
+   credential_type is absent, the Credential Authority mints x509.
+   attest-retrieve MAY carry any token above.  The Secret Vault selects
+   what it releases from the Attestation Results, its policy and the
+   Credential Hint, and MAY use credential_type to narrow it.  A
+   Credential Type the Target does not serve is refused with 403
+   Forbidden.  The type of a credential item in the released bundle
+   (Section 9.2.4) uses the same tokens.
+
 9.  Attested Credential Acquisition Modes
 
 9.1.  Credential Enrollment Mode
@@ -634,9 +716,12 @@ Table of Contents
    *  freshness_kind (string, REQUIRED): MUST match the preceding
       attest-initiate response
 
-   *  handle (bytes): Freshness Handle - REQUIRED when freshness_kind is
-      not absent-none; MUST be absent otherwise.  MUST equal the Handle
-      returned by attest-initiate when present.
+   *  handle (bytes): the freshness element (Section 8.2) - REQUIRED
+      when freshness_kind is not absent-none and MUST be absent
+      otherwise.  For present-nonce and present-epoch it MUST equal the
+      Freshness Handle returned by attest-initiate.  For absent-
+      timestamp it is the 8-octet timestamp and for absent-epoch the
+      locally held epoch marker.
 
    *  csr (bytes, REQUIRED): DER-encoded PKCS#10 CSR
 
@@ -649,7 +734,8 @@ Table of Contents
    *  binding (object, REQUIRED): declares how the CSR key is bound to
       Evidence
 
-   *  credential_type (string, OPTIONAL): e.g., x509, wimse-wit
+   *  credential_type (string, OPTIONAL): x509 (Section 8.3), the only
+      Credential Type Enrollment mints in this version
 
    *  credential_hint (string, OPTIONAL): Credential Hint supplied by
       the Attester; the Credential Authority MAY use it, ignore it, or
@@ -665,20 +751,16 @@ Table of Contents
    1.  PoP: The Credential Authority MUST verify possession of the CSR
        private key.
 
-   2.  Evidence-to-CSR and Evidence-to-Freshness: the Evidence MUST
-       carry the binding of Section "Binding Credential Keys to
-       Evidence" of [TACRA], with the DER-encoded CSR as its subject.
-       As that section requires, the Verifier reports the bound value in
-       the Attestation Results, and the Credential Authority recomputes
-       it from the request and refuses the request with 403 Forbidden on
-       a mismatch; a substituted CSR, or Evidence produced under another
-       Freshness, fails that check.
+   2.  Evidence-to-CSR, Evidence-to-Target and Evidence-to-Freshness:
+       the Evidence MUST carry the digest of Section 8.2, the binding of
+       Section "Binding Credential Keys to Evidence" of [TACRA], with
+       the DER-encoded CSR as its subject.  As that section requires,
+       the Verifier reports the bound value in the Attestation Results,
+       and the Credential Authority recomputes it from the request and
+       refuses the request with 403 Forbidden on a mismatch.  A
+       substituted CSR, Target or freshness element fails that check.
 
-   The binding object (Section 7.1) has two members.  Its method is the
-   text binding-input, the binding of item 2 and the only method this
-   document defines.  Its hash names the digest of the binding input:
-   sha512 where the Evidence's freshness input is 64 octets, as
-   REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are ([TACRA]).
+   The binding object (Section 7.1) is as Section 8.2 defines it.
 
 9.1.4.  Enrollment Server Processing
 
@@ -721,9 +803,12 @@ Table of Contents
    *  freshness_kind (string, REQUIRED): MUST match the preceding
       attest-initiate response
 
-   *  handle (bytes): Freshness Handle - REQUIRED when freshness_kind is
-      not absent-none; MUST be absent otherwise.  MUST equal the Handle
-      returned by attest-initiate when present.
+   *  handle (bytes): the freshness element (Section 8.2) - REQUIRED
+      when freshness_kind is not absent-none and MUST be absent
+      otherwise.  For present-nonce and present-epoch it MUST equal the
+      Freshness Handle returned by attest-initiate.  For absent-
+      timestamp it is the 8-octet timestamp and for absent-epoch the
+      locally held epoch marker.
 
    *  evidence (bytes, REQUIRED) -- MUST include CEKpub; MUST be bound
       to the Freshness returned by attest-initiate, if any
@@ -737,7 +822,8 @@ Table of Contents
    *  binding (object, REQUIRED): declares how CEKpub is bound to
       Evidence
 
-   *  credential_type (string, OPTIONAL): e.g., x509, wimse-wit
+   *  credential_type (string, OPTIONAL): one of the tokens of
+      Section 8.3
 
    *  credential_hint (string, OPTIONAL): Credential Hint supplied by
       the Attester; the RATS Relying Party (Secret Vault or Credential
@@ -745,13 +831,12 @@ Table of Contents
 
 9.2.2.  Evidence-to-CEK Binding
 
-   The Evidence MUST carry the binding of Section "Binding Credential
-   Keys to Evidence" of [TACRA] with CEKpub, the octets of cek_pub, as
-   its subject.  As that section requires, the Verifier reports the
-   bound value in the Attestation Results, and the Secret Vault
-   recomputes it from the request and denies release with 403 Forbidden
-   on a mismatch.  The binding object is as in Enrollment
-   (Section 9.1.3).
+   The Evidence MUST carry the digest of Section 8.2 with the octets of
+   cek_pub as its subject.  As Section "Binding Credential Keys to
+   Evidence" of [TACRA] requires, the Verifier reports the bound value
+   in the Attestation Results, and the Secret Vault recomputes it from
+   the request and denies release with 403 Forbidden on a mismatch.  The
+   binding object is as Section 8.2 defines it.
 
 9.2.3.  Credential Group ID Determination
 
@@ -903,12 +988,14 @@ Table of Contents
 
 11.3.  Common to Both Modes
 
-   *  Freshness: a nonce Handle MAY come from the Verifier or the
-      Relying Party; a timestamp from the Attester's clock; an epoch
-      marker from a local hold or a returned Handle (Section 10 of
-      [RFC9334]).  Evidence MUST be bound as required by the kind from
-      attest-initiate.  The originator MUST reject present-nonce reuse
-      and a stale present-epoch.
+   *  Freshness: the Freshness Kinds and the freshness element are those
+      of [TACRA], built on the recency methods of Section 10 of
+      [RFC9334].  A present-* Handle comes from the Verifier or the RATS
+      Relying Party, a timestamp from the Attester's clock, and an epoch
+      marker from a local hold or a returned Handle.  Evidence MUST
+      carry the freshness element in the binding (Section 8.2).  The
+      originator of a Handle MUST reject present-nonce reuse and a stale
+      present-epoch.
 
    *  The channel from EST Server to Verifier MUST provide integrity,
       authenticity, and replay protection.
@@ -929,9 +1016,8 @@ Table of Contents
    IANA is requested to register the media types of Section 7 in the
    "Media Types" registry ([RFC6838]).
 
-   This document also requests a registry of acceptable_evidence
-   identifiers and credential_type identifiers (if not reused from
-   existing registries).
+   The Credential Type tokens of Section 8.3 are defined in this
+   document.  No registry is requested for them in this version.
 
 12.1.  application/est-attest-initiate+json
 
@@ -1184,9 +1270,19 @@ Table of Contents
               <https://datatracker.ietf.org/doc/html/draft-ietf-rats-
               reference-interaction-models-20>.
 
+   [RFC5280]  Cooper, D., Santesson, S., Farrell, S., Boeyen, S.,
+              Housley, R., and W. Polk, "Internet X.509 Public Key
+              Infrastructure Certificate and Certificate Revocation List
+              (CRL) Profile", RFC 5280, DOI 10.17487/RFC5280, May 2008,
+              <https://www.rfc-editor.org/rfc/rfc5280>.
+
    [RFC6585]  Nottingham, M. and R. Fielding, "Additional HTTP Status
               Codes", RFC 6585, DOI 10.17487/RFC6585, April 2012,
               <https://www.rfc-editor.org/rfc/rfc6585>.
+
+   [RFC7519]  Jones, M., Bradley, J., and N. Sakimura, "JSON Web Token
+              (JWT)", RFC 7519, DOI 10.17487/RFC7519, May 2015,
+              <https://www.rfc-editor.org/rfc/rfc7519>.
 
    [RFC9148]  van der Stok, P., Kampanakis, P., Richardson, M., and S.
               Raza, "EST-coaps: Enrollment over Secure Transport with
@@ -1215,6 +1311,13 @@ Table of Contents
               Identity SIG, "Trustworthy Workload Identity (TWI) Special
               Interest Group - Requirements", n.d., <https://github.com/
               confidential-computing/twi/blob/main/TWI_Requirements.md>.
+
+   [WIMSE]    Campbell, B., Salowey, J. A., Schwenkschuster, A.,
+              Sheffer, Y., and Y. Rosomakho, "WIMSE Workload
+              Credentials", Work in Progress, Internet-Draft, draft-
+              ietf-wimse-workload-creds-02, 2 July 2026,
+              <https://datatracker.ietf.org/doc/html/draft-ietf-wimse-
+              workload-creds-02>.
 
 Acknowledgments
 

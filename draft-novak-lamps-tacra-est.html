@@ -1063,7 +1063,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Novak, et al.</td>
-<td class="center">Expires 1 May 2027</td>
+<td class="center">Expires 2 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1076,12 +1076,12 @@ svg {
 <dd class="internet-draft">draft-novak-lamps-tacra-est-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-28" class="published">28 October 2026</time>
+<time datetime="2026-10-29" class="published">29 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-05-01">1 May 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-02">2 May 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1156,7 +1156,7 @@ It is not a completed interoperability specification.<a href="#section-abstract-
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 1 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 2 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1249,6 +1249,12 @@ It is not a completed interoperability specification.<a href="#section-abstract-
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
                 <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-attestationinitiationrespon" class="internal xref">AttestationInitiationResponse</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-the-binding-in-this-profile" class="internal xref">The Binding in This Profile</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-credential-type-tokens" class="internal xref">Credential Type Tokens</a></p>
 </li>
             </ul>
 </li>
@@ -1457,10 +1463,13 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <p id="section-2.4-1.7.1">Credential Hint: optional, implementation-defined information supplied by the Attester about the credential it expects. The Credential Authority or Secret Vault <span class="bcp14">MAY</span> use the hint, ignore it, or reject the request. The hint does not authorize issuance or release.<a href="#section-2.4-1.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.4-1.8">
-            <p id="section-2.4-1.8.1">Freshness Kind: the recency method; can be one of <code>absent-timestamp</code>, <code>absent-none</code>, <code>absent-epoch</code>, <code>present-nonce</code>, or <code>present-epoch</code> (<span>[<a href="#INTERACTION-MODELS" class="cite xref">INTERACTION-MODELS</a>]</span>, Section 10 of <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>)<a href="#section-2.4-1.8.1" class="pilcrow">¶</a></p>
+            <p id="section-2.4-1.8.1">Freshness Kind: the recency method, one of <code>absent-timestamp</code>, <code>absent-none</code>, <code>absent-epoch</code>, <code>present-nonce</code> or <code>present-epoch</code> (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>)<a href="#section-2.4-1.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.4-1.9">
-            <p id="section-2.4-1.9.1">Freshness Handle: freshness element included in Evidence when Freshness Kind is not <code>absent-none</code> (<span>[<a href="#INTERACTION-MODELS" class="cite xref">INTERACTION-MODELS</a>]</span>)<a href="#section-2.4-1.9.1" class="pilcrow">¶</a></p>
+            <p id="section-2.4-1.9.1">Freshness Handle: the value <code>attest-initiate</code> returns for <code>present-nonce</code> and <code>present-epoch</code> (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>, <span>[<a href="#INTERACTION-MODELS" class="cite xref">INTERACTION-MODELS</a>]</span>)<a href="#section-2.4-1.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.4-1.10">
+            <p id="section-2.4-1.10.1">Freshness element: the octets the binding digest covers (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>): the Freshness Handle, the Attester's timestamp, a locally held epoch marker, or nothing for <code>absent-none</code>. On <code>attest-enroll</code> and <code>attest-retrieve</code> it is the <code>handle</code> member, when present<a href="#section-2.4-1.10.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1633,7 +1642,7 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.1-2.4.1">Response: AttestationInitiationResponse (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>): Freshness kind, Credential Acquisition Mode (<code>enroll</code> or <code>retrieve</code>), acceptable ciphers<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.5">
-            <p id="section-5.1-2.5.1">Error: 400 if <code>target</code> is absent; 403 if the EST Server does not server that Target, or that <code>credential_type</code> for it<a href="#section-5.1-2.5.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-2.5.1">Error: 400 if <code>target</code> is absent; 403 if the EST Server does not serve that Target, or that <code>credential_type</code> for it<a href="#section-5.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-5.1-3">Query parameters:<a href="#section-5.1-3" class="pilcrow">¶</a></p>
@@ -1642,7 +1651,7 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.1-4.1.1"><code>target</code>: the Target of Initiate-Credential-Acquisition (Section 5.1 of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>). The client URI-encodes it; the EST Server compares the decoded UTF-8 string.<a href="#section-5.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-4.2">
-            <p id="section-5.1-4.2.1"><code>credential_type</code>: the Credential Type the Attester plans to use with this Target. If omitted, the EST Server returns the mode and algorithms its policy sets for the Target.<a href="#section-5.1-4.2.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-4.2.1"><code>credential_type</code>: the Credential Type the Attester plans to use with this Target (<a href="#credential-type" class="auto internal xref">Section 8.3</a>). If omitted, the EST Server returns the mode and algorithms its policy sets for the Target.<a href="#section-5.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-4.3">
             <p id="section-5.1-4.3.1">If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (<code>absent-timestamp</code>, <code>absent-none</code>, or <code>absent-epoch</code>), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it <span class="bcp14">MAY</span> complete <code>attest-initiate</code> locally and, in that case, <span class="bcp14">MUST NOT</span> contact the EST Server.<a href="#section-5.1-4.3.1" class="pilcrow">¶</a></p>
@@ -1724,7 +1733,7 @@ A <code>present-nonce</code> Handle is a nonce in the sense of <span>[<a href="#
 An EST Server <span class="bcp14">MAY</span> offer both resources.<a href="#section-6-2" class="pilcrow">¶</a></p>
 <p id="section-6-3"><span>[<a href="#CSR-ATTEST" class="cite xref">CSR-ATTEST</a>]</span> conveys Evidence inside the CSR, in its <code>id-aa-attestation</code> attribute.
 It makes the Certification Authority or Registration Authority that processes the CSR responsible for validating the binding between the attestations and the CSR's public key (Section 6.1 of <span>[<a href="#CSR-ATTEST" class="cite xref">CSR-ATTEST</a>]</span>).
-This document conveys Evidence beside the CSR, in the AttestedEnrollmentRequest (<a href="#enrollment-request" class="auto internal xref">Section 9.1.1</a>), and binds the two through the Evidence itself (<a href="#key-binding" class="auto internal xref">Section 9.1.3</a>): the Evidence is produced over a digest that includes the finished CSR, so it cannot travel inside it.
+This document conveys Evidence beside the CSR, in the AttestedEnrollmentRequest (<a href="#enrollment-request" class="auto internal xref">Section 9.1.1</a>), and binds the two through the Evidence itself (<a href="#key-binding" class="auto internal xref">Section 9.1.3</a>): the Evidence is produced over the digest of <a href="#est-binding" class="auto internal xref">Section 8.2</a>, which includes the finished CSR, so it cannot travel inside it.
 Evidence beside the CSR is what this profile requires.
 Placing attestations in the CSR as well, per <span>[<a href="#CSR-ATTEST" class="cite xref">CSR-ATTEST</a>]</span>, is an optional interoperability path for an Attester whose platform can make claims about the CSR key; whether a Credential Authority requires it is agreed out of band.
 This choice is specific to Enrollment; Retrieval has no CSR and binds Evidence to CEKpub (<a href="#evidence-to-cek" class="auto internal xref">Section 9.2.2</a>).<a href="#section-6-3" class="pilcrow">¶</a></p>
@@ -1858,7 +1867,7 @@ request-freshness = (
 
 binding = {
   method: "binding-input",
-  hash: text,
+  hash: "sha512",
 }
 </pre><a href="#section-7.1-2" class="pilcrow">¶</a>
 </div>
@@ -1879,10 +1888,10 @@ binding = {
 <p id="section-8.1-1">Fields:<a href="#section-8.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.1-2.1">
-            <p id="section-8.1-2.1.1"><code>freshness_kind</code> (string, <span class="bcp14">REQUIRED</span>): one of<a href="#section-8.1-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-2.1.1"><code>freshness_kind</code> (string, <span class="bcp14">REQUIRED</span>): one of the Freshness Kinds of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span><a href="#section-8.1-2.1.1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.1-2.1.2.1">
-                <p id="section-8.1-2.1.2.1.1"><code>absent-timestamp</code>: stamp Evidence from a trusted clock (<span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>, Section 10.1)<a href="#section-8.1-2.1.2.1.1" class="pilcrow">¶</a></p>
+                <p id="section-8.1-2.1.2.1.1"><code>absent-timestamp</code>: stamp Evidence from a trusted clock<a href="#section-8.1-2.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-8.1-2.1.2.2">
                 <p id="section-8.1-2.1.2.2.1"><code>absent-none</code>: no freshness claim<a href="#section-8.1-2.1.2.2.1" class="pilcrow">¶</a></p>
@@ -1924,6 +1933,79 @@ binding = {
 The Verifier appraises whether Evidence is bound to a still-valid Freshness Handle.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
+<div id="est-binding">
+<section id="section-8.2">
+        <h3 id="name-the-binding-in-this-profile">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-the-binding-in-this-profile" class="section-name selfRef">The Binding in This Profile</a>
+        </h3>
+<p id="section-8.2-1">This profile uses the digest of Section "Binding Credential Keys to Evidence" of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>.
+The Attester writes that digest into the freshness input of its Evidence, the Direct form of that section.
+The Verifier reports the value it read.
+The Credential Authority or the Secret Vault recomputes the digest from the request and refuses the request with 403 Forbidden unless the two are equal.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.2-2">The three octet strings of that construction are, in this profile:<a href="#section-8.2-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.2-3.1">
+            <p id="section-8.2-3.1.1"><code>freshness</code>: the freshness element of the request, the octets of <code>handle</code>. For <code>present-nonce</code> and <code>present-epoch</code> that is the Freshness Handle <code>attest-initiate</code> returned. For <code>absent-epoch</code> it is the epoch marker the Attester holds. For <code>absent-timestamp</code> it is the Attester's timestamp, 8 octets, as <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> encodes it. For <code>absent-none</code> it is empty, and <code>handle</code> is absent.<a href="#section-8.2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-3.2">
+            <p id="section-8.2-3.2.1"><code>target</code>: the UTF-8 encoding of the <code>target</code> member, used as an exact octet string.<a href="#section-8.2-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-3.3">
+            <p id="section-8.2-3.3.1"><code>subject</code>: for Enrollment, the DER encoding of the PKCS#10 CSR, the octets of <code>csr</code>. For Retrieval, CEKpub as the request carries it, the octets of <code>cek_pub</code>, in the encoding of its KEM (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>).<a href="#section-8.2-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-8.2-4">The digest is SHA-512, as <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> sets for a freshness input of 64 octets, which REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are.
+A platform whose freshness input is not 64 octets is outside this document's mandatory method.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+<p id="section-8.2-5">The <code>binding</code> object (<a href="#cddl" class="auto internal xref">Section 7.1</a>) carries no octets of its own. It names the method and the hash:<a href="#section-8.2-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.2-6.1">
+            <p id="section-8.2-6.1.1"><code>method</code> (string, <span class="bcp14">REQUIRED</span>): <code>binding-input</code>, the construction above and the only method this document defines.<a href="#section-8.2-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-6.2">
+            <p id="section-8.2-6.2.1"><code>hash</code> (string, <span class="bcp14">REQUIRED</span>): <code>sha512</code>.<a href="#section-8.2-6.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-8.2-7">A Credential Authority or Secret Vault that does not recognize <code>method</code> refuses the request with 400 Bad Request.<a href="#section-8.2-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="credential-type">
+<section id="section-8.3">
+        <h3 id="name-credential-type-tokens">
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-credential-type-tokens" class="section-name selfRef">Credential Type Tokens</a>
+        </h3>
+<p id="section-8.3-1"><code>credential_type</code>, on <code>attest-initiate</code> and in both requests, takes one of these tokens:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.3-2.1">
+            <p id="section-8.3-2.1.1"><code>x509</code>: an X.509 certificate (<span>[<a href="#RFC5280" class="cite xref">RFC5280</a>]</span>). Enrollment mints one. Retrieval <span class="bcp14">MAY</span> return one that was issued before.<a href="#section-8.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-2.2">
+            <p id="section-8.3-2.2.1"><code>wic</code>: a WIMSE Workload Identity Certificate (<span>[<a href="#WIMSE" class="cite xref">WIMSE</a>]</span>). Retrieval only in this version.<a href="#section-8.3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-2.3">
+            <p id="section-8.3-2.3.1"><code>wit</code>: a WIMSE Workload Identity Token (<span>[<a href="#WIMSE" class="cite xref">WIMSE</a>]</span>). Retrieval only.<a href="#section-8.3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-2.4">
+            <p id="section-8.3-2.4.1"><code>jwt</code>: a JSON Web Token used as a bearer token (<span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span>). Retrieval only.<a href="#section-8.3-2.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-2.5">
+            <p id="section-8.3-2.5.1"><code>api-key</code>: an API key. Retrieval only.<a href="#section-8.3-2.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-2.6">
+            <p id="section-8.3-2.6.1"><code>psk</code>: a pre-shared symmetric key. Retrieval only.<a href="#section-8.3-2.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-2.7">
+            <p id="section-8.3-2.7.1"><code>private-key</code>: a private key shared by the instances of a replicated service. Retrieval only, under the conditions of <a href="#security" class="auto internal xref">Section 11</a>.<a href="#section-8.3-2.7.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-8.3-3"><code>attest-enroll</code> mints <code>x509</code>.
+A <code>credential_type</code> other than <code>x509</code> on <code>attest-enroll</code> is a Credential Type the Target does not serve, and the EST Server refuses the request with 403 Forbidden.
+When <code>credential_type</code> is absent, the Credential Authority mints <code>x509</code>.
+<code>attest-retrieve</code> <span class="bcp14">MAY</span> carry any token above.
+The Secret Vault selects what it releases from the Attestation Results, its policy and the Credential Hint, and <span class="bcp14">MAY</span> use <code>credential_type</code> to narrow it.
+A Credential Type the Target does not serve is refused with 403 Forbidden.
+The <code>type</code> of a credential item in the released bundle (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>) uses the same tokens.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="attested-credential-acquisition-modes">
@@ -1950,7 +2032,7 @@ The Verifier appraises whether Evidence is bound to a still-valid Freshness Hand
               <p id="section-9.1.1-2.2.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-9.1.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.1.1-2.3">
-              <p id="section-9.1.1-2.3.1">handle (bytes): Freshness Handle - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is not <code>absent-none</code>; <span class="bcp14">MUST</span> be absent otherwise. <span class="bcp14">MUST</span> equal the Handle returned by <code>attest-initiate</code> when present.<a href="#section-9.1.1-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-9.1.1-2.3.1">handle (bytes): the freshness element (<a href="#est-binding" class="auto internal xref">Section 8.2</a>) - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is not <code>absent-none</code> and <span class="bcp14">MUST</span> be absent otherwise. For <code>present-nonce</code> and <code>present-epoch</code> it <span class="bcp14">MUST</span> equal the Freshness Handle returned by <code>attest-initiate</code>. For <code>absent-timestamp</code> it is the 8-octet timestamp and for <code>absent-epoch</code> the locally held epoch marker.<a href="#section-9.1.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.1.1-2.4">
               <p id="section-9.1.1-2.4.1">csr (bytes, <span class="bcp14">REQUIRED</span>): DER-encoded PKCS#10 CSR<a href="#section-9.1.1-2.4.1" class="pilcrow">¶</a></p>
@@ -1965,7 +2047,7 @@ The Verifier appraises whether Evidence is bound to a still-valid Freshness Hand
               <p id="section-9.1.1-2.7.1">binding (object, <span class="bcp14">REQUIRED</span>): declares how the CSR key is bound to Evidence<a href="#section-9.1.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.1.1-2.8">
-              <p id="section-9.1.1-2.8.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): e.g., x509, wimse-wit<a href="#section-9.1.1-2.8.1" class="pilcrow">¶</a></p>
+              <p id="section-9.1.1-2.8.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): <code>x509</code> (<a href="#credential-type" class="auto internal xref">Section 8.3</a>), the only Credential Type Enrollment mints in this version<a href="#section-9.1.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.1.1-2.9">
               <p id="section-9.1.1-2.9.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the Credential Authority <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-9.1.1-2.9.1" class="pilcrow">¶</a></p>
@@ -1991,10 +2073,10 @@ The Verifier appraises whether Evidence is bound to a still-valid Freshness Hand
               <p id="section-9.1.3-1.1.1">PoP: The Credential Authority <span class="bcp14">MUST</span> verify possession of the CSR private key.<a href="#section-9.1.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.1.3-1.2">
-              <p id="section-9.1.3-1.2.1">Evidence-to-CSR and Evidence-to-Freshness: the Evidence <span class="bcp14">MUST</span> carry the binding of Section "Binding Credential Keys to Evidence" of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>, with the DER-encoded CSR as its subject. As that section requires, the Verifier reports the bound value in the Attestation Results, and the Credential Authority recomputes it from the request and refuses the request with 403 Forbidden on a mismatch; a substituted CSR, or Evidence produced under another Freshness, fails that check.<a href="#section-9.1.3-1.2.1" class="pilcrow">¶</a></p>
+              <p id="section-9.1.3-1.2.1">Evidence-to-CSR, Evidence-to-Target and Evidence-to-Freshness: the Evidence <span class="bcp14">MUST</span> carry the digest of <a href="#est-binding" class="auto internal xref">Section 8.2</a>, the binding of Section "Binding Credential Keys to Evidence" of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>, with the DER-encoded CSR as its subject. As that section requires, the Verifier reports the bound value in the Attestation Results, and the Credential Authority recomputes it from the request and refuses the request with 403 Forbidden on a mismatch. A substituted CSR, Target or freshness element fails that check.<a href="#section-9.1.3-1.2.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-9.1.3-2">The <code>binding</code> object (<a href="#cddl" class="auto internal xref">Section 7.1</a>) has two members. Its <code>method</code> is the text <code>binding-input</code>, the binding of item 2 and the only method this document defines. Its <code>hash</code> names the digest of the binding input: <code>sha512</code> where the Evidence's freshness input is 64 octets, as REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.1.3-2" class="pilcrow">¶</a></p>
+<p id="section-9.1.3-2">The <code>binding</code> object (<a href="#cddl" class="auto internal xref">Section 7.1</a>) is as <a href="#est-binding" class="auto internal xref">Section 8.2</a> defines it.<a href="#section-9.1.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="enrollment-server-processing">
@@ -2044,7 +2126,7 @@ The Verifier appraises whether Evidence is bound to a still-valid Freshness Hand
               <p id="section-9.2.1-2.2.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-9.2.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.2.1-2.3">
-              <p id="section-9.2.1-2.3.1">handle (bytes): Freshness Handle - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is not <code>absent-none</code>; <span class="bcp14">MUST</span> be absent otherwise. <span class="bcp14">MUST</span> equal the Handle returned by <code>attest-initiate</code> when present.<a href="#section-9.2.1-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-9.2.1-2.3.1">handle (bytes): the freshness element (<a href="#est-binding" class="auto internal xref">Section 8.2</a>) - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is not <code>absent-none</code> and <span class="bcp14">MUST</span> be absent otherwise. For <code>present-nonce</code> and <code>present-epoch</code> it <span class="bcp14">MUST</span> equal the Freshness Handle returned by <code>attest-initiate</code>. For <code>absent-timestamp</code> it is the 8-octet timestamp and for <code>absent-epoch</code> the locally held epoch marker.<a href="#section-9.2.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.2.1-2.4">
               <p id="section-9.2.1-2.4.1">evidence (bytes, <span class="bcp14">REQUIRED</span>) -- <span class="bcp14">MUST</span> include CEKpub; <span class="bcp14">MUST</span> be bound to the Freshness returned by <code>attest-initiate</code>, if any<a href="#section-9.2.1-2.4.1" class="pilcrow">¶</a></p>
@@ -2059,7 +2141,7 @@ The Verifier appraises whether Evidence is bound to a still-valid Freshness Hand
               <p id="section-9.2.1-2.7.1">binding (object, <span class="bcp14">REQUIRED</span>): declares how CEKpub is bound to Evidence<a href="#section-9.2.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.2.1-2.8">
-              <p id="section-9.2.1-2.8.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): e.g., x509, wimse-wit<a href="#section-9.2.1-2.8.1" class="pilcrow">¶</a></p>
+              <p id="section-9.2.1-2.8.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): one of the tokens of <a href="#credential-type" class="auto internal xref">Section 8.3</a><a href="#section-9.2.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.2.1-2.9">
               <p id="section-9.2.1-2.9.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-9.2.1-2.9.1" class="pilcrow">¶</a></p>
@@ -2072,9 +2154,9 @@ The Verifier appraises whether Evidence is bound to a still-valid Freshness Hand
           <h4 id="name-evidence-to-cek-binding">
 <a href="#section-9.2.2" class="section-number selfRef">9.2.2. </a><a href="#name-evidence-to-cek-binding" class="section-name selfRef">Evidence-to-CEK Binding</a>
           </h4>
-<p id="section-9.2.2-1">The Evidence <span class="bcp14">MUST</span> carry the binding of Section "Binding Credential Keys to Evidence" of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> with CEKpub, the octets of <code>cek_pub</code>, as its subject.
-As that section requires, the Verifier reports the bound value in the Attestation Results, and the Secret Vault recomputes it from the request and denies release with 403 Forbidden on a mismatch.
-The <code>binding</code> object is as in Enrollment (<a href="#key-binding" class="auto internal xref">Section 9.1.3</a>).<a href="#section-9.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.2-1">The Evidence <span class="bcp14">MUST</span> carry the digest of <a href="#est-binding" class="auto internal xref">Section 8.2</a> with the octets of <code>cek_pub</code> as its subject.
+As Section "Binding Credential Keys to Evidence" of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> requires, the Verifier reports the bound value in the Attestation Results, and the Secret Vault recomputes it from the request and denies release with 403 Forbidden on a mismatch.
+The <code>binding</code> object is as <a href="#est-binding" class="auto internal xref">Section 8.2</a> defines it.<a href="#section-9.2.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="credential-group-id-determination">
@@ -2251,7 +2333,7 @@ The <code>binding</code> object is as in Enrollment (<a href="#key-binding" clas
         </h3>
 <ul class="normal">
 <li class="normal" id="section-11.3-1.1">
-            <p id="section-11.3-1.1.1">Freshness: a nonce Handle <span class="bcp14">MAY</span> come from the Verifier or the Relying Party; a timestamp from the Attester's clock; an epoch marker from a local hold or a returned Handle (Section 10 of <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>). Evidence <span class="bcp14">MUST</span> be bound as required by the kind from <code>attest-initiate</code>. The originator <span class="bcp14">MUST</span> reject <code>present-nonce</code> reuse and a stale <code>present-epoch</code>.<a href="#section-11.3-1.1.1" class="pilcrow">¶</a></p>
+            <p id="section-11.3-1.1.1">Freshness: the Freshness Kinds and the freshness element are those of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>, built on the recency methods of Section 10 of <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>. A <code>present-*</code> Handle comes from the Verifier or the RATS Relying Party, a timestamp from the Attester's clock, and an epoch marker from a local hold or a returned Handle. Evidence <span class="bcp14">MUST</span> carry the freshness element in the binding (<a href="#est-binding" class="auto internal xref">Section 8.2</a>). The originator of a Handle <span class="bcp14">MUST</span> reject <code>present-nonce</code> reuse and a stale <code>present-epoch</code>.<a href="#section-11.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-11.3-1.2">
             <p id="section-11.3-1.2.1">The channel from EST Server to Verifier <span class="bcp14">MUST</span> provide integrity, authenticity, and replay protection.<a href="#section-11.3-1.2.1" class="pilcrow">¶</a></p>
@@ -2275,7 +2357,7 @@ The <code>binding</code> object is as in Enrollment (<a href="#key-binding" clas
 <p id="section-12-1">The <code>attest-*</code> resources are additional services of an EST server (Section 3.2.2 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>), under the well-known URI suffix "est" that <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span> registered.
 No registry of EST operation paths exists, so none is requested.<a href="#section-12-1" class="pilcrow">¶</a></p>
 <p id="section-12-2">IANA is requested to register the media types of <a href="#media-types" class="auto internal xref">Section 7</a> in the "Media Types" registry (<span>[<a href="#RFC6838" class="cite xref">RFC6838</a>]</span>).<a href="#section-12-2" class="pilcrow">¶</a></p>
-<p id="section-12-3">This document also requests a registry of acceptable_evidence identifiers and credential_type identifiers (if not reused from existing registries).<a href="#section-12-3" class="pilcrow">¶</a></p>
+<p id="section-12-3">The Credential Type tokens of <a href="#credential-type" class="auto internal xref">Section 8.3</a> are defined in this document. No registry is requested for them in this version.<a href="#section-12-3" class="pilcrow">¶</a></p>
 <div id="applicationest-attest-initiatejson">
 <section id="section-12.1">
         <h3 id="name-application-est-attest-init">
@@ -2710,9 +2792,17 @@ No registry of EST operation paths exists, so none is requested.<a href="#sectio
         <dd>
 <span class="refAuthor">Birkholz, H.</span>, <span class="refAuthor">Eckel, M.</span>, <span class="refAuthor">Pan, W.</span>, and <span class="refAuthor">E. Voit</span>, <span class="refTitle">"Reference Interaction Models for Remote Attestation Procedures"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-rats-reference-interaction-models-20</span>, <time datetime="2026-10-28" class="refDate">28 October 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-rats-reference-interaction-models-20">https://datatracker.ietf.org/doc/html/draft-ietf-rats-reference-interaction-models-20</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC5280">[RFC5280]</dt>
+        <dd>
+<span class="refAuthor">Cooper, D.</span>, <span class="refAuthor">Santesson, S.</span>, <span class="refAuthor">Farrell, S.</span>, <span class="refAuthor">Boeyen, S.</span>, <span class="refAuthor">Housley, R.</span>, and <span class="refAuthor">W. Polk</span>, <span class="refTitle">"Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile"</span>, <span class="seriesInfo">RFC 5280</span>, <span class="seriesInfo">DOI 10.17487/RFC5280</span>, <time datetime="2008-05" class="refDate">May 2008</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5280">https://www.rfc-editor.org/rfc/rfc5280</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC6585">[RFC6585]</dt>
         <dd>
 <span class="refAuthor">Nottingham, M.</span> and <span class="refAuthor">R. Fielding</span>, <span class="refTitle">"Additional HTTP Status Codes"</span>, <span class="seriesInfo">RFC 6585</span>, <span class="seriesInfo">DOI 10.17487/RFC6585</span>, <time datetime="2012-04" class="refDate">April 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6585">https://www.rfc-editor.org/rfc/rfc6585</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7519">[RFC7519]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">N. Sakimura</span>, <span class="refTitle">"JSON Web Token (JWT)"</span>, <span class="seriesInfo">RFC 7519</span>, <span class="seriesInfo">DOI 10.17487/RFC7519</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7519">https://www.rfc-editor.org/rfc/rfc7519</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9148">[RFC9148]</dt>
         <dd>
@@ -2731,8 +2821,12 @@ No registry of EST operation paths exists, so none is requested.<a href="#sectio
 <span class="refAuthor">Confidential Computing Consortium Trustworthy Workload Identity SIG</span>, <span class="refTitle">"Trustworthy Workload Identity (TWI) Special Interest Group - Definitions"</span>, <span>n.d.</span>, <span>&lt;<a href="https://github.com/confidential-computing/twi/blob/main/TWI_Definitions.md">https://github.com/confidential-computing/twi/blob/main/TWI_Definitions.md</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="TWISIGReq">[TWISIGReq]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Confidential Computing Consortium Trustworthy Workload Identity SIG</span>, <span class="refTitle">"Trustworthy Workload Identity (TWI) Special Interest Group - Requirements"</span>, <span>n.d.</span>, <span>&lt;<a href="https://github.com/confidential-computing/twi/blob/main/TWI_Requirements.md">https://github.com/confidential-computing/twi/blob/main/TWI_Requirements.md</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="WIMSE">[WIMSE]</dt>
+      <dd>
+<span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Salowey, J. A.</span>, <span class="refAuthor">Schwenkschuster, A.</span>, <span class="refAuthor">Sheffer, Y.</span>, and <span class="refAuthor">Y. Rosomakho</span>, <span class="refTitle">"WIMSE Workload Credentials"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-wimse-workload-creds-02</span>, <time datetime="2026-07-02" class="refDate">2 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-wimse-workload-creds-02">https://datatracker.ietf.org/doc/html/draft-ietf-wimse-workload-creds-02</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
