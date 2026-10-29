@@ -240,7 +240,8 @@ Query parameters:
 * The Attester produces Evidence as the Freshness Kind requires.
 * The EST Client then POSTs `attest-enroll` or `attest-retrieve` as the Attester indicates.
 
-A Credential Authority or Secret Vault issues or releases credentials for a Target as its policy for that Target says, since a Target works only with credentials from an issuer it already trusts. The Target itself takes no part in this profile: it is the RATS-unaware Relying Party of {{TACRA}}, named in the request and in the binding.
+A Credential Authority or Secret Vault issues or releases credentials for a Target as its policy for that Target says, since a Target works only with credentials from an issuer it already trusts.
+The Target itself takes no part in this profile: it is the RATS-unaware Relying Party of {{TACRA}}, named in the request and in the binding.
 * If the second leg fails because a `present-epoch` moved or a `present-nonce` is no longer valid, the Attester retries `attest-initiate`.
 
 ## attest-enroll {#attest-enroll}
@@ -345,7 +346,8 @@ The three octet strings of that construction are, in this profile:
 The digest is SHA-512, as {{TACRA}} sets for a freshness input of 64 octets, which REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are.
 A platform whose freshness input is not 64 octets is outside this document's mandatory method.
 
-The `binding` object ({{cddl}}) carries no octets of its own. It names the method and the hash:
+The `binding` object ({{cddl}}) carries no octets of its own.
+It names the method and the hash:
 
 * `method` (string, REQUIRED): `binding-input`, the construction above and the only method this document defines.
 * `hash` (string, REQUIRED): `sha512`.
@@ -366,9 +368,11 @@ A Credential Authority or Secret Vault that does not recognize `method` refuses 
 
 `attest-enroll` mints `x509` or `wic`.
 A `credential_type` other than these on `attest-enroll` is a Credential Type the RATS Relying Party does not serve, and the EST Server refuses the request with 406 Not Acceptable ({{errors}}).
-When `credential_type` is absent, on `attest-enroll` and on `attest-retrieve` alike, the client takes what the RATS Relying Party issues or releases under its policy. A client that needs a Credential Type names it.
+When `credential_type` is absent, on `attest-enroll` and on `attest-retrieve` alike, the client takes what the RATS Relying Party issues or releases under its policy.
+A client that needs a Credential Type names it.
 `attest-retrieve` MAY carry any token above.
-The Secret Vault selects what it releases from the Attestation Results, its policy and the Credential Hint. Where the request names a `credential_type`, it releases that Credential Type or refuses the request.
+The Secret Vault selects what it releases from the Attestation Results, its policy and the Credential Hint.
+Where the request names a `credential_type`, it releases that Credential Type or refuses the request.
 A Credential Type the RATS Relying Party does not serve is refused with 406 Not Acceptable, and the response names the Credential Types it serves for that `target` ({{errors}}).
 The `type` of a credential item in the released bundle ({{bundle}}) uses the same tokens.
 
@@ -473,7 +477,8 @@ Each item has `type` (string, a token of {{credential-type}}) and `value` (strin
 
 The Attester proceeds as {{TACRA}} requires: it checks that `aad` names its Target, its freshness element and its Credential Hint, checks the suite, and only then opens the ciphertext.
 It MUST refuse the container otherwise.
-Who sealed the container, the Attester cannot tell: anyone who saw CEKpub can seal to it. This profile accepts that, and {{security}} states the consequence and what a deployment can add.
+Who sealed the container, the Attester cannot tell: anyone who saw CEKpub can seal to it.
+This profile accepts that, and {{security}} states the consequence and what a deployment can add.
 
 ### Retrieval Server Processing {#retrieval-processing}
 
@@ -504,9 +509,11 @@ An error response carries one of the status codes below, and a human-readable bo
 * 502 Bad Gateway: the RATS Relying Party did not answer, or answered with a message the EST Server cannot pass on
 * 503 Service Unavailable: the Verifier is unavailable
 
-A client acts on the status code. A machine-readable body ({{RFC9457}}) is left for a revision in which a client needs the reason.
+A client acts on the status code.
+A machine-readable body ({{RFC9457}}) is left for a revision in which a client needs the reason.
 
-Error bodies MUST NOT leak sensitive attestation details. Servers MAY provide a correlation identifier for debugging.
+Error bodies MUST NOT leak sensitive attestation details.
+Servers MAY provide a correlation identifier for debugging.
 
 
 # Security Considerations {#security}
@@ -538,7 +545,8 @@ No registry of EST operation paths exists, so none is requested.
 
 IANA is requested to register the media types of {{media-types}} in the "Media Types" registry ({{RFC6838}}).
 
-The Credential Type tokens of {{credential-type}} are defined in this document. No registry is requested for them in this version.
+The Credential Type tokens of {{credential-type}} are defined in this document.
+No registry is requested for them in this version.
 
 ## application/est-attest-initiate+json
 
@@ -570,7 +578,8 @@ Applications that use this media type:
 : EST implementations of the `attest-*` resources of this document.
 
 Fragment identifier considerations:
-: The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".
+: The syntax and semantics of fragment identifiers are as specified for "application/json".
+At publication of this specification, no fragment identification syntax is defined for "application/json".
 
 Additional information:
 : Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
@@ -620,7 +629,8 @@ Applications that use this media type:
 : EST implementations of the `attest-*` resources of this document.
 
 Fragment identifier considerations:
-: The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".
+: The syntax and semantics of fragment identifiers are as specified for "application/json".
+At publication of this specification, no fragment identification syntax is defined for "application/json".
 
 Additional information:
 : Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
@@ -670,7 +680,8 @@ Applications that use this media type:
 : EST implementations of the `attest-*` resources of this document.
 
 Fragment identifier considerations:
-: The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".
+: The syntax and semantics of fragment identifiers are as specified for "application/json".
+At publication of this specification, no fragment identification syntax is defined for "application/json".
 
 Additional information:
 : Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
@@ -720,7 +731,8 @@ Applications that use this media type:
 : EST implementations of the `attest-*` resources of this document.
 
 Fragment identifier considerations:
-: The syntax and semantics of fragment identifiers are as specified for "application/json". At publication of this specification, no fragment identification syntax is defined for "application/json".
+: The syntax and semantics of fragment identifiers are as specified for "application/json".
+At publication of this specification, no fragment identification syntax is defined for "application/json".
 
 Additional information:
 : Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
