@@ -485,9 +485,9 @@ The `binding` object is as {{est-binding}} defines it.
 
 The Secret Vault maps Attestation Results to a credential group, as {{TACRA}} requires: stable for replica workloads, and distinct across security domains, tenants and the credentials it releases.
 The mapping is the Secret Vault's policy.
-This profile does not specify the construction of `group_id`, and two Secret Vaults need not compute the same value.
+This profile does not specify the construction of `group_id`, and different Secret Vaults need not compute the same value.
 `credential_hint` MAY select among the credentials the policy allows for the attested context and MUST NOT enlarge that set.
-A Credential Hint the policy does not know is ignored, or the request is refused with 403 Forbidden.
+A Credential Hint the policy does not know is ignored, or the request is refused with 400 Bad Request.
 The `group_id` the container carries ({{bundle}}) is the one the Secret Vault chose, an opaque string to everyone else.
 
 An example of a mapping, not a requirement: SHA-256 over the length-prefixed concatenation, as {{TACRA}} prefixes, of an octet string the Secret Vault derives from the Attestation Results, the Target and an octet string that names the release policy.
@@ -540,7 +540,7 @@ A variant in which the EST Server receives a plaintext secret from the Secret Va
 
 An error response carries one of the status codes below, and a human-readable body as a simpleenroll error does (Section 4.2.3 of {{RFC7030}}, updated by Section 5.1 of {{RFC8951}}):
 
-* 400 Bad Request: a request that does not match its definition ({{cddl}}), an `attest-initiate` with no `target`, a binding digest that does not recompute ({{est-binding}}), a Handle that no `attest-initiate` returned, that has expired or was used before, a `present-epoch` marker that has moved, or a request that differs from the `attest-initiate` that returned its Handle ({{enrollment-processing}}, {{retrieval-processing}})
+* 400 Bad Request: a request that does not match its definition ({{cddl}}), an `attest-initiate` with no `target`, a binding digest that does not recompute ({{est-binding}}), a Handle that no `attest-initiate` returned, that has expired or was used before, a `present-epoch` marker that has moved, a Credential Hint the policy does not know and does not ignore, or a request that differs from the `attest-initiate` that returned its Handle ({{enrollment-processing}}, {{retrieval-processing}})
 * 401 Unauthorized: missing/invalid authentication required by deployment policy
 * 403 Forbidden, forwarded from the RATS Relying Party: attestation failed, or its policy denies enrollment or retrieval, the Credential Hint included
 * 404 Not Found: a `target` the EST Server does not serve (Section 15.5.5 of {{RFC9110}}: the query is part of the target URI, and a request of the second leg names the same `target`)
