@@ -86,7 +86,7 @@ credential-bundle = {
 
 credential-item = {
   type: text,
-  value: text,
+  value: text .b64u bytes,
   ? format: text,
   ? kid: text,
   ? purpose: [+ text],

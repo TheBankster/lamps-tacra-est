@@ -51,6 +51,7 @@ normative:
   HPKE-PQ: I-D.ietf-hpke-pq
   RFC8785: JCS
   RFC5480:
+  RFC5958:
   RFC9334: RATS
   RFC4648:
   RFC6838:
@@ -518,6 +519,9 @@ Members of the container:
 
 The plaintext, a `credential-bundle`, has `credential_items` (array, at least one item) and `metadata` (object, OPTIONAL, string keys).
 Each item has `type` (string, a token of {{credential-type}}) and `value` (string, the credential), and MAY have `format`, `kid`, `purpose` (array of strings), `algorithm`, `exportable` (boolean) and `shared` (boolean): the key-block attributes the Secret Vault's policy sets.
+`value` is the unpadded base64url encoding of the credential's octets, as every byte string of this profile is carried.
+Those octets are a DER certificate for `x509` and `wic`, a DER PrivateKeyInfo ({{RFC5958}}) for `private-key`, the key octets for `psk`, and the UTF-8 encoding of the token for `wit`, `jwt` and `api-key`.
+`format`, when present, names another encoding of those octets, which the Secret Vault and the Attesters it serves agree on out of band.
 `metadata` MAY carry `validity_seconds` (integer) and `secret_version` (string).
 
 The Attester proceeds as {{TACRA}} requires: it checks that `aad` names its Target, its freshness element and its Credential Hint, checks the suite, and only then opens the ciphertext.
