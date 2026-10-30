@@ -491,7 +491,7 @@ A Credential Hint the policy does not know is ignored, or the request is refused
 The `group_id` the container carries ({{bundle}}) is the one the Secret Vault chose, an opaque string to everyone else.
 
 An example of a mapping, not a requirement: SHA-256 over the length-prefixed concatenation, as {{TACRA}} prefixes, of an octet string the Secret Vault derives from the Attestation Results, the Target and an octet string that names the release policy.
-Derived from the Attestation Results and not from the Evidence, so that freshness does not move the group.
+It is derived from the Attestation Results and not from the Evidence, so that freshness does not change the group id.
 
 ### Response: EncryptedCredentialBundle {#bundle}
 
