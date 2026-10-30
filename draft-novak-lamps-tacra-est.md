@@ -580,7 +580,7 @@ Servers MAY provide a correlation identifier for debugging.
 * Client authentication: {{TACRA}} leaves the authentication of the EST Client to the EST Server to profiles. This profile requires none for the `attest-*` resources: Remote Attestation authenticates the Attester, and the EST Client holds no credential of its own. A deployment MAY require TLS client authentication on them, as on simpleenroll (Section 3.3 of {{RFC7030}}). An EST Server that mints `present-nonce` Handles on an unauthenticated `attest-initiate` SHOULD rate-limit them and cap the Handles outstanding per client.
 * The channels from the EST Server to the Verifier and to the Credential Authority or Secret Vault MUST provide integrity, authenticity, and replay protection.
 * The EST Server SHOULD enforce size and rate limits on Evidence.
-* The Credential Type and the Credential Hint are not in the binding. The RATS Relying Party decides on them by its policy, and the EST Server's correlation of a Handle with its `attest-initiate` is not that decision ({{TACRA}}).
+* The Credential Type and the Credential Hint are not in the binding. The RATS Relying Party decides by its policy what it issues or releases for them. The EST Server's correlation of a Handle with its `attest-initiate` only checks that the second leg repeats the same `credential_type`, and authorizes nothing ({{TACRA}}).
 * If classic EST and attested resources both exist, the RATS Relying Party MUST be able to require attestation. The EST Server MUST NOT substitute a classic EST operation for an attested request.
 
 # Privacy Considerations {#privacy}
