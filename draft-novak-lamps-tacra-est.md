@@ -587,7 +587,7 @@ Servers MAY provide a correlation identifier for debugging.
 
 Evidence can identify the device, its firmware level and the launched software (Section 11 of {{RFC9334}}).
 The EST Client, the EST Server, the Verifier and the RATS Relying Party see it.
-{{TACRA}} states what the Credential Acquisition System reads and what a deployment accepts by that.
+The Trust Model of {{TACRA}} states what the EST Client and the EST Server read, and a deployment that operates them accepts that exposure.
 Error bodies MUST NOT echo Evidence or Attestation Results.
 
 # IANA Considerations {#iana}
