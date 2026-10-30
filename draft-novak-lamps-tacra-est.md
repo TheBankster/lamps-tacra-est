@@ -569,7 +569,7 @@ Servers MAY provide a correlation identifier for debugging.
 
 * Shared Signing Key distribution: If the credential bundle includes a private signing key shared across replicas, compromise of one replica compromises the group. This mode SHOULD be restricted to environments where unwrap and key use are strongly protected.
 * Non-Exportability Requirements: Deployments that transport a signing key SHOULD require Evidence to attest that CEKpri is non-exportable and that decryption/unwrapping occurs only within an approved protected environment (e.g., TEE/TPM-sealed key usage).
-* Origin of the container: the EST Client and the EST Server saw CEKpub and can return a container of their own, sealed to it. The Secret Vault's secret stays confidential: a container the Secret Vault sealed opens only under CEKpri, and one of their making carries none of it. The Attester then holds a credential they chose, and what follows depends on the Credential Type: with an `api-key`, its calls run under the account they chose, and what it sends goes there. This profile accepts that risk ({{TACRA}}).
+* Origin of the container: the EST Client and the EST Server saw CEKpub and can return a container of their own, sealed to it. The Secret Vault's secret stays confidential: a container the Secret Vault sealed can only be unsealed with CEKpri, and one created by the CAS Server will not authenticate the Attester to the Target. This profile accepts that risk, and the Trust Model of {{TACRA}} states what follows by Credential Type.
 * Attribution: Shared keys eliminate per-instance attribution. If accountability is required, consider per-instance keys with identical identity claims, or a centralized signing service.
 
 ## Common to Both Modes
