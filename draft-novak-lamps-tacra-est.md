@@ -164,10 +164,11 @@ The Attester does not talk to the Verifier and does not hold Attestation Results
 This profile uses the names of {{TACRA}}:
 
 * Passport: the EST Server forwards Evidence to the Verifier and forwards the Attestation Results to the Credential Authority or Secret Vault.
-* Background Check: the EST Server forwards Evidence to the Credential Authority or Secret Vault, which obtains the Attestation Results itself.
+* Background Check: the EST Server forwards Evidence to the Credential Authority or Secret Vault, which obtains the Attestation Results by contacting the Verifier itself.
 
-In {{RFC9334}}, Passport is the Attester holding Attestation Results (Section 5.1 of {{RFC9334}}).
-Both models here are Background Check from the Attester's point of view (Section 5.2 of {{RFC9334}}), and they differ in whether the EST Server or the RATS Relying Party contacts the Verifier.
+In {{RFC9334}}, the Passport model is where the Attester obtains the Attestation Results from the Verifier and sends them to the Relying Party.
+Under TACRA, the Attester always uses the Background Check model.
+The difference between the two models is whether the EST Server or the RATS Relying Party obtains the Attestation Results from the Verifier.
 Who originates a Freshness Handle, the Verifier or the RATS Relying Party, is independent of that split ({{TACRA}}).
 Only the Passport model is illustrated.
 
@@ -462,7 +463,7 @@ The `binding` object ({{cddl}}) is as {{est-binding}} defines it.
 Upon receiving AttestedEnrollmentRequest, the EST Server MUST:
 
 1. Validate syntax, media type, and size limits.
-2. Check that a Credential Authority serves this `target` and `credential_type`, the `mode` `enroll` that `attest-initiate` reports for them ({{initiation-response}}). Refuse the request with 400 Bad Request when a Secret Vault serves them.
+2. Check that a Credential Authority serves this `target` and `credential_type`, and that the `mode` that `attest-initiate` reports for them ({{initiation-response}}) is `enroll`. Refuse the request with 400 Bad Request when a Secret Vault serves them.
 3. For `present-nonce`, correlate `handle` with the `attest-initiate` that returned it. Refuse the request with 400 Bad Request when no `attest-initiate` returned this Handle, when it has expired or was used before, or when its `target` or `freshness_kind` differ from that `attest-initiate`'s. Refuse it likewise when `credential_type` is carried on one leg and not the other, or with another value. A `present-nonce` Handle is single-use. For `present-epoch`, `handle` is the epoch marker that every `attest-initiate` of the epoch returned for this `target`, and it serves many requests. Refuse the request with 400 Bad Request when the marker has moved. For the `absent-*` Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target ({{TACRA}}). This correlation keeps the two legs of one exchange together at the EST Server. It is not authorization: the Credential Authority takes the Freshness Kind from its policy for the Target, recomputes the digest and decides ({{TACRA}}).
 4. Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Credential Authority obtains Attestation Results itself.
 5. Forward the CSR and Attestation Results (Passport) or the CSR and Evidence (Background Check) to the Credential Authority, which verifies PoP and authorizes issuance.
@@ -542,7 +543,7 @@ This profile accepts that, and {{security}} states the consequence.
 Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 
 1. Validate syntax, media type, and size limits.
-2. Check that a Secret Vault serves this `target` and `credential_type`, the `mode` `retrieve` that `attest-initiate` reports for them ({{initiation-response}}). Refuse the request with 400 Bad Request when a Credential Authority serves them.
+2. Check that a Secret Vault serves this `target` and `credential_type`, and that the `mode` that `attest-initiate` reports for them ({{initiation-response}}) is `retrieve`. Refuse the request with 400 Bad Request when a Credential Authority serves them.
 3. For `present-nonce`, correlate `handle` with the `attest-initiate` that returned it, as in Enrollment. Refuse the request with 400 Bad Request when no `attest-initiate` returned this Handle, when it has expired or was used before, or when its `target` or `freshness_kind` differ from that `attest-initiate`'s. Refuse it likewise when `credential_type` is carried on one leg and not the other, or with another value. A `present-nonce` Handle is single-use. For `present-epoch`, `handle` is the epoch marker that every `attest-initiate` of the epoch returned for this `target`, and it serves many requests. Refuse the request with 400 Bad Request when the marker has moved. For the `absent-*` Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target ({{TACRA}}). This correlation keeps the two legs of one exchange together at the EST Server. It is not authorization: the Secret Vault takes the Freshness Kind from its policy for the Target, recomputes the digest and decides ({{TACRA}}).
 4. Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Secret Vault obtains Attestation Results itself.
 5. Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle and seals it to CEKpub ({{bundle}}).
