@@ -428,7 +428,7 @@ A client that completed `attest-initiate` locally uses the tokens its configurat
 Fields:
 
 * target (string, REQUIRED): the Target of Enroll-Credential (Section 5.2 of {{TACRA}})
-* freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
+* freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response, or the configuration under which the EST Client completed `attest-initiate` locally ({{attest-initiate}})
 * handle (bytes): the freshness element ({{est-binding}}) - REQUIRED when `freshness_kind` is not `absent-none` and MUST be absent otherwise. For `present-nonce` and `present-epoch` it MUST equal the Freshness Handle returned by `attest-initiate`. For `absent-timestamp` it is the 8-octet timestamp and for `absent-epoch` the locally held epoch marker.
 * csr (bytes, REQUIRED): DER-encoded PKCS#10 CSR
 * evidence (bytes, REQUIRED): MUST be bound to the Freshness returned by `attest-initiate`, if any
@@ -468,7 +468,7 @@ The Credential Authority MUST NOT mint identities (e.g., DNS names) beyond polic
 Fields:
 
 * target (string, REQUIRED): the Target of Retrieve-Credential (Section 5.3 of {{TACRA}})
-* freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
+* freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response, or the configuration under which the EST Client completed `attest-initiate` locally ({{attest-initiate}})
 * handle (bytes): the freshness element ({{est-binding}}) - REQUIRED when `freshness_kind` is not `absent-none` and MUST be absent otherwise. For `present-nonce` and `present-epoch` it MUST equal the Freshness Handle returned by `attest-initiate`. For `absent-timestamp` it is the 8-octet timestamp and for `absent-epoch` the locally held epoch marker.
 * evidence (bytes, REQUIRED) -- MUST include CEKpub; MUST be bound to the Freshness returned by `attest-initiate`, if any
 * cek_pub (bytes, REQUIRED): CEKpub in the encoding of its KEM ({{bundle}}), to which the Secret Vault seals the bundle
