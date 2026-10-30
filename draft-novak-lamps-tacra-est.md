@@ -344,7 +344,7 @@ Fields:
 * `mode` (string, REQUIRED): `enroll` or `retrieve`
 * `acceptable_cek` (array, only when `mode` is `retrieve`): the CEK suites the Secret Vault accepts, tokens of {{alg-tokens}}
 * `acceptable_csk` (array, only when `mode` is `enroll`): the CSK algorithms the Credential Authority accepts, tokens of {{alg-tokens}}
-* `acceptable_evidence` (array, OPTIONAL): the Evidence formats the EST Server forwards, each named by its media type ({{alg-tokens}}). A request of the second leg names the format of its Evidence in `profile`, one of them. Without `profile` the EST Server takes the first format it listed. When the list is absent, or `attest-initiate` was completed locally, the EST Client sends the format its configuration names, or none
+* `acceptable_evidence` (array, OPTIONAL): the Evidence formats the EST Server forwards, each named by its media type ({{alg-tokens}}). A request of the second leg MAY name the format of its Evidence in `profile`, one of them. When the list is absent, or `attest-initiate` was completed locally, the EST Client sends the format its configuration names, or none
 
 The Freshness Handle originator MUST ensure `present-nonce` uniqueness and MUST correlate the second-leg request with the Handle from this `attest-initiate`.
 The Verifier appraises whether Evidence is bound to a still-valid Freshness Handle.
@@ -431,7 +431,7 @@ Fields:
 * handle (bytes): the freshness element ({{est-binding}}) - REQUIRED when `freshness_kind` is not `absent-none` and MUST be absent otherwise. For `present-nonce` and `present-epoch` it MUST equal the Freshness Handle returned by `attest-initiate`. For `absent-timestamp` it is the 8-octet timestamp and for `absent-epoch` the locally held epoch marker.
 * csr (bytes, REQUIRED): DER-encoded PKCS#10 CSR
 * evidence (bytes, REQUIRED): MUST be bound to the Freshness returned by `attest-initiate`, if any
-* profile (string, OPTIONAL): the format of `evidence`, named by its media type: one of the `acceptable_evidence` of the `attest-initiate` that returned the Handle, else the first of them ({{initiation-response}}). A format the EST Server does not accept is refused with 415 Unsupported Media Type
+* profile (string, OPTIONAL): the media type of `evidence`, one of the `acceptable_evidence` of the `attest-initiate` ({{initiation-response}}). Absent, the EST Server forwards the Evidence as it is, and the Verifier recognizes its format. A format the EST Server does not accept is refused with 415 Unsupported Media Type
 * binding (object, REQUIRED): declares how the CSR key is bound to Evidence
 * credential_type (string, OPTIONAL): `x509` or `wic` ({{credential-type}}). Absent, the client takes what the Credential Authority mints
 * credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the Credential Authority MAY use it, ignore it, or reject the request
@@ -470,7 +470,7 @@ Fields:
 * handle (bytes): the freshness element ({{est-binding}}) - REQUIRED when `freshness_kind` is not `absent-none` and MUST be absent otherwise. For `present-nonce` and `present-epoch` it MUST equal the Freshness Handle returned by `attest-initiate`. For `absent-timestamp` it is the 8-octet timestamp and for `absent-epoch` the locally held epoch marker.
 * evidence (bytes, REQUIRED) -- MUST include CEKpub; MUST be bound to the Freshness returned by `attest-initiate`, if any
 * cek_pub (bytes, REQUIRED): CEKpub in the encoding of its KEM ({{bundle}}), to which the Secret Vault seals the bundle
-* profile (string, OPTIONAL): the format of `evidence`, named by its media type: one of the `acceptable_evidence` of the `attest-initiate` that returned the Handle, else the first of them ({{initiation-response}}). A format the EST Server does not accept is refused with 415 Unsupported Media Type
+* profile (string, OPTIONAL): the media type of `evidence`, one of the `acceptable_evidence` of the `attest-initiate` ({{initiation-response}}). Absent, the EST Server forwards the Evidence as it is, and the Verifier recognizes its format. A format the EST Server does not accept is refused with 415 Unsupported Media Type
 * binding (object, REQUIRED): declares how CEKpub is bound to Evidence
 * credential_type (string, OPTIONAL): one of the tokens of {{credential-type}}. Absent, the client takes what the Secret Vault releases
 * credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) MAY use it, ignore it, or reject the request
