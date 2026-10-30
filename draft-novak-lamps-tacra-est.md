@@ -368,9 +368,17 @@ The Attester writes that digest into the freshness input of its Evidence, the Di
 The Verifier reports the value it read.
 The Credential Authority or the Secret Vault recomputes the digest from the request and refuses the request with 400 Bad Request unless the two are equal.
 
-The three octet strings of that construction are, in this profile:
+The digest is computed over the octet string
 
-* `freshness`: the freshness element of the request, the octets of `handle`. For `present-nonce` and `present-epoch` that is the Freshness Handle `attest-initiate` returned. For `absent-epoch` it is the epoch marker the Attester holds. For `absent-timestamp` it is the Attester's timestamp, 8 octets, as {{TACRA}} encodes it. For `absent-none` it is empty, and `handle` is absent.
+~~~
+binding_input = len32(freshness) || freshness
+             || len32(target)    || target
+             || len32(subject)   || subject
+~~~
+
+where `len32(x)` is the length of `x` in octets, as a 32-bit big-endian unsigned integer, and the three octet strings are, in this profile:
+
+* `freshness`: the freshness element of the request, the octets of `handle`. For `present-nonce` and `present-epoch` that is the Freshness Handle `attest-initiate` returned. For `absent-epoch` it is the epoch marker the Attester holds. For `absent-timestamp` it is the Attester's timestamp, an 8-octet big-endian unsigned count of seconds since 1970-01-01T00:00:00Z. For `absent-none` it is empty, and `handle` is absent.
 * `target`: the UTF-8 encoding of the `target` member, used as an exact octet string.
 * `subject`: for Enrollment, the DER encoding of the PKCS#10 CSR, the octets of `csr`. For Retrieval, CEKpub as the request carries it, the octets of `cek_pub`, in the encoding of its KEM ({{bundle}}).
 
@@ -510,12 +518,13 @@ It is derived from the Attestation Results and not from the Evidence, so that fr
 The EST Server returns the container the Secret Vault produced, as Section "Sealing the Released Credential" of {{TACRA}} constructs it, as JSON of media type `application/est-attest-bundle+json`: the `encrypted-credential-bundle` of {{cddl}}.
 The EST Client and the EST Server MUST treat it as opaque.
 
+The Secret Vault seals the bundle to CEKpub with HPKE in base mode (Section 5.1.1 of {{RFC9180}}).
 This profile sets the parameters of that construction as follows.
 
 * The mandatory HPKE suite is KEM DHKEM(P-256, HKDF-SHA256) (identifier 0x0010), KDF HKDF-SHA256 (0x0001) and AEAD AES-256-GCM (0x0002), all of {{RFC9180}}. Its name in `acceptable_cek` is `DHKEM(P-256, HKDF-SHA256)+HKDF-SHA256+AES-256-GCM`. Implementations MUST support it.
 * The suite with KEM MLKEM768-P256 (Section 4 of {{HPKE-PQ}}, identifier 0x0050) and the same KDF and AEAD, named `MLKEM768-P256+HKDF-SHA256+AES-256-GCM`, is RECOMMENDED where a released secret must stay confidential against a later quantum computer. A Secret Vault names in `acceptable_cek` the suites it accepts, and the Attester generates its CEK for one of them.
 * CEKpub is carried in `cek_pub`, and those octets, whole, are the subject of the binding ({{est-binding}}). For DHKEM(P-256, HKDF-SHA256) it is the DER encoding of a SubjectPublicKeyInfo for id-ecPublicKey on prime256v1 ({{RFC5480}}). Its subjectPublicKey holds the uncompressed point (Section 2.2 of {{RFC5480}}), and those 65 octets are the recipient public key that HPKE deserializes (Section 7.1.1 of {{RFC9180}}). For MLKEM768-P256 it is the encapsulation key, 1249 octets, which HPKE deserializes as it is.
-* The label of `info` is the ASCII string `tacra-est bundle v1`, without a terminating NUL.
+* `info` is `len32(label) || label || len32(target) || target || len32(freshness) || freshness`, with the `len32`, `target` and `freshness` of {{est-binding}}. `label` is the ASCII string `tacra-est bundle v1`, without a terminating NUL.
 * The associated data is the JSON Canonicalization Scheme serialization ({{RFC8785}}) of the `aad` object below. The plaintext is the JCS serialization of a `credential-bundle` object ({{cddl}}).
 
 Members of the container:
