@@ -400,7 +400,7 @@ The `type` of a credential item in the released bundle ({{bundle}}) uses the sam
 ## Protocol Tokens {#alg-tokens}
 
 `acceptable_csk`, `acceptable_cek` and `acceptable_evidence` are arrays of ASCII tokens, and `profile` is one such token.
-This document defines them, and requests no registry for them ({{iana}}).
+This document defines them.
 
 CSK algorithms, for Enrollment:
 
@@ -597,8 +597,6 @@ No registry of EST operation paths exists, so none is requested.
 
 IANA is requested to register the media types of {{media-types}} in the "Media Types" registry ({{RFC6838}}).
 
-This document requests no registry for `credential_type`, `acceptable_evidence`, `acceptable_csk` or `acceptable_cek`: those are protocol tokens this document defines ({{credential-type}}, {{alg-tokens}}).
-The optional path segment of Section 3.2.2 of {{RFC7030}} is that document's.
 The operation names this document adds are `attest-initiate`, `attest-enroll` and `attest-retrieve`.
 
 ## application/est-attest-initiate+json
