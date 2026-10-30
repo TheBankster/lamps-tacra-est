@@ -159,11 +159,19 @@ Two modes are defined:
 
 # Architecture
 
-The EST encoding is the same in Passport and Background Check modes.
-The modes differ in 1) who originates a Freshness Handle and 2) whether the EST Server contacts the Verifier and then the RATS Relying Party (Passport) or the RATS Relying Party directly (Background Check).
-Only Passport mode is illustrated.
+The EST encoding is the same in the Passport model and in the Background Check model.
+The Attester does not talk to the Verifier and does not hold Attestation Results (Design Goal 8 of {{TACRA}}).
+This profile uses the names of {{TACRA}}:
 
-Both modes use two EST legs: optional `attest-initiate` ({{attest-initiate}}), followed by either `attest-enroll` ({{attest-enroll}}) or `attest-retrieve` ({{attest-retrieve}}).
+* Passport: the EST Server forwards Evidence to the Verifier and forwards the Attestation Results to the Credential Authority or Secret Vault.
+* Background Check: the EST Server forwards Evidence to the Credential Authority or Secret Vault, which obtains the Attestation Results itself.
+
+In {{RFC9334}}, Passport is the Attester holding Attestation Results (Section 5.1 of {{RFC9334}}).
+Both models here are Background Check from the Attester's point of view (Section 5.2 of {{RFC9334}}), and they differ in whether the EST Server or the RATS Relying Party contacts the Verifier.
+Who originates a Freshness Handle, the Verifier or the RATS Relying Party, is independent of that split ({{TACRA}}).
+Only the Passport model is illustrated.
+
+Both models use two EST legs: optional `attest-initiate` ({{attest-initiate}}), followed by either `attest-enroll` ({{attest-enroll}}) or `attest-retrieve` ({{attest-retrieve}}).
 Note that `attest-initiate` is optional: in cases where the Attester can know with certainty which Freshness Kind to use (and that the Freshness Kind is not either `present-nonce` or `present-epoch`), whether to ask for new or existing credentials, as well as which ciphers the RRP expects, it can be omitted.
 
 Neither EST Client nor EST Server has a RATS role.
