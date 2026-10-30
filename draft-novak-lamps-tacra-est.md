@@ -342,8 +342,8 @@ Fields:
 * `expires_in` (integer, OPTIONAL): seconds until a `present-nonce` or `present-epoch` Handle is no longer valid, the `expiry` of {{ATTESTATION-FRESHNESS}}
 * `max_age` (integer, OPTIONAL): for `absent-timestamp`, the maximum Evidence age in seconds acceptable to the Verifier or RATS Relying Party
 * `mode` (string, REQUIRED): `enroll` or `retrieve`
-* `acceptable_cek` (array, only when `mode` is `retrieve`): the CEK suites the Secret Vault accepts, tokens of {{alg-tokens}}
-* `acceptable_csk` (array, only when `mode` is `enroll`): the CSK algorithms the Credential Authority accepts, tokens of {{alg-tokens}}
+* `acceptable_cek` (array, REQUIRED when `mode` is `retrieve` and absent otherwise): the CEK suites the Secret Vault accepts, tokens of {{alg-tokens}}, at least one
+* `acceptable_csk` (array, REQUIRED when `mode` is `enroll` and absent otherwise): the CSK algorithms the Credential Authority accepts, tokens of {{alg-tokens}}, at least one
 * `acceptable_evidence` (array, OPTIONAL): the Evidence formats the EST Server forwards, each named by its media type ({{alg-tokens}}). A request of the second leg MAY name the format of its Evidence in `profile`, one of them. When the list is absent, or `attest-initiate` was completed locally, the EST Client sends the format its configuration names, or none
 
 The Freshness Handle originator MUST ensure `present-nonce` uniqueness and MUST correlate the second-leg request with the Handle from this `attest-initiate`.

@@ -22,10 +22,10 @@ initiation-freshness = (
 
 initiation-mode = (
   mode: "enroll",
-  ? acceptable_csk: [+ text],
+  acceptable_csk: [+ text],
 //
   mode: "retrieve",
-  ? acceptable_cek: [+ text],
+  acceptable_cek: [+ text],
 )
 
 attested-enrollment-request = {
