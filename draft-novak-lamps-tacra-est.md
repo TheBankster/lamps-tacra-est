@@ -638,8 +638,7 @@ Additional information:
 : Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
 
 Person & email address to contact for further information:
-: Mark F.
-Novak <mark.f.novak@jpmchase.com>
+: Mark F. Novak <mark.f.novak@jpmchase.com>
 
 Intended usage:
 : COMMON
@@ -690,8 +689,7 @@ Additional information:
 : Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
 
 Person & email address to contact for further information:
-: Mark F.
-Novak <mark.f.novak@jpmchase.com>
+: Mark F. Novak <mark.f.novak@jpmchase.com>
 
 Intended usage:
 : COMMON
@@ -742,8 +740,7 @@ Additional information:
 : Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
 
 Person & email address to contact for further information:
-: Mark F.
-Novak <mark.f.novak@jpmchase.com>
+: Mark F. Novak <mark.f.novak@jpmchase.com>
 
 Intended usage:
 : COMMON
@@ -794,8 +791,7 @@ Additional information:
 : Deprecated alias names for this type: N/A; Magic number(s): N/A; File extension(s): N/A; Macintosh file type code(s): N/A
 
 Person & email address to contact for further information:
-: Mark F.
-Novak <mark.f.novak@jpmchase.com>
+: Mark F. Novak <mark.f.novak@jpmchase.com>
 
 Intended usage:
 : COMMON
