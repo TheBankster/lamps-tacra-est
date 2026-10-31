@@ -47,10 +47,6 @@ author:
 normative:
   RFC7030: EST
   RFC9180: HPKE
-  HPKE-PQ: I-D.ietf-hpke-pq
-  RFC8785: JCS
-  RFC5480:
-  RFC5958:
   RFC9334: RATS
   RFC4648:
   RFC6838:
@@ -65,6 +61,7 @@ informative:
   ATTESTATION-FRESHNESS: I-D.ietf-lamps-attestation-freshness
   CSR-ATTEST: I-D.ietf-lamps-csr-attestation
   TACRA: I-D.novak-rats-tacra
+  HPKE-PQ: I-D.ietf-hpke-pq
   RFC6585:
   RFC9148:
   RFC9457:
@@ -149,8 +146,8 @@ Two modes are defined:
 * CSR: PKCS#10 certification request
 * PoP: proof-of-possession of the private key corresponding to the CSR public key
 * CEK: Credential Encryption Key; when used, CEKpub is carried in Evidence, the response is encrypted to CEKpub
-* Credential Bundle: the plaintext the Secret Vault seals ({{bundle}}): credential items with their attributes, and metadata
-* Container: the sealed object that carries a Credential Bundle to the Attester, the EncryptedCredentialBundle ({{bundle}})
+* Credential Bundle: the plaintext the Secret Vault seals (Section "Sealing the Released Credential" of {{TACRA}}): credential items with their attributes, and metadata
+* Container: the sealed object that carries a Credential Bundle to the Attester, the EncryptedCredentialBundle of that section, which this profile returns as the response of `attest-retrieve` ({{bundle}})
 * Credential Hint: optional, implementation-defined information supplied by the Attester about the credential it expects. The Credential Authority or Secret Vault MAY use the hint, ignore it, or reject the request. The hint does not authorize issuance or release.
 * Freshness Kind: the recency method, one of `absent-timestamp`, `absent-none`, `absent-epoch`, `present-nonce` or `present-epoch` ({{TACRA}})
 * Freshness Handle: the value `attest-initiate` returns for `present-nonce` and `present-epoch` ({{TACRA}}, {{INTERACTION-MODELS}})
@@ -329,7 +326,7 @@ An EST Server responds to a request of another media type with 415 (Unsupported 
 
 In the definitions below, a byte string is carried as a text string holding its unpadded base64url encoding (Section 5 of {{RFC4648}}), as the control operator `.b64u` defines it (Section 2.1 of {{RFC9741}}): only characters of the base64url alphabet, no padding, and the bits that encode no octet set to zero.
 The group choices tie each member to the Freshness Kinds and modes its description below names: in a response, `handle` and `expires_in` to `present-nonce` and `present-epoch`, `max_age` to `absent-timestamp`, `acceptable_csk` to `enroll` and `acceptable_cek` to `retrieve`; in a request, `handle` to every Freshness Kind but `absent-none`.
-The EncryptedCredentialBundle and its plaintext are the last three rules ({{bundle}}).
+The container of `attest-retrieve` is the `encrypted-credential-bundle` of {{TACRA}}, with its plaintext, and is not repeated here.
 
 ~~~ cddl
 {::include est-attest.cddl}
@@ -380,7 +377,7 @@ where `len32(x)` is the length of `x` in octets, as a 32-bit big-endian unsigned
 
 * `freshness`: the freshness element of the request, the octets of `handle`. For `present-nonce` and `present-epoch` that is the Freshness Handle `attest-initiate` returned. For `absent-epoch` it is the epoch marker the Attester holds. For `absent-timestamp` it is the Attester's timestamp, an 8-octet big-endian unsigned count of seconds since 1970-01-01T00:00:00Z. For `absent-none` it is empty, and `handle` is absent.
 * `target`: the UTF-8 encoding of the `target` member, used as an exact octet string.
-* `subject`: for Enrollment, the DER encoding of the PKCS#10 CSR, the octets of `csr`. For Retrieval, CEKpub as the request carries it, the octets of `cek_pub`, in the encoding of its KEM ({{bundle}}).
+* `subject`: for Enrollment, the DER encoding of the PKCS#10 CSR, the octets of `csr`. For Retrieval, CEKpub as the request carries it, the octets of `cek_pub`, in the encoding of its KEM ({{TACRA}}).
 
 The digest is SHA-512, as {{TACRA}} sets for a freshness input of 64 octets, which REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are.
 A platform whose freshness input is not 64 octets is outside this document's mandatory method.
@@ -395,7 +392,7 @@ A Credential Authority or Secret Vault that does not recognize `method` refuses 
 
 ## Credential Type Tokens {#credential-type}
 
-`credential_type`, on `attest-initiate` and in both requests, takes one of these tokens:
+`credential_type`, on `attest-initiate` and in both requests, takes one of the Credential Type tokens of {{TACRA}}, which this profile uses as follows:
 
 * `x509`: an X.509 certificate ({{RFC5280}}). Enrollment mints one. Retrieval MAY return one that was issued before.
 * `wic`: a WIMSE Workload Identity Certificate (Section 6.1 of {{WIMSE}}), an X.509 certificate whose Workload Identifier is its one URI SubjectAltName. Enrollment mints one, and the Credential Authority sets the Workload Identifier under its policy, as it sets the subject names of any certificate it issues. Retrieval MAY return one that was issued before.
@@ -413,7 +410,6 @@ A client that needs a Credential Type names it.
 The Secret Vault selects what it releases from the Attestation Results, its policy and the Credential Hint.
 Where the request names a `credential_type`, it releases that Credential Type or refuses the request.
 A Credential Type the RATS Relying Party does not serve is refused with 406 Not Acceptable, and the response names the Credential Types it serves for that `target` ({{errors}}).
-The `type` of a credential item in the released bundle ({{bundle}}) uses the same tokens.
 
 
 ## Protocol Tokens {#alg-tokens}
@@ -425,10 +421,10 @@ CSK algorithms, for Enrollment:
 
 * `ecdsa-p256-sha256`: ECDSA on P-256 with SHA-256, the signature of the CSR. Implementations MUST support it.
 
-CEK suites, for Retrieval: the HPKE suites of {{bundle}}, each named by its KEM, its KDF and its AEAD as the HPKE registries name them ({{RFC9180}}), joined with `+`:
+CEK suites, for Retrieval: the HPKE suites of the container of {{TACRA}}, each named by its KEM, its KDF and its AEAD as the HPKE registries name them ({{RFC9180}}), joined with `+`:
 
-* `DHKEM(P-256, HKDF-SHA256)+HKDF-SHA256+AES-256-GCM`: the mandatory suite. Implementations MUST support it.
-* `MLKEM768-P256+HKDF-SHA256+AES-256-GCM`: the recommended suite.
+* `DHKEM(P-256, HKDF-SHA256)+HKDF-SHA256+AES-256-GCM`: the mandatory suite of {{TACRA}}. Implementations MUST support it.
+* `MLKEM768-P256+HKDF-SHA256+AES-256-GCM`: the suite with the hybrid KEM of {{HPKE-PQ}}, which a Secret Vault MAY offer where a released secret must stay confidential against a later quantum computer.
 
 A Credential Authority or Secret Vault names in `acceptable_csk` or `acceptable_cek` the tokens it accepts, and the Attester generates its key for one of them.
 
@@ -489,7 +485,7 @@ Fields:
 * freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response, or the configuration under which the EST Client completed `attest-initiate` locally ({{attest-initiate}})
 * handle (bytes): the freshness element ({{est-binding}}) - REQUIRED when `freshness_kind` is not `absent-none` and MUST be absent otherwise. For `present-nonce` and `present-epoch` it MUST equal the Freshness Handle returned by `attest-initiate`. For `absent-timestamp` it is the 8-octet timestamp and for `absent-epoch` the locally held epoch marker.
 * evidence (bytes, REQUIRED) -- MUST include CEKpub; MUST be bound to the Freshness returned by `attest-initiate`, if any
-* cek_pub (bytes, REQUIRED): CEKpub in the encoding of its KEM ({{bundle}}), to which the Secret Vault seals the bundle
+* cek_pub (bytes, REQUIRED): CEKpub in the encoding of its KEM ({{TACRA}}), to which the Secret Vault seals the bundle
 * profile (string, OPTIONAL): the media type of `evidence`, one of the `acceptable_evidence` of the `attest-initiate` ({{initiation-response}}). If absent, the EST Server forwards the Evidence as it is, and the Verifier recognizes its format. A format the EST Server does not accept is refused with 415 Unsupported Media Type
 * binding (object, REQUIRED): declares how CEKpub is bound to Evidence
 * credential_type (string, OPTIONAL): one of the tokens of {{credential-type}}. If absent, the client takes what the Secret Vault releases
@@ -515,32 +511,11 @@ It is derived from the Attestation Results and not from the Evidence, so that fr
 
 ### Response: EncryptedCredentialBundle {#bundle}
 
-The EST Server returns the container the Secret Vault produced, as Section "Sealing the Released Credential" of {{TACRA}} constructs it, as JSON of media type `application/est-attest-bundle+json`: the `encrypted-credential-bundle` of {{cddl}}.
+The EST Server returns the container the Secret Vault produced, the `encrypted-credential-bundle` of Section "Sealing the Released Credential" of {{TACRA}}, as the body of media type `application/est-attest-bundle+json`.
 The EST Client and the EST Server MUST treat it as opaque.
-
-The Secret Vault seals the bundle to CEKpub with HPKE in base mode (Section 5.1.1 of {{RFC9180}}).
-This profile sets the parameters of that construction as follows.
-
-* The mandatory HPKE suite is KEM DHKEM(P-256, HKDF-SHA256) (identifier 0x0010), KDF HKDF-SHA256 (0x0001) and AEAD AES-256-GCM (0x0002), all of {{RFC9180}}. Its name in `acceptable_cek` is `DHKEM(P-256, HKDF-SHA256)+HKDF-SHA256+AES-256-GCM`. Implementations MUST support it.
-* The suite with KEM MLKEM768-P256 (Section 4 of {{HPKE-PQ}}, identifier 0x0050) and the same KDF and AEAD, named `MLKEM768-P256+HKDF-SHA256+AES-256-GCM`, is RECOMMENDED where a released secret must stay confidential against a later quantum computer. A Secret Vault names in `acceptable_cek` the suites it accepts, and the Attester generates its CEK for one of them.
-* CEKpub is carried in `cek_pub`, and those octets are the subject of the binding ({{est-binding}}). For DHKEM(P-256, HKDF-SHA256) it is the DER encoding of a SubjectPublicKeyInfo for id-ecPublicKey on prime256v1 ({{RFC5480}}). Its subjectPublicKey holds the uncompressed point (Section 2.2 of {{RFC5480}}), and those 65 octets are the recipient public key that HPKE deserializes (Section 7.1.1 of {{RFC9180}}). For MLKEM768-P256 it is the encapsulation key, 1249 octets, which HPKE deserializes as it is.
-* `info` is `len32(label) || label || len32(target) || target || len32(freshness) || freshness`, with the `len32`, `target` and `freshness` of {{est-binding}}. `label` is the ASCII string `tacra-est bundle v1`, without a terminating NUL.
-* The associated data is the JSON Canonicalization Scheme serialization ({{RFC8785}}) of the `aad` object below. The plaintext is the JCS serialization of a `credential-bundle` object ({{cddl}}).
-
-Members of the container:
-
-* `container` (string, REQUIRED): `hpke-base`.
-* `suite` (object, REQUIRED): `kem`, `kdf` and `aead`, the names above.
-* `enc` (bytes, REQUIRED): the HPKE encapsulated key.
-* `ciphertext` (bytes, REQUIRED): the HPKE ciphertext.
-* `aad` (object, REQUIRED): `group_id` (string), `target` (string), `handle` (bytes, when the request carried one) and `credential_hint` (string, when the request carried one). The Attester rebuilds the associated data from these members and checks them against what its Evidence bound before it decrypts.
-
-The plaintext, a `credential-bundle`, has `credential_items` (array, at least one item) and `metadata` (object, OPTIONAL, string keys).
-Each item has `type` (string, a token of {{credential-type}}) and `value` (string, the credential), and MAY have `format`, `kid`, `purpose` (array of strings), `algorithm`, `exportable` (boolean) and `shared` (boolean): the key-block attributes the Secret Vault's policy sets.
-`value` is the unpadded base64url encoding of the credential's octets, as every byte string of this profile is carried.
-Those octets are a DER certificate for `x509` and `wic`, a DER PrivateKeyInfo ({{RFC5958}}) for `private-key`, the key octets for `psk`, and the UTF-8 encoding of the token for `wit`, `jwt` and `api-key`.
-`format`, when present, names another encoding of those octets, which the Secret Vault and the Attesters it serves agree on out of band.
-`metadata` MAY carry `validity_seconds` (integer) and `secret_version` (string).
+That section specifies the container: its members, its suites, the `info` and the associated data of its HPKE sealing, and its plaintext, the Credential Bundle.
+This profile adds nothing to it.
+The Secret Vault names in `acceptable_cek` the suites it accepts ({{alg-tokens}}), the mandatory suite of {{TACRA}} among them, and the Attester generates its CEK for one of them.
 
 The Attester proceeds as {{TACRA}} requires: it checks that `aad` names its Target, its freshness element and its Credential Hint, checks the suite, and only then opens the ciphertext.
 It MUST refuse the container otherwise.
