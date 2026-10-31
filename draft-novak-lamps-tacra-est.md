@@ -47,7 +47,6 @@ author:
 normative:
   RFC7030: EST
   RFC9180: HPKE
-  HPKE-PQ: I-D.ietf-hpke-pq
   RFC8785: JCS
   RFC5480:
   RFC9334: RATS
@@ -63,6 +62,7 @@ informative:
   INTERACTION-MODELS: I-D.ietf-rats-reference-interaction-models
   ATTESTATION-FRESHNESS: I-D.ietf-lamps-attestation-freshness
   CSR-ATTEST: I-D.ietf-lamps-csr-attestation
+  HPKE-PQ: I-D.ietf-hpke-pq
   TACRA: I-D.novak-rats-tacra
   RFC6585:
   RFC9148:
