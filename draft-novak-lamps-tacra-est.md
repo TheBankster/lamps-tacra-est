@@ -46,12 +46,10 @@ author:
 
 normative:
   RFC4648:
-  RFC5480:
   RFC6838:
   RFC7030: EST
   RFC8259:
   RFC8610: CDDL
-  RFC8785: JCS
   RFC8951:
   RFC9110:
   RFC9180: HPKE
@@ -148,8 +146,8 @@ Two modes are defined:
 * CSR: PKCS#10 certification request
 * PoP: proof-of-possession of the private key corresponding to the CSR public key
 * CEK: Credential Encryption Key; when used, CEKpub is carried in Evidence, the response is encrypted to CEKpub
-* Credential Bundle: the plaintext the Secret Vault seals ({{bundle}}): credential items with their attributes, and metadata
-* Container: the sealed object that carries a Credential Bundle to the Attester, the EncryptedCredentialBundle ({{bundle}})
+* Credential Bundle: the plaintext the Secret Vault seals (Section "Sealing the Released Credential" of {{TACRA}}): credential items with their attributes, and metadata
+* Container: the sealed object that carries a Credential Bundle to the Attester, the EncryptedCredentialBundle of that section, which this profile returns as the response of `attest-retrieve` ({{bundle}})
 * Credential Hint: optional, implementation-defined information supplied by the Attester about the credential it expects. The Credential Authority or Secret Vault MAY use the hint, ignore it, or reject the request. The hint does not authorize issuance or release.
 * Freshness Kind: the recency method, one of `absent-timestamp`, `absent-none`, `absent-epoch`, `present-nonce` or `present-epoch` ({{TACRA}})
 * Freshness Handle: the value `attest-initiate` returns for `present-nonce` and `present-epoch` ({{TACRA}}, {{INTERACTION-MODELS}})
@@ -158,11 +156,20 @@ Two modes are defined:
 
 # Architecture
 
-The EST encoding is the same in Passport and Background Check modes.
-The modes differ in 1) who originates a Freshness Handle and 2) whether the EST Server contacts the Verifier and then the RATS Relying Party (Passport) or the RATS Relying Party directly (Background Check).
-Only Passport mode is illustrated.
+The EST encoding is the same in the Passport model and in the Background Check model.
+The Attester does not talk to the Verifier and does not hold Attestation Results (Design Goal 8 of {{TACRA}}).
+This profile uses the names of {{TACRA}}:
 
-Both modes use two EST legs: optional `attest-initiate` ({{attest-initiate}}), followed by either `attest-enroll` ({{attest-enroll}}) or `attest-retrieve` ({{attest-retrieve}}).
+* Passport: the EST Server forwards Evidence to the Verifier and forwards the Attestation Results to the Credential Authority or Secret Vault.
+* Background Check: the EST Server forwards Evidence to the Credential Authority or Secret Vault, which obtains the Attestation Results by contacting the Verifier itself.
+
+In {{RFC9334}}, the Passport model is where the Attester obtains the Attestation Results from the Verifier and sends them to the Relying Party.
+Under TACRA, the Attester always uses the Background Check model.
+The difference between the two models is whether the EST Server or the RATS Relying Party obtains the Attestation Results from the Verifier.
+Who originates a Freshness Handle, the Verifier or the RATS Relying Party, is independent of that split ({{TACRA}}).
+Only the Passport model is illustrated.
+
+Both models use two EST legs: optional `attest-initiate` ({{attest-initiate}}), followed by either `attest-enroll` ({{attest-enroll}}) or `attest-retrieve` ({{attest-retrieve}}).
 Note that `attest-initiate` is optional: in cases where the Attester can know with certainty which Freshness Kind to use (and that the Freshness Kind is not either `present-nonce` or `present-epoch`), whether to ask for new or existing credentials, as well as which ciphers the RRP expects, it can be omitted.
 
 Neither EST Client nor EST Server has a RATS role.
@@ -245,7 +252,7 @@ Query parameters:
 
 * If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (`absent-timestamp`, `absent-none`, or `absent-epoch`), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it MAY complete `attest-initiate` locally and, in that case, MUST NOT contact the EST Server.
 * The EST Server, if contacted, obtains the Freshness Kind and Handle, if any, from the configured Verifier or RATS Relying Party and returns that result.
-* For `present-nonce`, that GET mints a single-use Handle and records it, as the nonce resource of {{ATTESTATION-FRESHNESS}} does ({{relationship}}).
+* For `present-nonce`, that GET returns a single-use Handle its originator minted, and the EST Server records it for the correlation of {{enrollment-processing}} and {{retrieval-processing}}, as the nonce resource of {{ATTESTATION-FRESHNESS}} associates its nonce with the next request ({{relationship}}).
 * `present-nonce` and `present-epoch` MUST include a Freshness Handle from the party chosen by the EST Server. `absent-*` Freshness Kinds carry no Freshness Handle.
 * The EST Client forwards the response to the Attester.
 * The Attester produces Evidence as the Freshness Kind requires.
@@ -319,7 +326,7 @@ An EST Server responds to a request of another media type with 415 (Unsupported 
 
 In the definitions below, a byte string is carried as a text string holding its unpadded base64url encoding (Section 5 of {{RFC4648}}), as the control operator `.b64u` defines it (Section 2.1 of {{RFC9741}}): only characters of the base64url alphabet, no padding, and the bits that encode no octet set to zero.
 The group choices tie each member to the Freshness Kinds and modes its description below names: in a response, `handle` and `expires_in` to `present-nonce` and `present-epoch`, `max_age` to `absent-timestamp`, `acceptable_csk` to `enroll` and `acceptable_cek` to `retrieve`; in a request, `handle` to every Freshness Kind but `absent-none`.
-The EncryptedCredentialBundle and its plaintext are the last three rules ({{bundle}}).
+The container of `attest-retrieve` is the `encrypted-credential-bundle` of {{TACRA}}, with its plaintext, and is not repeated here.
 
 ~~~ cddl
 {::include est-attest.cddl}
@@ -342,11 +349,12 @@ Fields:
 * `expires_in` (integer, OPTIONAL): seconds until a `present-nonce` or `present-epoch` Handle is no longer valid, the `expiry` of {{ATTESTATION-FRESHNESS}}
 * `max_age` (integer, OPTIONAL): for `absent-timestamp`, the maximum Evidence age in seconds acceptable to the Verifier or RATS Relying Party
 * `mode` (string, REQUIRED): `enroll` or `retrieve`
-* `acceptable_cek` (array, only when `mode` is `retrieve`): the CEK suites the Secret Vault accepts, tokens of {{alg-tokens}}
-* `acceptable_csk` (array, only when `mode` is `enroll`): the CSK algorithms the Credential Authority accepts, tokens of {{alg-tokens}}
+* `acceptable_cek` (array, REQUIRED when `mode` is `retrieve` and absent otherwise): the CEK suites the Secret Vault accepts, tokens of {{alg-tokens}}, at least one
+* `acceptable_csk` (array, REQUIRED when `mode` is `enroll` and absent otherwise): the CSK algorithms the Credential Authority accepts, tokens of {{alg-tokens}}, at least one
 * `acceptable_evidence` (array, OPTIONAL): the Evidence formats the EST Server forwards, each named by its media type ({{alg-tokens}}). A request of the second leg MAY name the format of its Evidence in `profile`, one of them. When the list is absent, or `attest-initiate` was completed locally, the EST Client sends the format its configuration names, or none
 
-The Freshness Handle originator MUST ensure `present-nonce` uniqueness and MUST correlate the second-leg request with the Handle from this `attest-initiate`.
+For `present-nonce`, the Freshness Handle originator MUST ensure uniqueness and MUST correlate the second-leg request with the Handle from this `attest-initiate`.
+For `present-epoch`, it checks that the Handle is still the current epoch marker ({{TACRA}}).
 The Verifier appraises whether Evidence is bound to a still-valid Freshness Handle.
 
 
@@ -361,7 +369,7 @@ The three octet strings of that construction are, in this profile:
 
 * `freshness`: the freshness element of the request, the octets of `handle`. For `present-nonce` and `present-epoch` that is the Freshness Handle `attest-initiate` returned. For `absent-epoch` it is the epoch marker the Attester holds. For `absent-timestamp` it is the Attester's timestamp, 8 octets, as {{TACRA}} encodes it. For `absent-none` it is empty, and `handle` is absent.
 * `target`: the UTF-8 encoding of the `target` member, used as an exact octet string.
-* `subject`: for Enrollment, the DER encoding of the PKCS#10 CSR, the octets of `csr`. For Retrieval, CEKpub as the request carries it, the octets of `cek_pub`, in the encoding of its KEM ({{bundle}}).
+* `subject`: for Enrollment, the DER encoding of the PKCS#10 CSR, the octets of `csr`. For Retrieval, CEKpub as the request carries it, the octets of `cek_pub`, in the encoding of its KEM ({{TACRA}}).
 
 The digest is SHA-512, as {{TACRA}} sets for a freshness input of 64 octets, which REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are.
 A platform whose freshness input is not 64 octets is outside this document's mandatory method.
@@ -376,7 +384,7 @@ A Credential Authority or Secret Vault that does not recognize `method` refuses 
 
 ## Credential Type Tokens {#credential-type}
 
-`credential_type`, on `attest-initiate` and in both requests, takes one of these tokens:
+`credential_type`, on `attest-initiate` and in both requests, takes one of the Credential Type tokens of {{TACRA}}, which this profile uses as follows:
 
 * `x509`: an X.509 certificate ({{RFC5280}}). Enrollment mints one. Retrieval MAY return one that was issued before.
 * `wic`: a WIMSE Workload Identity Certificate (Section 6.1 of {{WIMSE}}), an X.509 certificate whose Workload Identifier is its one URI SubjectAltName. Enrollment mints one, and the Credential Authority sets the Workload Identifier under its policy, as it sets the subject names of any certificate it issues. Retrieval MAY return one that was issued before.
@@ -394,7 +402,6 @@ A client that needs a Credential Type names it.
 The Secret Vault selects what it releases from the Attestation Results, its policy and the Credential Hint.
 Where the request names a `credential_type`, it releases that Credential Type or refuses the request.
 A Credential Type the RATS Relying Party does not serve is refused with 406 Not Acceptable, and the response names the Credential Types it serves for that `target` ({{errors}}).
-The `type` of a credential item in the released bundle ({{bundle}}) uses the same tokens.
 
 
 ## Protocol Tokens {#alg-tokens}
@@ -406,10 +413,10 @@ CSK algorithms, for Enrollment:
 
 * `ecdsa-p256-sha256`: ECDSA on P-256 with SHA-256, the signature of the CSR. Implementations MUST support it.
 
-CEK suites, for Retrieval: the HPKE suites of {{bundle}}, each named by its KEM, its KDF and its AEAD as the HPKE registries name them ({{RFC9180}}), joined with `+`:
+CEK suites, for Retrieval: the HPKE suites of the container of {{TACRA}}, each named by its KEM, its KDF and its AEAD as the HPKE registries name them ({{RFC9180}}), joined with `+`:
 
-* `DHKEM(P-256, HKDF-SHA256)+HKDF-SHA256+AES-256-GCM`: the mandatory suite. Implementations MUST support it.
-* `MLKEM768-P256+HKDF-SHA256+AES-256-GCM`: the recommended suite.
+* `DHKEM(P-256, HKDF-SHA256)+HKDF-SHA256+AES-256-GCM`: the mandatory suite of {{TACRA}}. Implementations MUST support it.
+* `MLKEM768-P256+HKDF-SHA256+AES-256-GCM`: the suite with the hybrid KEM of {{HPKE-PQ}}, which a Secret Vault MAY offer where a released secret must stay confidential against a later quantum computer.
 
 A Credential Authority or Secret Vault names in `acceptable_csk` or `acceptable_cek` the tokens it accepts, and the Attester generates its key for one of them.
 
@@ -427,7 +434,7 @@ A client that completed `attest-initiate` locally uses the tokens its configurat
 Fields:
 
 * target (string, REQUIRED): the Target of Enroll-Credential (Section 5.2 of {{TACRA}})
-* freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
+* freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response, or the configuration under which the EST Client completed `attest-initiate` locally ({{attest-initiate}})
 * handle (bytes): the freshness element ({{est-binding}}) - REQUIRED when `freshness_kind` is not `absent-none` and MUST be absent otherwise. For `present-nonce` and `present-epoch` it MUST equal the Freshness Handle returned by `attest-initiate`. For `absent-timestamp` it is the 8-octet timestamp and for `absent-epoch` the locally held epoch marker.
 * csr (bytes, REQUIRED): DER-encoded PKCS#10 CSR
 * evidence (bytes, REQUIRED): MUST be bound to the Freshness returned by `attest-initiate`, if any
@@ -452,10 +459,11 @@ The `binding` object ({{cddl}}) is as {{est-binding}} defines it.
 Upon receiving AttestedEnrollmentRequest, the EST Server MUST:
 
 1. Validate syntax, media type, and size limits.
-2. For `present-nonce` and `present-epoch`, correlate `handle` with the `attest-initiate` that returned it. Refuse the request with 400 Bad Request when no `attest-initiate` returned this Handle, when it has expired or was used before, or when its `target`, `freshness_kind`, or `credential_type` when it is carried, differ from that `attest-initiate`'s. A `present-nonce` Handle is single-use. For the `absent-*` Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target ({{TACRA}}). This correlation keeps the two legs of one exchange together at the EST Server. It is not authorization: the Credential Authority takes the Freshness Kind from its policy for the Target, recomputes the digest and decides ({{TACRA}}).
-3. Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Credential Authority obtains Attestation Results itself.
-4. Forward the CSR and Attestation Results (Passport) or the CSR and Evidence (Background Check) to the Credential Authority, which verifies PoP and authorizes issuance.
-5. Return the Credential Authority's enrollment response.
+2. Check that a Credential Authority serves this `target` and `credential_type`, and that the `mode` that `attest-initiate` reports for them ({{initiation-response}}) is `enroll`. Refuse the request with 400 Bad Request when a Secret Vault serves them.
+3. For `present-nonce`, correlate `handle` with the `attest-initiate` that returned it. Refuse the request with 400 Bad Request when no `attest-initiate` returned this Handle, when it has expired or was used before, or when its `target` or `freshness_kind` differ from the corresponding `attest-initiate`. Refuse it likewise when `credential_type` is carried on one leg and not the other, or with another value. A `present-nonce` Handle is single-use. For `present-epoch`, `handle` is the epoch marker that every `attest-initiate` of the epoch returned for this `target`, and it serves all requests during that epoch. Refuse the request with 400 Bad Request when the marker has moved. For the `absent-*` Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target ({{TACRA}}). This correlation keeps the two legs of one exchange together at the EST Server. It is not authorization: the Credential Authority takes the Freshness Kind from its policy for the Target, recomputes the digest and decides ({{TACRA}}).
+4. Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Credential Authority obtains Attestation Results itself.
+5. Forward the CSR and Attestation Results (Passport) or the CSR and Evidence (Background Check) to the Credential Authority, which verifies PoP and authorizes issuance.
+6. Return the Credential Authority's enrollment response.
 
 The Credential Authority MUST NOT mint identities (e.g., DNS names) beyond policy for the attested identity context.
 
@@ -466,10 +474,10 @@ The Credential Authority MUST NOT mint identities (e.g., DNS names) beyond polic
 Fields:
 
 * target (string, REQUIRED): the Target of Retrieve-Credential (Section 5.3 of {{TACRA}})
-* freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response
+* freshness_kind (string, REQUIRED): MUST match the preceding `attest-initiate` response, or the configuration under which the EST Client completed `attest-initiate` locally ({{attest-initiate}})
 * handle (bytes): the freshness element ({{est-binding}}) - REQUIRED when `freshness_kind` is not `absent-none` and MUST be absent otherwise. For `present-nonce` and `present-epoch` it MUST equal the Freshness Handle returned by `attest-initiate`. For `absent-timestamp` it is the 8-octet timestamp and for `absent-epoch` the locally held epoch marker.
 * evidence (bytes, REQUIRED) -- MUST include CEKpub; MUST be bound to the Freshness returned by `attest-initiate`, if any
-* cek_pub (bytes, REQUIRED): CEKpub in the encoding of its KEM ({{bundle}}), to which the Secret Vault seals the bundle
+* cek_pub (bytes, REQUIRED): CEKpub in the encoding of its KEM ({{TACRA}}), to which the Secret Vault seals the bundle
 * profile (string, OPTIONAL): the media type of `evidence`, one of the `acceptable_evidence` of the `attest-initiate` ({{initiation-response}}). If absent, the EST Server forwards the Evidence as it is, and the Verifier recognizes its format. A format the EST Server does not accept is refused with 415 Unsupported Media Type
 * binding (object, REQUIRED): declares how CEKpub is bound to Evidence
 * credential_type (string, OPTIONAL): one of the tokens of {{credential-type}}. If absent, the client takes what the Secret Vault releases
@@ -490,33 +498,13 @@ This profile does not specify the construction of `group_id`, and different Secr
 A Credential Hint the policy does not know is ignored, or the request is refused with 400 Bad Request.
 The `group_id` the container carries ({{bundle}}) is the one the Secret Vault chose, an opaque string to everyone else.
 
-An example of a mapping, not a requirement: SHA-256 over the length-prefixed concatenation, as {{TACRA}} prefixes, of an octet string the Secret Vault derives from the Attestation Results, the Target and an octet string that names the release policy.
-It is derived from the Attestation Results and not from the Evidence, so that freshness does not change the group id.
-
 ### Response: EncryptedCredentialBundle {#bundle}
 
-The EST Server returns the container the Secret Vault produced, as Section "Sealing the Released Credential" of {{TACRA}} constructs it, as JSON of media type `application/est-attest-bundle+json`: the `encrypted-credential-bundle` of {{cddl}}.
+The EST Server returns the container the Secret Vault produced, the `encrypted-credential-bundle` of Section "Sealing the Released Credential" of {{TACRA}}, as the body of media type `application/est-attest-bundle+json`.
 The EST Client and the EST Server MUST treat it as opaque.
-
-This profile sets the parameters of that construction as follows.
-
-* The mandatory HPKE suite is KEM DHKEM(P-256, HKDF-SHA256) (identifier 0x0010), KDF HKDF-SHA256 (0x0001) and AEAD AES-256-GCM (0x0002), all of {{RFC9180}}. Its name in `acceptable_cek` is `DHKEM(P-256, HKDF-SHA256)+HKDF-SHA256+AES-256-GCM`. Implementations MUST support it.
-* The suite with KEM MLKEM768-P256 (Section 4 of {{HPKE-PQ}}, identifier 0x0050) and the same KDF and AEAD, named `MLKEM768-P256+HKDF-SHA256+AES-256-GCM`, is RECOMMENDED where a released secret must stay confidential against a later quantum computer. A Secret Vault names in `acceptable_cek` the suites it accepts, and the Attester generates its CEK for one of them.
-* CEKpub is carried in `cek_pub` and is the subject of the binding ({{est-binding}}). For DHKEM(P-256, HKDF-SHA256) it is the DER encoding of a SubjectPublicKeyInfo for id-ecPublicKey on prime256v1 ({{RFC5480}}). For MLKEM768-P256 it is the encapsulation key, 1249 octets.
-* The label of `info` is the ASCII string `tacra-est bundle v1`, without a terminating NUL.
-* The associated data is the JSON Canonicalization Scheme serialization ({{RFC8785}}) of the `aad` object below. The plaintext is the JCS serialization of a `credential-bundle` object ({{cddl}}).
-
-Members of the container:
-
-* `container` (string, REQUIRED): `hpke-base`.
-* `suite` (object, REQUIRED): `kem`, `kdf` and `aead`, the names above.
-* `enc` (bytes, REQUIRED): the HPKE encapsulated key.
-* `ciphertext` (bytes, REQUIRED): the HPKE ciphertext.
-* `aad` (object, REQUIRED): `group_id` (string), `target` (string), `handle` (bytes, when the request carried one) and `credential_hint` (string, when the request carried one). The Attester rebuilds the associated data from these members and checks them against what its Evidence bound before it decrypts.
-
-The plaintext, a `credential-bundle`, has `credential_items` (array, at least one item) and `metadata` (object, OPTIONAL, string keys).
-Each item has `type` (string, a token of {{credential-type}}) and `value` (string, the credential), and MAY have `format`, `kid`, `purpose` (array of strings), `algorithm`, `exportable` (boolean) and `shared` (boolean): the key-block attributes the Secret Vault's policy sets.
-`metadata` MAY carry `validity_seconds` (integer) and `secret_version` (string).
+That section specifies the container: its members, its suites, the `info` and the associated data of its HPKE sealing, and its plaintext, the Credential Bundle.
+This profile adds nothing to it.
+The Secret Vault names in `acceptable_cek` the suites it accepts ({{alg-tokens}}), the mandatory suite of {{TACRA}} among them, and the Attester generates its CEK for one of them.
 
 The Attester proceeds as {{TACRA}} requires: it checks that `aad` names its Target, its freshness element and its Credential Hint, checks the suite, and only then opens the ciphertext.
 It MUST refuse the container otherwise.
@@ -528,10 +516,11 @@ This profile accepts that, and {{security}} states the consequence.
 Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 
 1. Validate syntax, media type, and size limits.
-2. For `present-nonce` and `present-epoch`, correlate `handle` with the `attest-initiate` that returned it, as in Enrollment. Refuse the request with 400 Bad Request when no `attest-initiate` returned this Handle, when it has expired or was used before, or when its `target`, `freshness_kind`, or `credential_type` when it is carried, differ from that `attest-initiate`'s. A `present-nonce` Handle is single-use. For the `absent-*` Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target ({{TACRA}}). This correlation keeps the two legs of one exchange together at the EST Server. It is not authorization: the Secret Vault takes the Freshness Kind from its policy for the Target, recomputes the digest and decides ({{TACRA}}).
-3. Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Secret Vault obtains Attestation Results itself.
-4. Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle and seals it to CEKpub ({{bundle}}).
-5. Return the EncryptedCredentialBundle produced by the Secret Vault.
+2. Check that a Secret Vault serves this `target` and `credential_type`, and that the `mode` that `attest-initiate` reports for them ({{initiation-response}}) is `retrieve`. Refuse the request with 400 Bad Request when a Credential Authority serves them.
+3. For `present-nonce`, correlate `handle` with the `attest-initiate` that returned it, as in Enrollment. Refuse the request with 400 Bad Request when no `attest-initiate` returned this Handle, when it has expired or was used before, or when its `target` or `freshness_kind` differ from the corresponding `attest-initiate`. Refuse it likewise when `credential_type` is carried on one leg and not the other, or with another value. A `present-nonce` Handle is single-use. For `present-epoch`, `handle` is the epoch marker that every `attest-initiate` of the epoch returned for this `target`, and it serves all requests during that epoch. Refuse the request with 400 Bad Request when the marker has moved. For the `absent-*` Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target ({{TACRA}}). This correlation keeps the two legs of one exchange together at the EST Server. It is not authorization: the Secret Vault takes the Freshness Kind from its policy for the Target, recomputes the digest and decides ({{TACRA}}).
+4. Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Secret Vault obtains Attestation Results itself.
+5. Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle and seals it to CEKpub ({{bundle}}).
+6. Return the EncryptedCredentialBundle produced by the Secret Vault.
 
 A variant in which the EST Server receives a plaintext secret from the Secret Vault and seals it to CEKpub itself is not permitted: it would expose the secret to the EST Server ({{TACRA}}).
 
@@ -540,7 +529,7 @@ A variant in which the EST Server receives a plaintext secret from the Secret Va
 
 An error response carries one of the status codes below, and a human-readable body as a simpleenroll error does (Section 4.2.3 of {{RFC7030}}, updated by Section 5.1 of {{RFC8951}}):
 
-* 400 Bad Request: a request that does not match its definition ({{cddl}}), or an `attest-initiate` with no `target`. A binding digest that does not recompute ({{est-binding}}). A Handle that no `attest-initiate` returned, that has expired or was used before, or a `present-epoch` marker that has moved. A Credential Hint the policy does not know and does not ignore. A request that differs from the `attest-initiate` that returned its Handle ({{enrollment-processing}}, {{retrieval-processing}})
+* 400 Bad Request: a request that does not match its definition ({{cddl}}), or an `attest-initiate` with no `target`. A binding digest that does not recompute ({{est-binding}}). A `present-nonce` Handle that no `attest-initiate` returned, that has expired or was used before, or a `present-epoch` marker that has moved. A Credential Hint the policy does not know and does not ignore. A request that differs from the `attest-initiate` that returned its Handle, or one to the resource of the other `mode` ({{enrollment-processing}}, {{retrieval-processing}})
 * 401 Unauthorized: missing/invalid authentication required by deployment policy
 * 403 Forbidden, forwarded from the RATS Relying Party: attestation failed, or its policy denies enrollment or retrieval, the Credential Hint included
 * 404 Not Found: a `target` the EST Server does not serve (Section 15.5.5 of {{RFC9110}}: the query is part of the target URI, and a request of the second leg names the same `target`)
@@ -577,7 +566,7 @@ Servers MAY provide a correlation identifier for debugging.
 * Freshness: the Freshness Kinds and the freshness element are those of {{TACRA}}, built on the recency methods of Section 10 of {{RFC9334}}. A `present-*` Handle comes from the Verifier or the RATS Relying Party, a timestamp from the Attester's clock, and an epoch marker from a local hold or a returned Handle. Evidence MUST carry the freshness element in the binding ({{est-binding}}). The originator of a Handle MUST reject `present-nonce` reuse and a stale `present-epoch`.
 * Evidence and Attestation Results: the EST Client and the EST Server see Evidence and, in the Passport model, Attestation Results in plaintext (Section 12.2 of {{RFC9334}}, the Trust Model of {{TACRA}}). A retrieved secret stays inside the EncryptedCredentialBundle ({{bundle}}), an enrolled certificate is public, and CSKpri and CEKpri never leave the Attester.
 * Channel binding: the digest of {{est-binding}} binds no TLS session and no Credential Authority or Secret Vault. It binds the Target name, so an EST Server can relay the exchange to another RATS Relying Party that serves the same Target, and that party recomputes the same digest. What it obtains, and that Evidence can reach any RATS Relying Party, is in the Trust Model of {{TACRA}}. A TLS channel binding would have to reach the Attester from the EST Client, which this architecture does not assume (Design Goal 8 of {{TACRA}}), so this profile puts none in the Evidence.
-* Client authentication: {{TACRA}} leaves the authentication of the EST Client to the EST Server to profiles. This profile requires none for the `attest-*` resources: Remote Attestation authenticates the Attester, and the EST Client holds no credential of its own. A deployment MAY require TLS client authentication on them, as on simpleenroll (Section 3.3 of {{RFC7030}}). An EST Server that mints `present-nonce` Handles on an unauthenticated `attest-initiate` SHOULD rate-limit them and cap the Handles outstanding per client.
+* Client authentication: {{TACRA}} leaves the authentication of the EST Client to the EST Server to profiles. This profile requires none for the `attest-*` resources: Remote Attestation authenticates the Attester, and the EST Client holds no credential of its own. A deployment MAY require TLS client authentication on them, as on simpleenroll (Section 3.3 of {{RFC7030}}). An EST Server that returns `present-nonce` Handles on an unauthenticated `attest-initiate` SHOULD rate-limit those requests and cap the Handles outstanding per client.
 * The channels from the EST Server to the Verifier and to the Credential Authority or Secret Vault MUST provide integrity, authenticity, and replay protection.
 * The EST Server SHOULD enforce size and rate limits on Evidence.
 * The Credential Type and the Credential Hint are not in the binding. The RATS Relying Party decides by its policy what it issues or releases for them. The EST Server's correlation of a Handle with its `attest-initiate` only checks that the second leg repeats the same `credential_type`, and authorizes nothing ({{TACRA}}).
