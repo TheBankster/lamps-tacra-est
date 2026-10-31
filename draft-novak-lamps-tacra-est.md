@@ -45,32 +45,32 @@ author:
    email: nikolaichuk.s.f@gmail.com
 
 normative:
-  RFC7030: EST
-  RFC9180: HPKE
-  RFC8785: JCS
-  RFC5480:
-  RFC9334: RATS
   RFC4648:
+  RFC5480:
   RFC6838:
+  RFC7030: EST
   RFC8259:
   RFC8610: CDDL
+  RFC8785: JCS
   RFC8951:
   RFC9110:
+  RFC9180: HPKE
+  RFC9334: RATS
   RFC9741:
 
 informative:
-  INTERACTION-MODELS: I-D.ietf-rats-reference-interaction-models
   ATTESTATION-FRESHNESS: I-D.ietf-lamps-attestation-freshness
   CSR-ATTEST: I-D.ietf-lamps-csr-attestation
   HPKE-PQ: I-D.ietf-hpke-pq
+  INTERACTION-MODELS: I-D.ietf-rats-reference-interaction-models
   TACRA: I-D.novak-rats-tacra
+  WIMSE: I-D.ietf-wimse-workload-creds
+  RFC5280:
   RFC6585:
+  RFC7519:
+  RFC8792:
   RFC9148:
   RFC9457:
-  RFC8792:
-  RFC5280:
-  RFC7519:
-  WIMSE: I-D.ietf-wimse-workload-creds
   TWISIGDef:
     -: TWISIGDef
     target: https://github.com/confidential-computing/twi/blob/main/TWI_Definitions.md
