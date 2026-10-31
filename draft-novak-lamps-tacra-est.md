@@ -365,17 +365,9 @@ The Attester writes that digest into the freshness input of its Evidence, the Di
 The Verifier reports the value it read.
 The Credential Authority or the Secret Vault recomputes the digest from the request and refuses the request with 400 Bad Request unless the two are equal.
 
-The digest is computed over the octet string
+The three octet strings of that construction are, in this profile:
 
-~~~
-binding_input = len32(freshness) || freshness
-             || len32(target)    || target
-             || len32(subject)   || subject
-~~~
-
-where `len32(x)` is the length of `x` in octets, as a 32-bit big-endian unsigned integer, and the three octet strings are, in this profile:
-
-* `freshness`: the freshness element of the request, the octets of `handle`. For `present-nonce` and `present-epoch` that is the Freshness Handle `attest-initiate` returned. For `absent-epoch` it is the epoch marker the Attester holds. For `absent-timestamp` it is the Attester's timestamp, an 8-octet big-endian unsigned count of seconds since 1970-01-01T00:00:00Z. For `absent-none` it is empty, and `handle` is absent.
+* `freshness`: the freshness element of the request, the octets of `handle`. For `present-nonce` and `present-epoch` that is the Freshness Handle `attest-initiate` returned. For `absent-epoch` it is the epoch marker the Attester holds. For `absent-timestamp` it is the Attester's timestamp, 8 octets, as {{TACRA}} encodes it. For `absent-none` it is empty, and `handle` is absent.
 * `target`: the UTF-8 encoding of the `target` member, used as an exact octet string.
 * `subject`: for Enrollment, the DER encoding of the PKCS#10 CSR, the octets of `csr`. For Retrieval, CEKpub as the request carries it, the octets of `cek_pub`, in the encoding of its KEM ({{TACRA}}).
 
@@ -505,9 +497,6 @@ This profile does not specify the construction of `group_id`, and different Secr
 `credential_hint` MAY select among the credentials the policy allows for the attested context and MUST NOT enlarge that set.
 A Credential Hint the policy does not know is ignored, or the request is refused with 400 Bad Request.
 The `group_id` the container carries ({{bundle}}) is the one the Secret Vault chose, an opaque string to everyone else.
-
-An example of a mapping, not a requirement: SHA-256 over the length-prefixed concatenation, as {{TACRA}} prefixes, of an octet string the Secret Vault derives from the Attestation Results, the Target and an octet string that names the release policy.
-It is derived from the Attestation Results and not from the Evidence, so that freshness does not change the group id.
 
 ### Response: EncryptedCredentialBundle {#bundle}
 
