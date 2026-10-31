@@ -5,12 +5,12 @@
 Limited Additional Mechanisms for PKIX and SMIME                M. Novak
 Internet-Draft                                   J.P. Morgan Chase & Co.
 Intended status: Informational                             M. Richardson
-Expires: 3 May 2027                             Sandelman Software Works
+Expires: 4 May 2027                             Sandelman Software Works
                                                              H. Birkholz
                                                           Fraunhofer SIT
                                                           S. Nikolaichuk
                                                    The Capital Index LLC
-                                                         30 October 2026
+                                                         31 October 2026
 
 
                  Remote Attestation Extensions for EST
@@ -75,7 +75,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 May 2027.
+   This Internet-Draft will expire on 4 May 2027.
 
 Copyright Notice
 
@@ -1445,12 +1445,6 @@ Table of Contents
 
 14.1.  Normative References
 
-   [HPKE-PQ]  Barnes, R. and D. Connolly, "Post-Quantum and Post-
-              Quantum/Traditional Hybrid Algorithms for HPKE", Work in
-              Progress, Internet-Draft, draft-ietf-hpke-pq-05, 6 July
-              2026, <https://datatracker.ietf.org/doc/html/draft-ietf-
-              hpke-pq-05>.
-
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
               DOI 10.17487/RFC2119, March 1997,
@@ -1537,6 +1531,12 @@ Table of Contents
               October 2026, <https://datatracker.ietf.org/doc/html/
               draft-ietf-lamps-csr-attestation-32>.
 
+   [HPKE-PQ]  Barnes, R. and D. Connolly, "Post-Quantum and Post-
+              Quantum/Traditional Hybrid Algorithms for HPKE", Work in
+              Progress, Internet-Draft, draft-ietf-hpke-pq-05, 6 July
+              2026, <https://datatracker.ietf.org/doc/html/draft-ietf-
+              hpke-pq-05>.
+
    [INTERACTION-MODELS]
               Birkholz, H., Eckel, M., Pan, W., and E. Voit, "Reference
               Interaction Models for Remote Attestation Procedures",
@@ -1595,9 +1595,9 @@ Table of Contents
    [WIMSE]    Campbell, B., Salowey, J. A., Schwenkschuster, A.,
               Sheffer, Y., and Y. Rosomakho, "WIMSE Workload
               Credentials", Work in Progress, Internet-Draft, draft-
-              ietf-wimse-workload-creds-02, 2 July 2026,
+              ietf-wimse-workload-creds-03, 30 October 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-wimse-
-              workload-creds-02>.
+              workload-creds-03>.
 
 Appendix A.  Example Messages
 
