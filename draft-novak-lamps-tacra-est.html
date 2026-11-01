@@ -1059,11 +1059,11 @@ svg {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">Remote Attestation Extensions for EST</td>
-<td class="right">October 2026</td>
+<td class="right">November 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Novak, et al.</td>
-<td class="center">Expires 4 May 2027</td>
+<td class="center">Expires 5 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1076,12 +1076,12 @@ svg {
 <dd class="internet-draft">draft-novak-lamps-tacra-est-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-31" class="published">31 October 2026</time>
+<time datetime="2026-11-01" class="published">1 November 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-05-04">4 May 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-05">5 May 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1156,7 +1156,7 @@ It is not a completed interoperability specification.<a href="#section-abstract-
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 4 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 5 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1480,10 +1480,10 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <p id="section-2.4-1.5.1">CEK: Credential Encryption Key; when used, CEKpub is carried in Evidence, the response is encrypted to CEKpub<a href="#section-2.4-1.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.4-1.6">
-            <p id="section-2.4-1.6.1">Credential Bundle: the plaintext the Secret Vault seals (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>): credential items with their attributes, and metadata<a href="#section-2.4-1.6.1" class="pilcrow">¶</a></p>
+            <p id="section-2.4-1.6.1">Credential Bundle: the plaintext the Secret Vault seals (Section "Sealing the Released Credential" of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>): credential items with their attributes, and metadata<a href="#section-2.4-1.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.4-1.7">
-            <p id="section-2.4-1.7.1">Container: the sealed object that carries a Credential Bundle to the Attester, the EncryptedCredentialBundle (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>)<a href="#section-2.4-1.7.1" class="pilcrow">¶</a></p>
+            <p id="section-2.4-1.7.1">Container: the sealed object that carries a Credential Bundle to the Attester, the EncryptedCredentialBundle of that section, which this profile returns as the response of <code>attest-retrieve</code> (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>)<a href="#section-2.4-1.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.4-1.8">
             <p id="section-2.4-1.8.1">Credential Hint: optional, implementation-defined information supplied by the Attester about the credential it expects. The Credential Authority or Secret Vault <span class="bcp14">MAY</span> use the hint, ignore it, or reject the request. The hint does not authorize issuance or release.<a href="#section-2.4-1.8.1" class="pilcrow">¶</a></p>
@@ -1507,25 +1507,38 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
       <h2 id="name-architecture">
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-architecture" class="section-name selfRef">Architecture</a>
       </h2>
-<p id="section-3-1">The EST encoding is the same in Passport and Background Check modes.
-The modes differ in 1) who originates a Freshness Handle and 2) whether the EST Server contacts the Verifier and then the RATS Relying Party (Passport) or the RATS Relying Party directly (Background Check).
-Only Passport mode is illustrated.<a href="#section-3-1" class="pilcrow">¶</a></p>
-<p id="section-3-2">Both modes use two EST legs: optional <code>attest-initiate</code> (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>), followed by either <code>attest-enroll</code> (<a href="#attest-enroll" class="auto internal xref">Section 5.2</a>) or <code>attest-retrieve</code> (<a href="#attest-retrieve" class="auto internal xref">Section 5.3</a>).
-Note that <code>attest-initiate</code> is optional: in cases where the Attester can know with certainty which Freshness Kind to use (and that the Freshness Kind is not either <code>present-nonce</code> or <code>present-epoch</code>), whether to ask for new or existing credentials, as well as which ciphers the RRP expects, it can be omitted.<a href="#section-3-2" class="pilcrow">¶</a></p>
-<p id="section-3-3">Neither EST Client nor EST Server has a RATS role.
-Both are subject to the following restrictions:<a href="#section-3-3" class="pilcrow">¶</a></p>
+<p id="section-3-1">The EST encoding is the same in the Passport model and in the Background Check model.
+The Attester does not talk to the Verifier and does not hold Attestation Results (Design Goal 8 of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).
+This profile uses the names of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>:<a href="#section-3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3-4.1">
-          <p id="section-3-4.1.1"><span class="bcp14">MUST NOT</span> generate keys, Evidence, or CSRs<a href="#section-3-4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-3-2.1">
+          <p id="section-3-2.1.1">Passport: the EST Server forwards Evidence to the Verifier and forwards the Attestation Results to the Credential Authority or Secret Vault.<a href="#section-3-2.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-3-4.2">
-          <p id="section-3-4.2.1"><span class="bcp14">MUST NOT</span> mint <code>present-nonce</code> or <code>present-epoch</code> Freshness Handles<a href="#section-3-4.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-3-2.2">
+          <p id="section-3-2.2.1">Background Check: the EST Server forwards Evidence to the Credential Authority or Secret Vault, which obtains the Attestation Results by contacting the Verifier itself.<a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-3-4.3">
-          <p id="section-3-4.3.1"><span class="bcp14">MUST NOT</span> appraise Evidence or Attestation Results<a href="#section-3-4.3.1" class="pilcrow">¶</a></p>
+      </ul>
+<p id="section-3-3">In <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>, the Passport model is where the Attester obtains the Attestation Results from the Verifier and sends them to the Relying Party.
+Under TACRA, the Attester always uses the Background Check model.
+The difference between the two models is whether the EST Server or the RATS Relying Party obtains the Attestation Results from the Verifier.
+Who originates a Freshness Handle, the Verifier or the RATS Relying Party, is independent of that split (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).
+Only the Passport model is illustrated.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<p id="section-3-4">Both models use two EST legs: optional <code>attest-initiate</code> (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>), followed by either <code>attest-enroll</code> (<a href="#attest-enroll" class="auto internal xref">Section 5.2</a>) or <code>attest-retrieve</code> (<a href="#attest-retrieve" class="auto internal xref">Section 5.3</a>).
+Note that <code>attest-initiate</code> is optional: in cases where the Attester can know with certainty which Freshness Kind to use (and that the Freshness Kind is not either <code>present-nonce</code> or <code>present-epoch</code>), whether to ask for new or existing credentials, as well as which ciphers the RRP expects, it can be omitted.<a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-5">Neither EST Client nor EST Server has a RATS role.
+Both are subject to the following restrictions:<a href="#section-3-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-6.1">
+          <p id="section-3-6.1.1"><span class="bcp14">MUST NOT</span> generate keys, Evidence, or CSRs<a href="#section-3-6.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-3-4.4">
-          <p id="section-3-4.4.1"><span class="bcp14">MUST NOT</span> authorize credential issuance or release. Correlating a Handle with the <code>attest-initiate</code> that returned it is not authorization. Deciding on the Credential Type or the Credential Hint is, and belongs to the RATS Relying Party.<a href="#section-3-4.4.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-3-6.2">
+          <p id="section-3-6.2.1"><span class="bcp14">MUST NOT</span> mint <code>present-nonce</code> or <code>present-epoch</code> Freshness Handles<a href="#section-3-6.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-6.3">
+          <p id="section-3-6.3.1"><span class="bcp14">MUST NOT</span> appraise Evidence or Attestation Results<a href="#section-3-6.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-6.4">
+          <p id="section-3-6.4.1"><span class="bcp14">MUST NOT</span> authorize credential issuance or release. Correlating a Handle with the <code>attest-initiate</code> that returned it is not authorization. Deciding on the Credential Type or the Credential Hint is, and belongs to the RATS Relying Party.<a href="#section-3-6.4.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <div id="attested-enrollment-mode">
@@ -1703,7 +1716,7 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.1-4.4.1">The EST Server, if contacted, obtains the Freshness Kind and Handle, if any, from the configured Verifier or RATS Relying Party and returns that result.<a href="#section-5.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-4.5">
-            <p id="section-5.1-4.5.1">For <code>present-nonce</code>, that GET mints a single-use Handle and records it, as the nonce resource of <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span> does (<a href="#relationship" class="auto internal xref">Section 6</a>).<a href="#section-5.1-4.5.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-4.5.1">For <code>present-nonce</code>, that GET returns a single-use Handle its originator minted, and the EST Server records it for the correlation of <a href="#enrollment-processing" class="auto internal xref">Section 9.1.4</a> and <a href="#retrieval-processing" class="auto internal xref">Section 9.2.5</a>, as the nonce resource of <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span> associates its nonce with the next request (<a href="#relationship" class="auto internal xref">Section 6</a>).<a href="#section-5.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-4.6">
             <p id="section-5.1-4.6.1"><code>present-nonce</code> and <code>present-epoch</code> <span class="bcp14">MUST</span> include a Freshness Handle from the party chosen by the EST Server. <code>absent-*</code> Freshness Kinds carry no Freshness Handle.<a href="#section-5.1-4.6.1" class="pilcrow">¶</a></p>
@@ -1776,7 +1789,8 @@ The Target itself takes no part in this profile: it is the RATS-unaware Relying 
 <p id="section-6-2"><span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span> defines a nonce request and response for certificate management protocols, including an EST resource at <code>/.well-known/est/nonce</code> (GET, or POST with <code>application/est-attestation-freshness+json</code>) whose response carries a <code>nonce</code> of 8 to 64 bytes and an <span class="bcp14">OPTIONAL</span> <code>expiry</code> in seconds (Section 5.1 of <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span>).
 <code>attest-initiate</code> (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>) is the first leg that returns the Freshness Handle: such a nonce for <code>present-nonce</code>, the current epoch marker for <code>present-epoch</code>, and none for the <code>absent-*</code> kinds.
 It returns in addition the Freshness Kind itself, the Credential Acquisition Mode and the acceptable CSK or CEK algorithms (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>), none of which the nonce resource carries.
-A <code>present-nonce</code> Handle of this profile is a nonce as <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> and Section 5.1 of <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span> specify: 8 to 64 octets, at least 64 bits of entropy, issued once and not reused.
+A <code>present-nonce</code> Handle of this profile is a nonce as <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> specifies: 16 to 64 octets, at least 128 bits of entropy, issued once and not reused.
+That range lies within the 8 to 64 octets of Section 5.1 of <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span>.
 <code>expires_in</code> is that document's <code>expiry</code>.
 That section requires the server to associate the nonce with the subsequent request.
 This profile does so by correlating the Handle with the <code>attest-initiate</code> that returned it, in the server processing of both modes, and by the RATS Relying Party's recomputation of the digest that carries the Handle (<a href="#est-binding" class="auto internal xref">Section 8.2</a>).
@@ -1858,7 +1872,7 @@ An EST Server responds to a request of another media type with 415 (Unsupported 
         </h3>
 <p id="section-7.1-1">In the definitions below, a byte string is carried as a text string holding its unpadded base64url encoding (Section 5 of <span>[<a href="#RFC4648" class="cite xref">RFC4648</a>]</span>), as the control operator <code>.b64u</code> defines it (Section 2.1 of <span>[<a href="#RFC9741" class="cite xref">RFC9741</a>]</span>): only characters of the base64url alphabet, no padding, and the bits that encode no octet set to zero.
 The group choices tie each member to the Freshness Kinds and modes its description below names: in a response, <code>handle</code> and <code>expires_in</code> to <code>present-nonce</code> and <code>present-epoch</code>, <code>max_age</code> to <code>absent-timestamp</code>, <code>acceptable_csk</code> to <code>enroll</code> and <code>acceptable_cek</code> to <code>retrieve</code>; in a request, <code>handle</code> to every Freshness Kind but <code>absent-none</code>.
-The EncryptedCredentialBundle and its plaintext are the last three rules (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>).<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+The container of <code>attest-retrieve</code> is the <code>encrypted-credential-bundle</code> of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>, with its plaintext, and is not repeated here.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 <div class="breakable lang-cddl sourcecode" id="section-7.1-2">
 <pre>
 ; The JSON messages of the attest-* resources (RFC 8610; RFC 8259).
@@ -1885,10 +1899,10 @@ initiation-freshness = (
 
 initiation-mode = (
   mode: "enroll",
-  ? acceptable_csk: [+ text],
+  acceptable_csk: [+ text],
 //
   mode: "retrieve",
-  ? acceptable_cek: [+ text],
+  acceptable_cek: [+ text],
 )
 
 attested-enrollment-request = {
@@ -1923,39 +1937,6 @@ request-freshness = (
 binding = {
   method: "binding-input",
   hash: "sha512",
-}
-
-encrypted-credential-bundle = {
-  container: "hpke-base",
-  suite: {
-    kem: "DHKEM(P-256, HKDF-SHA256)" / "MLKEM768-P256",
-    kdf: "HKDF-SHA256",
-    aead: "AES-256-GCM",
-  },
-  enc: text .b64u bytes,
-  ciphertext: text .b64u bytes,
-  aad: {
-    group_id: text,
-    target: text,
-    ? handle: text .b64u bytes,
-    ? credential_hint: text,
-  },
-}
-
-credential-bundle = {
-  credential_items: [+ credential-item],
-  ? metadata: { * text =&gt; any },
-}
-
-credential-item = {
-  type: text,
-  value: text,
-  ? format: text,
-  ? kid: text,
-  ? purpose: [+ text],
-  ? algorithm: text,
-  ? exportable: bool,
-  ? shared: bool,
 }
 </pre><a href="#section-7.1-2" class="pilcrow">¶</a>
 </div>
@@ -1996,7 +1977,7 @@ credential-item = {
             </ul>
 </li>
           <li class="normal" id="section-8.1-2.2">
-            <p id="section-8.1-2.2.1"><code>handle</code> (bytes, 8 to 64 octets): Freshness Handle, <span class="bcp14">REQUIRED</span> for <code>present-nonce</code> and <code>present-epoch</code>, and <span class="bcp14">MUST</span> be absent otherwise (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>). A <code>present-nonce</code> Handle is a nonce as <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> and Section 5.1 of <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span> specify: at least 64 bits of entropy, issued once and not reused<a href="#section-8.1-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-2.2.1"><code>handle</code> (bytes, 8 to 64 octets): Freshness Handle, <span class="bcp14">REQUIRED</span> for <code>present-nonce</code> and <code>present-epoch</code>, and <span class="bcp14">MUST</span> be absent otherwise (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>). A <code>present-nonce</code> Handle is a nonce as <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> specifies: 16 to 64 octets, at least 128 bits of entropy, issued once and not reused<a href="#section-8.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-2.3">
             <p id="section-8.1-2.3.1"><code>expires_in</code> (integer, <span class="bcp14">OPTIONAL</span>): seconds until a <code>present-nonce</code> or <code>present-epoch</code> Handle is no longer valid, the <code>expiry</code> of <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span><a href="#section-8.1-2.3.1" class="pilcrow">¶</a></p>
@@ -2008,16 +1989,17 @@ credential-item = {
             <p id="section-8.1-2.5.1"><code>mode</code> (string, <span class="bcp14">REQUIRED</span>): <code>enroll</code> or <code>retrieve</code><a href="#section-8.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-2.6">
-            <p id="section-8.1-2.6.1"><code>acceptable_cek</code> (array, only when <code>mode</code> is <code>retrieve</code>): the CEK suites the Secret Vault accepts, tokens of <a href="#alg-tokens" class="auto internal xref">Section 8.4</a><a href="#section-8.1-2.6.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-2.6.1"><code>acceptable_cek</code> (array, <span class="bcp14">REQUIRED</span> when <code>mode</code> is <code>retrieve</code> and absent otherwise): the CEK suites the Secret Vault accepts, tokens of <a href="#alg-tokens" class="auto internal xref">Section 8.4</a>, at least one<a href="#section-8.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-2.7">
-            <p id="section-8.1-2.7.1"><code>acceptable_csk</code> (array, only when <code>mode</code> is <code>enroll</code>): the CSK algorithms the Credential Authority accepts, tokens of <a href="#alg-tokens" class="auto internal xref">Section 8.4</a><a href="#section-8.1-2.7.1" class="pilcrow">¶</a></p>
+            <p id="section-8.1-2.7.1"><code>acceptable_csk</code> (array, <span class="bcp14">REQUIRED</span> when <code>mode</code> is <code>enroll</code> and absent otherwise): the CSK algorithms the Credential Authority accepts, tokens of <a href="#alg-tokens" class="auto internal xref">Section 8.4</a>, at least one<a href="#section-8.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-2.8">
             <p id="section-8.1-2.8.1"><code>acceptable_evidence</code> (array, <span class="bcp14">OPTIONAL</span>): the Evidence formats the EST Server forwards, each named by its media type (<a href="#alg-tokens" class="auto internal xref">Section 8.4</a>). A request of the second leg <span class="bcp14">MAY</span> name the format of its Evidence in <code>profile</code>, one of them. When the list is absent, or <code>attest-initiate</code> was completed locally, the EST Client sends the format its configuration names, or none<a href="#section-8.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.1-3">The Freshness Handle originator <span class="bcp14">MUST</span> ensure <code>present-nonce</code> uniqueness and <span class="bcp14">MUST</span> correlate the second-leg request with the Handle from this <code>attest-initiate</code>.
+<p id="section-8.1-3">For <code>present-nonce</code>, the Freshness Handle originator <span class="bcp14">MUST</span> ensure uniqueness and <span class="bcp14">MUST</span> correlate the second-leg request with the Handle from this <code>attest-initiate</code>.
+For <code>present-epoch</code>, it checks that the Handle is still the current epoch marker (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).
 The Verifier appraises whether Evidence is bound to a still-valid Freshness Handle.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2039,7 +2021,7 @@ The Credential Authority or the Secret Vault recomputes the digest from the requ
             <p id="section-8.2-3.2.1"><code>target</code>: the UTF-8 encoding of the <code>target</code> member, used as an exact octet string.<a href="#section-8.2-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.2-3.3">
-            <p id="section-8.2-3.3.1"><code>subject</code>: for Enrollment, the DER encoding of the PKCS#10 CSR, the octets of <code>csr</code>. For Retrieval, CEKpub as the request carries it, the octets of <code>cek_pub</code>, in the encoding of its KEM (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>).<a href="#section-8.2-3.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.2-3.3.1"><code>subject</code>: for Enrollment, the DER encoding of the PKCS#10 CSR, the octets of <code>csr</code>. For Retrieval, CEKpub as the request carries it, the octets of <code>cek_pub</code>, in the encoding of its KEM (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-8.2-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.2-4">The digest is SHA-512, as <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> sets for a freshness input of 64 octets, which REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX are.
@@ -2062,7 +2044,7 @@ It names the method and the hash:<a href="#section-8.2-5" class="pilcrow">¶</a>
         <h3 id="name-credential-type-tokens">
 <a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-credential-type-tokens" class="section-name selfRef">Credential Type Tokens</a>
         </h3>
-<p id="section-8.3-1"><code>credential_type</code>, on <code>attest-initiate</code> and in both requests, takes one of these tokens:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+<p id="section-8.3-1"><code>credential_type</code>, on <code>attest-initiate</code> and in both requests, takes one of the Credential Type tokens of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>, which this profile uses as follows:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.3-2.1">
             <p id="section-8.3-2.1.1"><code>x509</code>: an X.509 certificate (<span>[<a href="#RFC5280" class="cite xref">RFC5280</a>]</span>). Enrollment mints one. Retrieval <span class="bcp14">MAY</span> return one that was issued before.<a href="#section-8.3-2.1.1" class="pilcrow">¶</a></p>
@@ -2093,8 +2075,7 @@ A client that needs a Credential Type names it.
 <code>attest-retrieve</code> <span class="bcp14">MAY</span> carry any token above.
 The Secret Vault selects what it releases from the Attestation Results, its policy and the Credential Hint.
 Where the request names a <code>credential_type</code>, it releases that Credential Type or refuses the request.
-A Credential Type the RATS Relying Party does not serve is refused with 406 Not Acceptable, and the response names the Credential Types it serves for that <code>target</code> (<a href="#errors" class="auto internal xref">Section 10</a>).
-The <code>type</code> of a credential item in the released bundle (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>) uses the same tokens.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
+A Credential Type the RATS Relying Party does not serve is refused with 406 Not Acceptable, and the response names the Credential Types it serves for that <code>target</code> (<a href="#errors" class="auto internal xref">Section 10</a>).<a href="#section-8.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="alg-tokens">
@@ -2110,13 +2091,13 @@ This document defines them.<a href="#section-8.4-1" class="pilcrow">¶</a></p>
             <p id="section-8.4-3.1.1"><code>ecdsa-p256-sha256</code>: ECDSA on P-256 with SHA-256, the signature of the CSR. Implementations <span class="bcp14">MUST</span> support it.<a href="#section-8.4-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.4-4">CEK suites, for Retrieval: the HPKE suites of <a href="#bundle" class="auto internal xref">Section 9.2.4</a>, each named by its KEM, its KDF and its AEAD as the HPKE registries name them (<span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>), joined with <code>+</code>:<a href="#section-8.4-4" class="pilcrow">¶</a></p>
+<p id="section-8.4-4">CEK suites, for Retrieval: the HPKE suites of the container of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>, each named by its KEM, its KDF and its AEAD as the HPKE registries name them (<span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>), joined with <code>+</code>:<a href="#section-8.4-4" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.4-5.1">
-            <p id="section-8.4-5.1.1"><code>DHKEM(P-256, HKDF-SHA256)+HKDF-SHA256+AES-256-GCM</code>: the mandatory suite. Implementations <span class="bcp14">MUST</span> support it.<a href="#section-8.4-5.1.1" class="pilcrow">¶</a></p>
+            <p id="section-8.4-5.1.1"><code>DHKEM(P-256, HKDF-SHA256)+HKDF-SHA256+AES-256-GCM</code>: the mandatory suite of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>. Implementations <span class="bcp14">MUST</span> support it.<a href="#section-8.4-5.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.4-5.2">
-            <p id="section-8.4-5.2.1"><code>MLKEM768-P256+HKDF-SHA256+AES-256-GCM</code>: the recommended suite.<a href="#section-8.4-5.2.1" class="pilcrow">¶</a></p>
+            <p id="section-8.4-5.2.1"><code>MLKEM768-P256+HKDF-SHA256+AES-256-GCM</code>: the suite with the hybrid KEM of <span>[<a href="#HPKE-PQ" class="cite xref">HPKE-PQ</a>]</span>, which a Secret Vault <span class="bcp14">MAY</span> offer where a released secret must stay confidential against a later quantum computer.<a href="#section-8.4-5.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.4-6">A Credential Authority or Secret Vault names in <code>acceptable_csk</code> or <code>acceptable_cek</code> the tokens it accepts, and the Attester generates its key for one of them.<a href="#section-8.4-6" class="pilcrow">¶</a></p>
@@ -2148,7 +2129,7 @@ A client that completed <code>attest-initiate</code> locally uses the tokens its
               <p id="section-9.1.1-2.1.1">target (string, <span class="bcp14">REQUIRED</span>): the Target of Enroll-Credential (Section 5.2 of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>)<a href="#section-9.1.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.1.1-2.2">
-              <p id="section-9.1.1-2.2.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-9.1.1-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-9.1.1-2.2.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response, or the configuration under which the EST Client completed <code>attest-initiate</code> locally (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>)<a href="#section-9.1.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.1.1-2.3">
               <p id="section-9.1.1-2.3.1">handle (bytes): the freshness element (<a href="#est-binding" class="auto internal xref">Section 8.2</a>) - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is not <code>absent-none</code> and <span class="bcp14">MUST</span> be absent otherwise. For <code>present-nonce</code> and <code>present-epoch</code> it <span class="bcp14">MUST</span> equal the Freshness Handle returned by <code>attest-initiate</code>. For <code>absent-timestamp</code> it is the 8-octet timestamp and for <code>absent-epoch</code> the locally held epoch marker.<a href="#section-9.1.1-2.3.1" class="pilcrow">¶</a></p>
@@ -2209,16 +2190,19 @@ A client that completed <code>attest-initiate</code> locally uses the tokens its
               <p id="section-9.1.4-2.1.1">Validate syntax, media type, and size limits.<a href="#section-9.1.4-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.1.4-2.2">
-              <p id="section-9.1.4-2.2.1">For <code>present-nonce</code> and <code>present-epoch</code>, correlate <code>handle</code> with the <code>attest-initiate</code> that returned it. Refuse the request with 400 Bad Request when no <code>attest-initiate</code> returned this Handle, when it has expired or was used before, or when its <code>target</code>, <code>freshness_kind</code>, or <code>credential_type</code> when it is carried, differ from that <code>attest-initiate</code>'s. A <code>present-nonce</code> Handle is single-use. For the <code>absent-*</code> Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>). This correlation keeps the two legs of one exchange together at the EST Server. It is not authorization: the Credential Authority takes the Freshness Kind from its policy for the Target, recomputes the digest and decides (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.1.4-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-9.1.4-2.2.1">Check that a Credential Authority serves this <code>target</code> and <code>credential_type</code>, and that the <code>mode</code> that <code>attest-initiate</code> reports for them (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>) is <code>enroll</code>. Refuse the request with 400 Bad Request when a Secret Vault serves them.<a href="#section-9.1.4-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.1.4-2.3">
-              <p id="section-9.1.4-2.3.1">Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Credential Authority obtains Attestation Results itself.<a href="#section-9.1.4-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-9.1.4-2.3.1">For <code>present-nonce</code>, correlate <code>handle</code> with the <code>attest-initiate</code> that returned it. Refuse the request with 400 Bad Request when no <code>attest-initiate</code> returned this Handle, when it has expired or was used before, or when its <code>target</code> or <code>freshness_kind</code> differ from the corresponding <code>attest-initiate</code>. Refuse it likewise when <code>credential_type</code> is carried on one leg and not the other, or with another value. A <code>present-nonce</code> Handle is single-use. For <code>present-epoch</code>, <code>handle</code> is the epoch marker that every <code>attest-initiate</code> of the epoch returned for this <code>target</code>, and it serves all requests during that epoch. Refuse the request with 400 Bad Request when the marker has moved. For the <code>absent-*</code> Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>). This correlation keeps the two legs of one exchange together at the EST Server. It is not authorization: the Credential Authority takes the Freshness Kind from its policy for the Target, recomputes the digest and decides (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.1.4-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.1.4-2.4">
-              <p id="section-9.1.4-2.4.1">Forward the CSR and Attestation Results (Passport) or the CSR and Evidence (Background Check) to the Credential Authority, which verifies PoP and authorizes issuance.<a href="#section-9.1.4-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-9.1.4-2.4.1">Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Credential Authority obtains Attestation Results itself.<a href="#section-9.1.4-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.1.4-2.5">
-              <p id="section-9.1.4-2.5.1">Return the Credential Authority's enrollment response.<a href="#section-9.1.4-2.5.1" class="pilcrow">¶</a></p>
+              <p id="section-9.1.4-2.5.1">Forward the CSR and Attestation Results (Passport) or the CSR and Evidence (Background Check) to the Credential Authority, which verifies PoP and authorizes issuance.<a href="#section-9.1.4-2.5.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-9.1.4-2.6">
+              <p id="section-9.1.4-2.6.1">Return the Credential Authority's enrollment response.<a href="#section-9.1.4-2.6.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
 <p id="section-9.1.4-3">The Credential Authority <span class="bcp14">MUST NOT</span> mint identities (e.g., DNS names) beyond policy for the attested identity context.<a href="#section-9.1.4-3" class="pilcrow">¶</a></p>
@@ -2242,7 +2226,7 @@ A client that completed <code>attest-initiate</code> locally uses the tokens its
               <p id="section-9.2.1-2.1.1">target (string, <span class="bcp14">REQUIRED</span>): the Target of Retrieve-Credential (Section 5.3 of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>)<a href="#section-9.2.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.2.1-2.2">
-              <p id="section-9.2.1-2.2.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response<a href="#section-9.2.1-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-9.2.1-2.2.1">freshness_kind (string, <span class="bcp14">REQUIRED</span>): <span class="bcp14">MUST</span> match the preceding <code>attest-initiate</code> response, or the configuration under which the EST Client completed <code>attest-initiate</code> locally (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>)<a href="#section-9.2.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.2.1-2.3">
               <p id="section-9.2.1-2.3.1">handle (bytes): the freshness element (<a href="#est-binding" class="auto internal xref">Section 8.2</a>) - <span class="bcp14">REQUIRED</span> when <code>freshness_kind</code> is not <code>absent-none</code> and <span class="bcp14">MUST</span> be absent otherwise. For <code>present-nonce</code> and <code>present-epoch</code> it <span class="bcp14">MUST</span> equal the Freshness Handle returned by <code>attest-initiate</code>. For <code>absent-timestamp</code> it is the 8-octet timestamp and for <code>absent-epoch</code> the locally held epoch marker.<a href="#section-9.2.1-2.3.1" class="pilcrow">¶</a></p>
@@ -2251,7 +2235,7 @@ A client that completed <code>attest-initiate</code> locally uses the tokens its
               <p id="section-9.2.1-2.4.1">evidence (bytes, <span class="bcp14">REQUIRED</span>) -- <span class="bcp14">MUST</span> include CEKpub; <span class="bcp14">MUST</span> be bound to the Freshness returned by <code>attest-initiate</code>, if any<a href="#section-9.2.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.2.1-2.5">
-              <p id="section-9.2.1-2.5.1">cek_pub (bytes, <span class="bcp14">REQUIRED</span>): CEKpub in the encoding of its KEM (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>), to which the Secret Vault seals the bundle<a href="#section-9.2.1-2.5.1" class="pilcrow">¶</a></p>
+              <p id="section-9.2.1-2.5.1">cek_pub (bytes, <span class="bcp14">REQUIRED</span>): CEKpub in the encoding of its KEM (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>), to which the Secret Vault seals the bundle<a href="#section-9.2.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.2.1-2.6">
               <p id="section-9.2.1-2.6.1">profile (string, <span class="bcp14">OPTIONAL</span>): the media type of <code>evidence</code>, one of the <code>acceptable_evidence</code> of the <code>attest-initiate</code> (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>). If absent, the EST Server forwards the Evidence as it is, and the Verifier recognizes its format. A format the EST Server does not accept is refused with 415 Unsupported Media Type<a href="#section-9.2.1-2.6.1" class="pilcrow">¶</a></p>
@@ -2289,8 +2273,6 @@ This profile does not specify the construction of <code>group_id</code>, and dif
 <code>credential_hint</code> <span class="bcp14">MAY</span> select among the credentials the policy allows for the attested context and <span class="bcp14">MUST NOT</span> enlarge that set.
 A Credential Hint the policy does not know is ignored, or the request is refused with 400 Bad Request.
 The <code>group_id</code> the container carries (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>) is the one the Secret Vault chose, an opaque string to everyone else.<a href="#section-9.2.3-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.3-2">An example of a mapping, not a requirement: SHA-256 over the length-prefixed concatenation, as <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> prefixes, of an octet string the Secret Vault derives from the Attestation Results, the Target and an octet string that names the release policy.
-It is derived from the Attestation Results and not from the Evidence, so that freshness does not change the group id.<a href="#section-9.2.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="bundle">
@@ -2298,51 +2280,15 @@ It is derived from the Attestation Results and not from the Evidence, so that fr
           <h4 id="name-response-encryptedcredentia">
 <a href="#section-9.2.4" class="section-number selfRef">9.2.4. </a><a href="#name-response-encryptedcredentia" class="section-name selfRef">Response: EncryptedCredentialBundle</a>
           </h4>
-<p id="section-9.2.4-1">The EST Server returns the container the Secret Vault produced, as Section "Sealing the Released Credential" of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> constructs it, as JSON of media type <code>application/est-attest-bundle+json</code>: the <code>encrypted-credential-bundle</code> of <a href="#cddl" class="auto internal xref">Section 7.1</a>.
-The EST Client and the EST Server <span class="bcp14">MUST</span> treat it as opaque.<a href="#section-9.2.4-1" class="pilcrow">¶</a></p>
-<p id="section-9.2.4-2">This profile sets the parameters of that construction as follows.<a href="#section-9.2.4-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-9.2.4-3.1">
-              <p id="section-9.2.4-3.1.1">The mandatory HPKE suite is KEM DHKEM(P-256, HKDF-SHA256) (identifier 0x0010), KDF HKDF-SHA256 (0x0001) and AEAD AES-256-GCM (0x0002), all of <span>[<a href="#RFC9180" class="cite xref">RFC9180</a>]</span>. Its name in <code>acceptable_cek</code> is <code>DHKEM(P-256, HKDF-SHA256)+HKDF-SHA256+AES-256-GCM</code>. Implementations <span class="bcp14">MUST</span> support it.<a href="#section-9.2.4-3.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.2.4-3.2">
-              <p id="section-9.2.4-3.2.1">The suite with KEM MLKEM768-P256 (Section 4 of <span>[<a href="#HPKE-PQ" class="cite xref">HPKE-PQ</a>]</span>, identifier 0x0050) and the same KDF and AEAD, named <code>MLKEM768-P256+HKDF-SHA256+AES-256-GCM</code>, is <span class="bcp14">RECOMMENDED</span> where a released secret must stay confidential against a later quantum computer. A Secret Vault names in <code>acceptable_cek</code> the suites it accepts, and the Attester generates its CEK for one of them.<a href="#section-9.2.4-3.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.2.4-3.3">
-              <p id="section-9.2.4-3.3.1">CEKpub is carried in <code>cek_pub</code> and is the subject of the binding (<a href="#est-binding" class="auto internal xref">Section 8.2</a>). For DHKEM(P-256, HKDF-SHA256) it is the DER encoding of a SubjectPublicKeyInfo for id-ecPublicKey on prime256v1 (<span>[<a href="#RFC5480" class="cite xref">RFC5480</a>]</span>). For MLKEM768-P256 it is the encapsulation key, 1249 octets.<a href="#section-9.2.4-3.3.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.2.4-3.4">
-              <p id="section-9.2.4-3.4.1">The label of <code>info</code> is the ASCII string <code>tacra-est bundle v1</code>, without a terminating NUL.<a href="#section-9.2.4-3.4.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.2.4-3.5">
-              <p id="section-9.2.4-3.5.1">The associated data is the JSON Canonicalization Scheme serialization (<span>[<a href="#RFC8785" class="cite xref">RFC8785</a>]</span>) of the <code>aad</code> object below. The plaintext is the JCS serialization of a <code>credential-bundle</code> object (<a href="#cddl" class="auto internal xref">Section 7.1</a>).<a href="#section-9.2.4-3.5.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-9.2.4-4">Members of the container:<a href="#section-9.2.4-4" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-9.2.4-5.1">
-              <p id="section-9.2.4-5.1.1"><code>container</code> (string, <span class="bcp14">REQUIRED</span>): <code>hpke-base</code>.<a href="#section-9.2.4-5.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.2.4-5.2">
-              <p id="section-9.2.4-5.2.1"><code>suite</code> (object, <span class="bcp14">REQUIRED</span>): <code>kem</code>, <code>kdf</code> and <code>aead</code>, the names above.<a href="#section-9.2.4-5.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.2.4-5.3">
-              <p id="section-9.2.4-5.3.1"><code>enc</code> (bytes, <span class="bcp14">REQUIRED</span>): the HPKE encapsulated key.<a href="#section-9.2.4-5.3.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.2.4-5.4">
-              <p id="section-9.2.4-5.4.1"><code>ciphertext</code> (bytes, <span class="bcp14">REQUIRED</span>): the HPKE ciphertext.<a href="#section-9.2.4-5.4.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.2.4-5.5">
-              <p id="section-9.2.4-5.5.1"><code>aad</code> (object, <span class="bcp14">REQUIRED</span>): <code>group_id</code> (string), <code>target</code> (string), <code>handle</code> (bytes, when the request carried one) and <code>credential_hint</code> (string, when the request carried one). The Attester rebuilds the associated data from these members and checks them against what its Evidence bound before it decrypts.<a href="#section-9.2.4-5.5.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-9.2.4-6">The plaintext, a <code>credential-bundle</code>, has <code>credential_items</code> (array, at least one item) and <code>metadata</code> (object, <span class="bcp14">OPTIONAL</span>, string keys).
-Each item has <code>type</code> (string, a token of <a href="#credential-type" class="auto internal xref">Section 8.3</a>) and <code>value</code> (string, the credential), and <span class="bcp14">MAY</span> have <code>format</code>, <code>kid</code>, <code>purpose</code> (array of strings), <code>algorithm</code>, <code>exportable</code> (boolean) and <code>shared</code> (boolean): the key-block attributes the Secret Vault's policy sets.
-<code>metadata</code> <span class="bcp14">MAY</span> carry <code>validity_seconds</code> (integer) and <code>secret_version</code> (string).<a href="#section-9.2.4-6" class="pilcrow">¶</a></p>
-<p id="section-9.2.4-7">The Attester proceeds as <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> requires: it checks that <code>aad</code> names its Target, its freshness element and its Credential Hint, checks the suite, and only then opens the ciphertext.
+<p id="section-9.2.4-1">The EST Server returns the container the Secret Vault produced, the <code>encrypted-credential-bundle</code> of Section "Sealing the Released Credential" of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>, as the body of media type <code>application/est-attest-bundle+json</code>.
+The EST Client and the EST Server <span class="bcp14">MUST</span> treat it as opaque.
+That section specifies the container: its members, its suites, the <code>info</code> and the associated data of its HPKE sealing, and its plaintext, the Credential Bundle.
+This profile adds nothing to it.
+The Secret Vault names in <code>acceptable_cek</code> the suites it accepts (<a href="#alg-tokens" class="auto internal xref">Section 8.4</a>), the mandatory suite of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> among them, and the Attester generates its CEK for one of them.<a href="#section-9.2.4-1" class="pilcrow">¶</a></p>
+<p id="section-9.2.4-2">The Attester proceeds as <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> requires: it checks that <code>aad</code> names its Target, its freshness element and its Credential Hint, checks the suite, and only then opens the ciphertext.
 It <span class="bcp14">MUST</span> refuse the container otherwise.
 Who sealed the container, the Attester cannot tell: anyone who saw CEKpub can seal to it.
-This profile accepts that, and <a href="#security" class="auto internal xref">Section 11</a> states the consequence.<a href="#section-9.2.4-7" class="pilcrow">¶</a></p>
+This profile accepts that, and <a href="#security" class="auto internal xref">Section 11</a> states the consequence.<a href="#section-9.2.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="retrieval-processing">
@@ -2356,16 +2302,19 @@ This profile accepts that, and <a href="#security" class="auto internal xref">Se
               <p id="section-9.2.5-2.1.1">Validate syntax, media type, and size limits.<a href="#section-9.2.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.2.5-2.2">
-              <p id="section-9.2.5-2.2.1">For <code>present-nonce</code> and <code>present-epoch</code>, correlate <code>handle</code> with the <code>attest-initiate</code> that returned it, as in Enrollment. Refuse the request with 400 Bad Request when no <code>attest-initiate</code> returned this Handle, when it has expired or was used before, or when its <code>target</code>, <code>freshness_kind</code>, or <code>credential_type</code> when it is carried, differ from that <code>attest-initiate</code>'s. A <code>present-nonce</code> Handle is single-use. For the <code>absent-*</code> Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>). This correlation keeps the two legs of one exchange together at the EST Server. It is not authorization: the Secret Vault takes the Freshness Kind from its policy for the Target, recomputes the digest and decides (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.2.5-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-9.2.5-2.2.1">Check that a Secret Vault serves this <code>target</code> and <code>credential_type</code>, and that the <code>mode</code> that <code>attest-initiate</code> reports for them (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>) is <code>retrieve</code>. Refuse the request with 400 Bad Request when a Credential Authority serves them.<a href="#section-9.2.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.2.5-2.3">
-              <p id="section-9.2.5-2.3.1">Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Secret Vault obtains Attestation Results itself.<a href="#section-9.2.5-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-9.2.5-2.3.1">For <code>present-nonce</code>, correlate <code>handle</code> with the <code>attest-initiate</code> that returned it, as in Enrollment. Refuse the request with 400 Bad Request when no <code>attest-initiate</code> returned this Handle, when it has expired or was used before, or when its <code>target</code> or <code>freshness_kind</code> differ from the corresponding <code>attest-initiate</code>. Refuse it likewise when <code>credential_type</code> is carried on one leg and not the other, or with another value. A <code>present-nonce</code> Handle is single-use. For <code>present-epoch</code>, <code>handle</code> is the epoch marker that every <code>attest-initiate</code> of the epoch returned for this <code>target</code>, and it serves all requests during that epoch. Refuse the request with 400 Bad Request when the marker has moved. For the <code>absent-*</code> Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>). This correlation keeps the two legs of one exchange together at the EST Server. It is not authorization: the Secret Vault takes the Freshness Kind from its policy for the Target, recomputes the digest and decides (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.2.5-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.2.5-2.4">
-              <p id="section-9.2.5-2.4.1">Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle and seals it to CEKpub (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>).<a href="#section-9.2.5-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-9.2.5-2.4.1">Passport: forward Evidence to the Verifier and obtain Attestation Results. Background Check: skip this step; the Secret Vault obtains Attestation Results itself.<a href="#section-9.2.5-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.2.5-2.5">
-              <p id="section-9.2.5-2.5.1">Return the EncryptedCredentialBundle produced by the Secret Vault.<a href="#section-9.2.5-2.5.1" class="pilcrow">¶</a></p>
+              <p id="section-9.2.5-2.5.1">Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle and seals it to CEKpub (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>).<a href="#section-9.2.5-2.5.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-9.2.5-2.6">
+              <p id="section-9.2.5-2.6.1">Return the EncryptedCredentialBundle produced by the Secret Vault.<a href="#section-9.2.5-2.6.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
 <p id="section-9.2.5-3">A variant in which the EST Server receives a plaintext secret from the Secret Vault and seals it to CEKpub itself is not permitted: it would expose the secret to the EST Server (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.2.5-3" class="pilcrow">¶</a></p>
@@ -2383,7 +2332,7 @@ This profile accepts that, and <a href="#security" class="auto internal xref">Se
 <p id="section-10-1">An error response carries one of the status codes below, and a human-readable body as a simpleenroll error does (Section 4.2.3 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>, updated by Section 5.1 of <span>[<a href="#RFC8951" class="cite xref">RFC8951</a>]</span>):<a href="#section-10-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-10-2.1">
-          <p id="section-10-2.1.1">400 Bad Request: a request that does not match its definition (<a href="#cddl" class="auto internal xref">Section 7.1</a>), or an <code>attest-initiate</code> with no <code>target</code>. A binding digest that does not recompute (<a href="#est-binding" class="auto internal xref">Section 8.2</a>). A Handle that no <code>attest-initiate</code> returned, that has expired or was used before, or a <code>present-epoch</code> marker that has moved. A Credential Hint the policy does not know and does not ignore. A request that differs from the <code>attest-initiate</code> that returned its Handle (<a href="#enrollment-processing" class="auto internal xref">Section 9.1.4</a>, <a href="#retrieval-processing" class="auto internal xref">Section 9.2.5</a>)<a href="#section-10-2.1.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.1.1">400 Bad Request: a request that does not match its definition (<a href="#cddl" class="auto internal xref">Section 7.1</a>), or an <code>attest-initiate</code> with no <code>target</code>. A binding digest that does not recompute (<a href="#est-binding" class="auto internal xref">Section 8.2</a>). A <code>present-nonce</code> Handle that no <code>attest-initiate</code> returned, that has expired or was used before, or a <code>present-epoch</code> marker that has moved. A Credential Hint the policy does not know and does not ignore. A request that differs from the <code>attest-initiate</code> that returned its Handle, or one to the resource of the other <code>mode</code> (<a href="#enrollment-processing" class="auto internal xref">Section 9.1.4</a>, <a href="#retrieval-processing" class="auto internal xref">Section 9.2.5</a>)<a href="#section-10-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.2">
           <p id="section-10-2.2.1">401 Unauthorized: missing/invalid authentication required by deployment policy<a href="#section-10-2.2.1" class="pilcrow">¶</a></p>
@@ -2479,7 +2428,7 @@ Servers <span class="bcp14">MAY</span> provide a correlation identifier for debu
             <p id="section-11.3-1.3.1">Channel binding: the digest of <a href="#est-binding" class="auto internal xref">Section 8.2</a> binds no TLS session and no Credential Authority or Secret Vault. It binds the Target name, so an EST Server can relay the exchange to another RATS Relying Party that serves the same Target, and that party recomputes the same digest. What it obtains, and that Evidence can reach any RATS Relying Party, is in the Trust Model of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>. A TLS channel binding would have to reach the Attester from the EST Client, which this architecture does not assume (Design Goal 8 of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>), so this profile puts none in the Evidence.<a href="#section-11.3-1.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-11.3-1.4">
-            <p id="section-11.3-1.4.1">Client authentication: <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> leaves the authentication of the EST Client to the EST Server to profiles. This profile requires none for the <code>attest-*</code> resources: Remote Attestation authenticates the Attester, and the EST Client holds no credential of its own. A deployment <span class="bcp14">MAY</span> require TLS client authentication on them, as on simpleenroll (Section 3.3 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>). An EST Server that mints <code>present-nonce</code> Handles on an unauthenticated <code>attest-initiate</code> <span class="bcp14">SHOULD</span> rate-limit them and cap the Handles outstanding per client.<a href="#section-11.3-1.4.1" class="pilcrow">¶</a></p>
+            <p id="section-11.3-1.4.1">Client authentication: <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> leaves the authentication of the EST Client to the EST Server to profiles. This profile requires none for the <code>attest-*</code> resources: Remote Attestation authenticates the Attester, and the EST Client holds no credential of its own. A deployment <span class="bcp14">MAY</span> require TLS client authentication on them, as on simpleenroll (Section 3.3 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span>). An EST Server that returns <code>present-nonce</code> Handles on an unauthenticated <code>attest-initiate</code> <span class="bcp14">SHOULD</span> rate-limit those requests and cap the Handles outstanding per client.<a href="#section-11.3-1.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-11.3-1.5">
             <p id="section-11.3-1.5.1">The channels from the EST Server to the Verifier and to the Credential Authority or Secret Vault <span class="bcp14">MUST</span> provide integrity, authenticity, and replay protection.<a href="#section-11.3-1.5.1" class="pilcrow">¶</a></p>
@@ -2899,10 +2848,6 @@ At publication of this specification, no fragment identification syntax is defin
         <dd>
 <span class="refAuthor">Josefsson, S.</span>, <span class="refTitle">"The Base16, Base32, and Base64 Data Encodings"</span>, <span class="seriesInfo">RFC 4648</span>, <span class="seriesInfo">DOI 10.17487/RFC4648</span>, <time datetime="2006-10" class="refDate">October 2006</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc4648">https://www.rfc-editor.org/rfc/rfc4648</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="RFC5480">[RFC5480]</dt>
-        <dd>
-<span class="refAuthor">Turner, S.</span>, <span class="refAuthor">Brown, D.</span>, <span class="refAuthor">Yiu, K.</span>, <span class="refAuthor">Housley, R.</span>, and <span class="refAuthor">T. Polk</span>, <span class="refTitle">"Elliptic Curve Cryptography Subject Public Key Information"</span>, <span class="seriesInfo">RFC 5480</span>, <span class="seriesInfo">DOI 10.17487/RFC5480</span>, <time datetime="2009-03" class="refDate">March 2009</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5480">https://www.rfc-editor.org/rfc/rfc5480</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="RFC6838">[RFC6838]</dt>
         <dd>
 <span class="refAuthor">Freed, N.</span>, <span class="refAuthor">Klensin, J.</span>, and <span class="refAuthor">T. Hansen</span>, <span class="refTitle">"Media Type Specifications and Registration Procedures"</span>, <span class="seriesInfo">BCP 13</span>, <span class="seriesInfo">RFC 6838</span>, <span class="seriesInfo">DOI 10.17487/RFC6838</span>, <time datetime="2013-01" class="refDate">January 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6838">https://www.rfc-editor.org/rfc/rfc6838</a>&gt;</span>. </dd>
@@ -2922,10 +2867,6 @@ At publication of this specification, no fragment identification syntax is defin
 <dt id="RFC8610">[RFC8610]</dt>
         <dd>
 <span class="refAuthor">Birkholz, H.</span>, <span class="refAuthor">Vigano, C.</span>, and <span class="refAuthor">C. Bormann</span>, <span class="refTitle">"Concise Data Definition Language (CDDL): A Notational Convention to Express Concise Binary Object Representation (CBOR) and JSON Data Structures"</span>, <span class="seriesInfo">RFC 8610</span>, <span class="seriesInfo">DOI 10.17487/RFC8610</span>, <time datetime="2019-06" class="refDate">June 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8610">https://www.rfc-editor.org/rfc/rfc8610</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC8785">[RFC8785]</dt>
-        <dd>
-<span class="refAuthor">Rundgren, A.</span>, <span class="refAuthor">Jordan, B.</span>, and <span class="refAuthor">S. Erdtman</span>, <span class="refTitle">"JSON Canonicalization Scheme (JCS)"</span>, <span class="seriesInfo">RFC 8785</span>, <span class="seriesInfo">DOI 10.17487/RFC8785</span>, <time datetime="2020-06" class="refDate">June 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8785">https://www.rfc-editor.org/rfc/rfc8785</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8951">[RFC8951]</dt>
         <dd>
