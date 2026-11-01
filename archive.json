@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-29T05:31:34.856190+00:00",
+  "timestamp": "2026-11-01T05:46:41.857207+00:00",
   "repo": "TheBankster/lamps-tacra-est",
   "labels": [
     {
@@ -276,7 +276,7 @@
       "id": "I_kwDOUNE08M8AAAABauFezw",
       "title": "Address incomplete EncryptedCredentialBundle TODO",
       "url": "https://github.com/TheBankster/lamps-tacra-est/issues/15",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "TheBankster",
       "authorAssociation": "OWNER",
       "assignees": [
@@ -285,8 +285,8 @@
       "labels": [],
       "body": "Per Grok's analysis, there is a critical blocker in submitting this draft. Listing the details below.\n\nISSUE: EncryptedCredentialBundle is still a TODO, IANA still registers it\n\n```399:405:draft-novak-lamps-tacra-est.md\nMandatory-to-implement encryption mechanism: The specification MUST choose one baseline.\n...\nTODO: Ensure that TACRA architecture can carry these and other encryption mechanisms to the Attester in a predictable format.\n```\n\n`attest-retrieve` success and `application/est-attest-bundle+json` have no CDDL. The globalsign-est mock already has a concrete container (`enc`, `epk`, `nonce`, `ciphertext`, AAD over `group_id`/`target`/`handle`/`credential_hint`, no `server_id`). Either write that (or HPKE) into `{{bundle}}` or drop the media-type registration from `-00`.\n\nThe draft\u2019s AAD list still includes `server_id`. The implementation dropped it.\n\n\nSUGGESTD SOLUTION:\n\nDo not copy the globalsign-est mock into the draft. It is ECDH + HKDF + AES-GCM with a homemade `info` string, and the code already calls that a stand-in for HPKE. Rubber-stamping it would freeze non-standard crypto as the EST profile.\n\nKeep `application/est-attest-bundle+json`. Put **HPKE Base** (RFC 9180) in that JSON object, with one MTI suite. That is the same shape as the mock (P-256, HKDF-SHA256, AES-256-GCM), with a real key schedule. CMS EnvelopedData is the LAMPS-native alternative; it would change the media type and fight the rest of `attest-*`. Use CMS only if the WG insists.\n\n---\n\n### Design\n\n- **MTI:** HPKE Base, `DHKEM(P-256, HKDF-SHA256)`, `HKDF-SHA256`, `AES-256-GCM` (RFC 9180 identifiers 0x0010, 0x0001, 0x0002).\n- **CEK:** P-256. Request `cek_pub` is the DER SubjectPublicKeyInfo (id-ecPublicKey, prime256v1). HPKE `pkR` is the uncompressed SEC1 point from that SPKI.\n- **Seal:** `SetupBaseS(pkR, info)` then `Seal(aad, plaintext)`.\n- **`info`:** the ASCII string `est-attest-bundle`.\n- **`aad`:** length-prefixed concatenation (same style as TACRA `binding_input`), not JSON:\n\n```\naad = len32(group_id) || utf8(group_id)\n   || len32(target)    || utf8(target)\n   || len32(handle)    || handle\n   || len32(hint)      || utf8(hint)\n```\n\n`len32` is a 32-bit big-endian length. `handle` and `hint` are empty (length 0) when absent. Drop `server_id`. Put `target` in the AAD (the implementation already does).\n\n- **Plaintext:** JSON `CredentialBundle` (group_id, items, optional metadata).\n- **Wire:** JSON `EncryptedCredentialBundle`. Outer `group_id` / `target` / `handle` / `credential_hint` are copies of the AAD fields so a client can build `aad` without decrypting.\n- **`acceptable_cek`:** initiate returns `\"HPKE-Base-P256-SHA256-A256GCM\"` as the MTI token.\n\nCite RFC 9180 as **normative**. Remove the CMS/HPKE/COSE menu and the TODO.\n\nThe mock will not interoperate until it calls HPKE. That is the right follow-up in globalsign-est, not a reason to specify the homemade KEM.\n\n---\n\n### Replace `{{bundle}}`\n\n```md\n### Response: EncryptedCredentialBundle {#bundle}\n\nThe EST Server returns the container produced by the Secret Vault.\nThe EST Client and EST Server MUST treat it as opaque.\n\nThe container is JSON, media type `application/est-attest-bundle+json` ({{cddl}}).\nImplementations MUST support HPKE Base {{RFC9180}} with DHKEM(P-256, HKDF-SHA256), HKDF-SHA256, and AES-256-GCM (HPKE identifiers 0x0010, 0x0001, 0x0002).\nThat suite is the string `HPKE-Base-P256-SHA256-A256GCM` in `enc` and in `acceptable_cek`.\n\n`cek_pub` in the request is the DER encoding of a SubjectPublicKeyInfo (Section 4.1 of {{RFC5280}}) for id-ecPublicKey on prime256v1 ({{RFC5480}}).\nThe Secret Vault uses the uncompressed SEC1 point from that SPKI as the HPKE public key.\n\nThe Secret Vault encrypts as follows:\n\n1. `info` is the ASCII string `est-attest-bundle` with no terminating NUL.\n2. `aad` is\n   `len32(group_id) || utf8(group_id) || len32(target) || utf8(target) || len32(handle) || handle || len32(hint) || utf8(hint)`,\n   where `len32(x)` is the length of `x` in octets as a 32-bit big-endian unsigned integer, `handle` is the freshness element of the request or empty, and `hint` is the UTF-8 encoding of `credential_hint` or empty.\n3. `plaintext` is the UTF-8 JSON of a CredentialBundle ({{cddl}}).\n4. `(encapsulated_key, ciphertext) = Seal(SetupBaseS(pkR, info), aad, plaintext)` as in {{RFC9180}}.\n\nFields of EncryptedCredentialBundle:\n\n* `group_id` (string, REQUIRED): the credential group ({{group-id}})\n* `enc` (string, REQUIRED): `HPKE-Base-P256-SHA256-A256GCM`\n* `target` (string, REQUIRED): the Target of the request\n* `handle` (bytes, OPTIONAL): the freshness element when the request carried one\n* `credential_hint` (string, OPTIONAL): the hint when the request carried one\n* `encapsulated_key` (bytes, REQUIRED): HPKE `enc`\n* `ciphertext` (bytes, REQUIRED): HPKE `ct`\n\nThe Attester rebuilds `aad` from those fields, runs `SetupBaseR(encapsulated_key, skR, info)`, and opens `ciphertext`.\nIt MUST reject the container unless `enc` is the MTI suite, `target` equals the request Target, and `handle` equals the request handle when one was sent.\n\nCredentialBundle plaintext:\n\n* `group_id` (string, REQUIRED): MUST equal the outer `group_id`\n* `credential_items` (array, REQUIRED, at least one): each item has `type` (string) and `data` (bytes)\n    * `x509-cert`: DER-encoded X.509 certificate\n    * `ca-certs-pem`: PEM CA certificates\n    * `pkcs8-key`: DER-encoded PKCS#8 private key (high risk; see {{security}})\n    * `wic`, `wit`, `jwt`, `api-key`, `psk`: the credential octets of that type\n* `metadata` (object, OPTIONAL): implementation-defined string keys (validity, refresh, rotation epoch, key identifiers)\n\nA Secret Vault MAY use another HPKE suite or another mechanism if the Attester selected it from `acceptable_cek`.\nThis document does not define those suites.\n```\n\nLeave the `group_id` formula as an example in `{{group-id}}`. Do not put `credential_hint` in the group key as a MUST.\n\n---\n\n### Add to `est-attest.cddl`\n\n```cddl\nencrypted-credential-bundle = {\n  group_id: text,\n  enc: \"HPKE-Base-P256-SHA256-A256GCM\",\n  target: text,\n  ? handle: text .b64u bytes,\n  ? credential_hint: text,\n  encapsulated_key: text .b64u bytes,\n  ciphertext: text .b64u bytes,\n}\n\ncredential-bundle = {\n  group_id: text,\n  credential_items: [+ credential-item],\n  ? metadata: { * text => text },\n}\n\ncredential-item = {\n  type: text,\n  data: text .b64u bytes,\n}\n```\n\nIn `{{cddl}}` prose, drop \u201cThe EncryptedCredentialBundle is not defined here.\u201d\n\n---\n\n### Front matter and initiate\n\n```yaml\nnormative:\n  RFC9180: HPKE\n  RFC5280:\n  RFC5480:\n```\n\nInitiate `acceptable_cek` for retrieve: at least `HPKE-Base-P256-SHA256-A256GCM`.\n\nIANA for `application/est-attest-bundle+json` can stay: the payload is now defined.\n\n---\n\n### What this does not do\n\nIt does not make the current mock decryptable as-is (HPKE labeled KDF \u2260 `hkdf.Key(..., epk, aad)`). It does not pick CMS. It does not keep the three-way TODO.\n\nIf LAMPS wants CMS instead, switch the retrieve response to `application/pkcs7-mime` AuthEnvelopedData (RFC 5083) and withdraw `est-attest-bundle+json`. That is a different profile, not a small edit.",
       "createdAt": "2026-10-28T21:49:46Z",
-      "updatedAt": "2026-10-29T01:36:07Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-29T22:56:27Z",
+      "closedAt": "2026-10-29T22:56:27Z",
       "comments": [
         {
           "author": "nikolaichuk7",
@@ -344,7 +344,7 @@
       "id": "I_kwDOUNE08M8AAAABauJd-w",
       "title": "TACRA `{#binding}` defines the digest but the draft never fills those profile slots.",
       "url": "https://github.com/TheBankster/lamps-tacra-est/issues/16",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "TheBankster",
       "authorAssociation": "OWNER",
       "assignees": [
@@ -353,8 +353,8 @@
       "labels": [],
       "body": "Grok has flagged the following critical blocking issue, and suggested a solution.\n\nTACRA `{#binding}` defines the digest over three values and **delegates the Retrieval subject encoding to this profile**:\n\n```\nbinding_input = len32(freshness) || freshness\n             || len32(target)    || target\n             || len32(subject)   || subject\n```\n\nThis draft never fills those profile slots. Two implementations that both \u201cfollow TACRA\u201d will not recompute the same digest.\n\nWhat is missing:\n\n1. **Enrollment prose is incomplete.** `{{relationship}}` and `{{key-binding}}` say Evidence is produced over a digest of the finished CSR. TACRA\u2019s digest also covers the freshness element and the Target. A substituted Target or replayed freshness still verifies if a reader follows only this document.\n2. **Retrieval `subject`.** TACRA: \u201cCEKpub in the encoding the Credential Acquisition Mechanism carries it in.\u201d Here that is only \u201cthe octets of `cek_pub`.\u201d SPKI DER vs raw SEC1 point vs HPKE public key is unspecified. globalsign-est uses SubjectPublicKeyInfo DER for the digest.\n3. **Freshness element on the wire.** Request `handle` is required for every kind except `absent-none`, but the field is still described as a Freshness Handle. For `absent-timestamp` TACRA uses an 8-octet big-endian Unix timestamp; for `absent-epoch` a locally held marker. Neither encoding is written here.\n4. **`binding.method` / `hash`.** CDDL is unconstrained `text`. The implementation uses `method: \"binding-input\"` and SHA-512 for a 64-octet freshness input. Direct vs Nested vs Provider-scoped (TACRA platform forms) are not named.\n\nThe JSON `binding` object still has no `binding-input` member (open issue; out of scope here). The digest lives in Evidence; `binding` only names how it was produced.\n\n---\n\n## Proposed fix\n\nAdd one EST binding section and point enrollment, retrieval, and `{{relationship}}` at it. Specify the octets this profile uses. Do not add a `binding-input` JSON field.\n\n### 1. New section, after Common Structures (or immediately before `{{key-binding}}`)\n\n```md\n## EST Binding of Credential Keys to Evidence {#est-binding}\n\nThis profile uses the digest of Section \"Binding Credential Keys to Evidence\" of {{TACRA}}.\nThe Attester writes that digest into the Evidence freshness input (the Direct form of that section).\nThe Verifier reports the value it read.\nThe Credential Authority or Secret Vault recomputes the digest from the second-leg request and refuses the request with 403 Forbidden unless the two are equal.\n\nThis profile specifies the three octet strings of that construction as follows.\n\n`freshness` is the freshness element of the request:\n\n* `present-nonce` / `present-epoch`: the Freshness Handle returned by `attest-initiate`, the octets of request `handle`\n* `absent-epoch`: the epoch marker the Attester already holds, the octets of request `handle`\n* `absent-timestamp`: an 8-octet big-endian unsigned count of seconds since 1970-01-01T00:00:00Z, the octets of request `handle`\n* `absent-none`: empty (length 0); request `handle` is absent\n\n`target` is the UTF-8 encoding of the request `target` member, compared as an exact octet string.\n\n`subject` is:\n\n* Enrollment: the DER encoding of the PKCS#10 CSR, the octets of request `csr`\n* Retrieval: the DER encoding of a SubjectPublicKeyInfo (Section 4.1 of {{RFC5280}}) for the CEK, the octets of request `cek_pub`. For the MTI HPKE suite ({{bundle}}), that SPKI is id-ecPublicKey on prime256v1 ({{RFC5480}}).\n\nThe JSON `binding` object does not carry these octets. It names the method and hash:\n\n* `method` (string, REQUIRED): `binding-input` for the Direct form above\n* `hash` (string, REQUIRED for `binding-input`): `sha512` when the Evidence freshness input is 64 octets (AMD SEV-SNP REPORT_DATA, Intel TDX REPORTDATA)\n\nImplementations of this profile MUST produce and accept `method` `binding-input` with `hash` `sha512`.\nA Credential Authority or Secret Vault that does not recognize `method` refuses the request with 400 Bad Request.\n\nThe digest is SHA-512 of `binding_input` as {{TACRA}} defines it.\nA platform whose freshness input is not 64 octets is outside this profile's mandatory method.\n```\n\nCite RFC 5280 (and RFC 5480 if `{{bundle}}` uses P-256 HPKE) as informative or normative, matching how you treat them for the bundle.\n\n### 2. Point the existing MUSTs at that section\n\n**`{{key-binding}}` item 2**, replace the two paragraphs with:\n\n```md\n2. Evidence-to-CSR and Evidence-to-Freshness: the Evidence MUST carry the digest of {{est-binding}}, with the DER-encoded CSR as `subject`. The Credential Authority recomputes that digest from the request and refuses the request with 403 Forbidden on a mismatch; a substituted CSR, Target, or freshness element fails that check.\n```\n\n**`{{evidence-to-cek}}`:**\n\n```md\nThe Evidence MUST carry the digest of {{est-binding}}, with the SubjectPublicKeyInfo octets of `cek_pub` as `subject`.\nThe Secret Vault recomputes that digest from the request and denies release with 403 Forbidden on a mismatch.\n```\n\n**`{{relationship}}`**, replace \u201cthe Evidence is produced over a digest that includes the finished CSR\u201d with:\n\n```md\nthe Evidence freshness input carries the digest of {{est-binding}}, which includes the finished CSR, so that Evidence cannot travel inside the CSR\n```\n\n### 3. Rename request `handle` in prose (CDDL name can stay)\n\nEnrollment and retrieval field lists, same sentence:\n\n```md\n* handle (bytes): freshness element of {{est-binding}} \u2014 REQUIRED when `freshness_kind` is not `absent-none`; MUST be absent otherwise. For `present-nonce` and `present-epoch` it MUST equal the Handle returned by `attest-initiate`. For `absent-timestamp` it is the 8-octet timestamp. For `absent-epoch` it is the locally held epoch marker.\n```\n\nLeave initiate-response `handle` as \u201cFreshness Handle\u201d; only the second-leg field is overloaded.\n\n### 4. Tighten CDDL\n\n```cddl\nbinding = {\n  method: \"binding-input\",\n  hash: \"sha512\",\n}\n```\n\nIf you want other methods later:\n\n```cddl\nbinding = {\n  method: \"binding-input\",\n  hash: \"sha512\",\n} / {\n  method: text .ne \"binding-input\",\n  ? hash: text,\n}\n```\n\n`-00` can use the first form.\n\n---\n\nThat is the whole interoperability hole: three octet strings, one method token, one hash name. Nested and provider-scoped platforms stay out of the MTI until a later revision adds method values.",
       "createdAt": "2026-10-28T21:54:21Z",
-      "updatedAt": "2026-10-28T21:55:29Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-29T16:27:15Z",
+      "closedAt": "2026-10-29T16:27:15Z",
       "comments": []
     },
     {
@@ -362,7 +362,7 @@
       "id": "I_kwDOUNE08M8AAAABauMg0w",
       "title": "As written, a client can POST `credential_type: wimse-wit` with a CSR and is told to parse PKCS#7. That is not implementable.",
       "url": "https://github.com/TheBankster/lamps-tacra-est/issues/17",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "TheBankster",
       "authorAssociation": "OWNER",
       "assignees": [
@@ -371,8 +371,8 @@
       "labels": [],
       "body": "Grok has flagged the following critical blocking issue and suggested a solution:\n\n`attest-enroll` success is **simpleenroll**: `application/pkcs7-mime; smime-type=certs-only` (RFC 7030 \u00a74.2.3). That payload is a CMS certs-only bag of X.509 certificates.\n\nThe same document lets `credential_type` be `x509` **or** `wimse-wit` on **both** enroll and retrieve:\n\n```337:337:draft-novak-lamps-tacra-est.md\n* credential_type (string, OPTIONAL): e.g., x509, wimse-wit\n```\n\nA WIT is a JWT with key confirmation. It is not a PKCS#7 certs-only object. There is no enroll media type, ASN.1, or processing for it.\n\nTACRA Enrollment mints a new proof-of-possession credential of the requested type (X.509, WIC, WIT). Retrieval returns an existing credential of any type, wrapped to CEKpub. This EST profile implements Enrollment as RFC 7030 simpleenroll and Retrieval as an encrypted bundle. The wire already splits types; the field examples do not.\n\nglobalsign-est matches the wire: enroll returns one X.509 cert; `jwt` / `psk` / `api-key` / `wit` go through retrieve.\n\nAs written, a client can POST `credential_type: wimse-wit` with a CSR and is told to parse PKCS#7. That is not implementable.\n\n---\n\n## Proposed fix\n\nFor this profile, **enroll mints an X.509 certificate**. Every other Credential Type in this document is **retrieve**. Do not add WIT/WIC enroll responses in `-00`.\n\nThat matches EST, the media-type table, the CSR/PoP text, and the running code. WIC can wait: it is certificate-shaped, but it is not simpleenroll until someone specifies the bag.\n\n### 1. Abstract / intro (enrollment bullet)\n\nLeave it as PKCS#10 CSR \u2192 issued certificate. No change required unless you currently imply \u201cany TACRA credential.\u201d\n\n### 2. `credential_type` tokens this profile uses\n\nPut this once (Common Structures, or a short subsection under IANA / modes) and delete the \u201ce.g., x509, wimse-wit\u201d examples from both request field lists:\n\n```md\n## Credential Type tokens {#credential-type}\n\nWhen `credential_type` is present, this profile uses these values:\n\n* `x509`: an X.509 certificate {{RFC5280}}. Enrollment mints one; Retrieval MAY return a previously issued chain.\n* `wic`: a WIMSE Workload Identity Certificate {{WIMSE}}. Retrieval only in this version.\n* `wit`: a WIMSE Workload Identity Token {{WIMSE}}. Retrieval only.\n* `jwt`: a JWT {{RFC7519}} used as a bearer token. Retrieval only.\n* `api-key`: an API key. Retrieval only.\n* `psk`: a pre-shared symmetric key. Retrieval only.\n* `pkcs8-key`: a PKCS#8 private key. Retrieval only (see {{security}}).\n\n`attest-enroll` mints `x509`.\nIf `credential_type` is present on `attest-enroll` and is not `x509`, the EST Server refuses the request with 400 Bad Request.\nIf it is omitted, the Credential Authority mints `x509`.\n\n`attest-retrieve` MAY carry any of the tokens above.\nThe Secret Vault selects the group from Attestation Results and the hint ({{group-id}}); `credential_type` MAY further restrict which `credential_items` are included.\nIf the Vault will not honor the type, it denies release with 403 Forbidden.\n\nThis document does not request a registry of these tokens.\n```\n\nCite WIMSE and RFC 7519 as informative if those names stay.\n\n### 3. Enrollment request / response\n\nReplace the `credential_type` bullet and the success paragraph:\n\n```md\n* credential_type (string, OPTIONAL): MUST be `x509` if present ({{credential-type}})\n```\n\n```md\n### Response (Success)\n\nOn success, the EST Server returns the certificate produced by the Credential Authority\nas for simpleenroll (Section 4.2.3 of {{RFC7030}}):\n`application/pkcs7-mime; smime-type=certs-only`.\nThat bag contains the newly minted X.509 certificate and, at the Authority's option, its chain.\n```\n\n### 4. Retrieval request\n\n```md\n* credential_type (string, OPTIONAL): one of the tokens in {{credential-type}}; MUST NOT be used to request enrollment of a new key\n```\n\nIf you take the HPKE bundle from critical #1, `credential_items[].type` should use the same tokens (`x509-cert` vs `x509`: pick one set and use it on both the request and the item).\n\n### 5. Initiate\n\n`credential_type` query parameter: same tokens. For a Target whose policy is enroll-only, a retrieve-only type is 403 (same as unknown Target). For retrieve-only Targets, `x509` is allowed if the Vault holds a cert chain.\n\n### 6. Error Handling\n\n```md\n* 400 Bad Request: a request that does not match its definition ({{cddl}}), an `attest-initiate` GET with no `target`, or `attest-enroll` with a `credential_type` other than `x509`\n```\n\n### 7. IANA\n\nDrop this sentence from `{#iana}` (it is the same hole, one layer up):\n\n> This document also requests a registry of acceptable_evidence identifiers and credential_type identifiers (if not reused from existing registries).\n\nTokens live in `{#credential-type}` until a WG document wants a registry.\n\n---\n\nDo **not** invent a WIT enroll media type for `-00`. If someone later needs attested WIT minting, that is a new enroll response (for example `application/at+jwt`) and a new `credential_type` rule, not a PKCS#7 bag.",
       "createdAt": "2026-10-28T21:57:51Z",
-      "updatedAt": "2026-10-28T21:57:51Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-29T16:28:34Z",
+      "closedAt": "2026-10-29T16:28:34Z",
       "comments": []
     },
     {
@@ -396,15 +396,15 @@
       "id": "I_kwDOUNE08M8AAAABauU7lg",
       "title": "Cite TACRA for Freshness Kind names; stop calling every request `handle` a Freshness Handle",
       "url": "https://github.com/TheBankster/lamps-tacra-est/issues/19",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "TheBankster",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Grok has flagged the following Important issue in the draft and suggested a solution:\n\nTerminology currently points the five kinds and `handle` at the wrong documents:\n\n```\n* Freshness Kind: \u2026 `absent-timestamp`, `absent-none`, `absent-epoch`,\n  `present-nonce`, or `present-epoch` ({{INTERACTION-MODELS}}, Section 10 of {{RFC9334}})\n* Freshness Handle: freshness element included in Evidence when Freshness Kind\n  is not `absent-none` ({{INTERACTION-MODELS}})\n```\n\nRFC 9334 \u00a710 has timestamp, nonce, and epoch. INTERACTION-MODELS has Handle. Neither defines `absent-timestamp`, `present-nonce`, or the other three tokens. Those names are TACRA `{#freshness-kind}`.\n\nThe same glossary entry then equates **Freshness Handle** with **freshness element**. TACRA splits them:\n\n- Freshness Handle: value returned by Initiate for `present-nonce` / `present-epoch`.\n- Freshness element: what the binding digest covers \u2014 Handle, 8-octet timestamp, epoch marker, or empty.\n\nWire CDDL already follows TACRA: initiate `handle` only for `present-*`; second-leg `handle` for every kind except `absent-none`. The prose does not:\n\n- Initiate field: \u201cFreshness Handle \u2014 REQUIRED for `present-nonce` and `present-epoch`.\u201d Correct.\n- Enroll/retrieve field: \u201cFreshness Handle \u2014 REQUIRED when `freshness_kind` is not `absent-none`. MUST equal the Handle returned by `attest-initiate` when present.\u201d For `absent-timestamp` / `absent-epoch` nothing was returned, so \u201cHandle\u201d and \u201cMUST equal the Handle\u201d do not apply.\n- Field bullets for `absent-timestamp` still cite RFC 9334 \u00a710.1 instead of TACRA.\n\nSecurity Considerations repeats the mix (\u201ca nonce Handle \u2026 a timestamp \u2026 an epoch marker \u2026 (Section 10 of RFC 9334)\u201d).\n\nReaders (and an RP recomputing the digest) cannot tell whether second-leg `handle` is the initiate Handle, a timestamp, or a local epoch marker.\n\n**Suggested solution**\n\nPoint the five names at TACRA. Keep the JSON member `handle`. Describe initiate `handle` as a Freshness Handle and second-leg `handle` as the freshness element. Concrete edits:\n\nGlossary:\n\n```md\n* Freshness Kind: the recency method; one of `absent-timestamp`, `absent-none`,\n  `absent-epoch`, `present-nonce`, or `present-epoch` ({{TACRA}})\n* Freshness Handle: the value `attest-initiate` returns for `present-nonce` and\n  `present-epoch` ({{TACRA}}, {{INTERACTION-MODELS}})\n* Freshness element: the octets the binding digest covers ({{TACRA}}): the\n  Freshness Handle, the Attester's timestamp, a locally held epoch marker, or\n  empty for `absent-none`. On `attest-enroll` and `attest-retrieve` this is the\n  `handle` member when present.\n```\n\n`{{initiation-response}}` `freshness_kind` bullets: cite `{{TACRA}}` for each kind; keep RFC 9334 \u00a710 only as the general freshness discussion.\n\nEnrollment and retrieval `handle` bullets (same text both places):\n\n```md\n* handle (bytes): freshness element \u2014 REQUIRED when `freshness_kind` is not\n  `absent-none`; MUST be absent otherwise.\n  For `present-nonce` and `present-epoch` it MUST equal the Freshness Handle\n  returned by `attest-initiate`.\n  For `absent-timestamp` it is the 8-octet big-endian Unix timestamp.\n  For `absent-epoch` it is the locally held epoch marker.\n```\n\n(The two encodings match critical #2 / `{#est-binding}` if that section is added; otherwise state them here.)\n\nSecurity Considerations freshness bullet: cite `{{TACRA}}` for kinds and element; RFC 9334 \u00a710 for the three recency methods in general.\n\nOptional: carry TACRA\u2019s Handle lifetime guidance (SHOULD NOT be below 60 seconds) on initiate `expires_in`, or say this profile chooses otherwise.",
       "createdAt": "2026-10-28T22:07:30Z",
-      "updatedAt": "2026-10-28T22:07:30Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-29T16:28:35Z",
+      "closedAt": "2026-10-29T16:28:35Z",
       "comments": []
     },
     {
@@ -412,15 +412,15 @@
       "id": "I_kwDOUNE08M8AAAABawIq1A",
       "title": "CSR-ATTEST is extra key-property Evidence; put that rule in TACRA and point EST at it",
       "url": "https://github.com/TheBankster/lamps-tacra-est/issues/20",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "TheBankster",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Grok has flagged the following Important issue and suggested a solution for it.\n\nEST `{{relationship}}` currently:\n\n```md\n{{CSR-ATTEST}} conveys Evidence inside the CSR, in its `id-aa-attestation` attribute.\nIt makes the CA/RA responsible for validating the binding between the attestations\nand the CSR's public key (Section 6.1 of {{CSR-ATTEST}}).\nThis document conveys Evidence beside the CSR \u2026 the Evidence is produced over a\ndigest that includes the finished CSR, so it cannot travel inside it.\nPlacing attestations in the CSR as well \u2026 is an optional interoperability path\nfor an Attester whose platform can make claims about the CSR key\n```\n\nProblems:\n\n- The TACRA-binding Evidence **cannot** be that CSR attribute. The digest covers the finished CSR (plus freshness and Target). Putting that Evidence inside the CSR is circular. The \u201coptional path\u201d is therefore a **second** attestation, not the same object. Neither draft says that clearly.\n- CSR-ATTEST `-32` \u00a76.1 no longer means \u201cCA binds attestations to the CSR public key\u201d in the old sense. It says a public key (or its hash) in platform Evidence does **not**, by itself, prove the private key was generated or is protected in the attested environment. Citing \u00a76.1 as if it were the TACRA digest, then offering CSR-ATTEST \u201cas well\u201d for \u201cclaims about the CSR key,\u201d can be read as replacing TACRA\u2019s binding.\n- That caveat is an **architecture** claim (digest-of-CSR \u2260 CSKpri generated in the TEE). It belongs in TACRA. If only EST paraphrases \u00a76.1, EST goes stale when CSR-ATTEST revvs.\n\nDo **not** change TACRA\u2019s Enrollment subject from the finished CSR to the CSR public key so Evidence can ride in `id-aa-attestation`. That would let the CAS rewrite SAN/subject/extensions around the same key and would drop TACRA\u2019s untrusted-CAS property.\n\n**Suggested solution**\n\nKeep the digest over the DER CSR. State the CSR-ATTEST rule once in TACRA. Make EST a short profile of that text.\n\n**TACRA `{#binding}`** \u2014 add, do not retarget the digest:\n\n```md\nThe Enrollment subject is the DER-encoded CSR. Evidence that carries this\ndigest therefore cannot appear in that CSR, including as the `id-aa-attestation`\nattribute of {{CSR-ATTEST}}. {{CSR-ATTEST}} does not replace this binding.\n\n{{CSR-ATTEST}} MAY carry additional attestations about the CSR key (for example\nthat CSKpri was generated in the attested environment). This digest does not\nprove that. When a Credential Authority relies on such attestations, Section 6.1\nof {{CSR-ATTEST}} applies: a public key or its hash in platform Evidence does\nnot, by itself, demonstrate that the corresponding private key was generated or\nis protected in the attested environment.\n```\n\n**EST `{{relationship}}`** \u2014 replace the CSR-ATTEST paragraphs with a pointer:\n\n```md\n{{CSR-ATTEST}} conveys attestations inside the CSR. This profile conveys the\nTACRA binding Evidence beside the CSR, in AttestedEnrollmentRequest\n({{enrollment-request}}), as {{TACRA}} requires: that Evidence's freshness\ninput covers the finished CSR, so it cannot travel inside it.\n\nEvidence beside the CSR is mandatory. Additional {{CSR-ATTEST}} attributes in\nthe CSR are optional, for key-property claims this profile's digest does not\nprove, under the rules of {{TACRA}} and of Section 6.1 of {{CSR-ATTEST}}.\nWhether a Credential Authority requires that path is agreed out of band.\nRetrieval has no CSR and binds Evidence to CEKpub ({{evidence-to-cek}}).\n```\n\nDo not put the TACRA-binding Evidence in `id-aa-attestation`. If a CA requires CSR-ATTEST, it is extra Evidence, appraised under CSR-ATTEST \u00a76.1, not a second copy of the binding digest.",
       "createdAt": "2026-10-29T00:42:03Z",
-      "updatedAt": "2026-10-29T01:36:09Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T01:09:07Z",
+      "closedAt": "2026-10-30T01:09:07Z",
       "comments": [
         {
           "author": "nikolaichuk7",
@@ -436,15 +436,15 @@
       "id": "I_kwDOUNE08M8AAAABawKlmg",
       "title": "`attest-initiate` is not `/nonce`: size, association, and \u201cHandle = freshness nonce\u201d are unspecified",
       "url": "https://github.com/TheBankster/lamps-tacra-est/issues/21",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "TheBankster",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Grok has flagged this Important issue and has suggested a solution for it:\n\n`{{relationship}}` currently:\n\n```md\n`attest-initiate` covers the same first leg for the `present-nonce` Freshness Kind\nand, in addition, returns the Freshness Kind, the Credential Acquisition Mode and\nthe acceptable CSK or CEK algorithms, none of which the nonce resource carries.\nA `present-nonce` Handle is a nonce in the sense of {{ATTESTATION-FRESHNESS}},\nand the requirement of Section 5.1 of that document that the server associate\nthe nonce with the subsequent request applies to `attest-initiate` and its\nsecond leg alike.\nAn EST Server MAY offer both resources.\n```\n\nThat over-identifies the two resources.\n\n**Size and entropy.** Freshness `-09` \u00a75.1: nonce is 8\u201364 bytes, \u226564 bits of entropy, unique, not reused. This profile never constrains `handle`. A 4-byte Handle, or a Handle that is not fresh random, is not a nonce in that sense. TEE REPORT_DATA is 64 octets, but that field holds the **digest**, not the Handle.\n\n**No `len`.** Freshness GET is parameterless; POST carries `len` (and optional type info) so the Attester can ask for a platform-sized nonce. `attest-initiate` has `target` and `credential_type` and no length. An Attester that needs 32 vs 64 bytes of Handle cannot say so.\n\n**Association is not the same mechanism.** Freshness \u00a75.1 binds nonce request to the later CSR with TLS session (or cookies). This profile also correlates `handle` with initiate `target` / `credential_type` (409/403) and TACRA puts the Handle in the binding digest. Saying \u201c\u00a75.1 applies alike\u201d hides that extra correlation and does not say whether TLS session is required on top.\n\n**`expires_in` vs `expiry`.** Same quantity (seconds), different names. Unstated.\n\n**Two resources.** \u201cMAY offer both\u201d does not say whether a `/nonce` value may be reused as an `attest-initiate` Handle (or the reverse). They are not substitutes: `/nonce` does not return kind, mode, or algorithms, and enroll/retrieve need those plus the digest.\n\n**GET that mints a single-use Handle** is the same RFC 9110 compromise Freshness `-09` already makes for GET `/nonce`. Worth one sentence, not a redesign.\n\nTACRA today: Handle lifetime SHOULD NOT be below 60 seconds; CAS MUST NOT mint `present-nonce`; no size, entropy, or length-request on Initiate-Credential-Acquisition.\n\n**Suggested solution**\n\nDo not claim a Handle **is** a freshness nonce until both drafts say it is one. Keep two resources; define `present-nonce` Handles so EST can use them with `/nonce`\u2019s rules; do not mix the two URLs.\n\n**TACRA `{#freshness-kind}` / Initiate**\n\n```md\nA `present-nonce` Freshness Handle is a nonce: it MUST contain at least 64 bits\nof entropy, MUST be unique, and MUST NOT be reused (Section 10.2 of {{RFC9334}}).\nIts length is between 8 and 64 octets inclusive, as {{ATTESTATION-FRESHNESS}}\nrequires for EST/CMP/CMC nonces.\n\nInitiate-Credential-Acquisition MAY take a requested length in that range.\nThe originator returns a Handle of that length, or the length its policy sets\nif none was requested.\n\nA Freshness Handle originator SHOULD NOT set a lifetime below 60 seconds.\n```\n\n(Lifetime sentence is already there; keep it.)\n\nDo **not** put TLS-session association in TACRA. The Attester has no network. Association at the architecture layer is: the party that issued the Handle checks it, and the RP recomputes the digest that includes it.\n\n**EST `{{relationship}}`** \u2014 replace the three sentences with:\n\n```md\n{{ATTESTATION-FRESHNESS}} defines `/.well-known/est/nonce` (GET, or POST with\n`application/est-attestation-freshness+json`). The response carries a `nonce`\nof 8 to 64 bytes and an OPTIONAL `expiry` in seconds (Section 5.1).\n\nFor the `present-nonce` Freshness Kind, `attest-initiate` is the first leg that\nreturns that nonce, as a Freshness Handle, plus the Freshness Kind, the\nCredential Acquisition Mode, and the acceptable CSK or CEK algorithms\n({{initiation-response}}), none of which `/nonce` carries.\n\nA `present-nonce` Handle in this profile is a nonce as {{TACRA}} and\nSection 5.1 of {{ATTESTATION-FRESHNESS}} specify (8 to 64 bytes, \u226564 bits of\nentropy, unique, not reused). `expires_in` is that document's `expiry`: seconds\nuntil the originator no longer accepts the Handle.\n\nSection 5.1's requirement that the server associate the nonce with the\nsubsequent request applies. This profile does that by (1) the TLS session or\ncookies of Section 5.1, (2) correlating `handle` with the `target` and\n`credential_type` of the `attest-initiate` that returned it, and (3) the\nRelying Party recomputing the digest of {{TACRA}} that includes the Handle.\n\nAn EST Server MAY offer both `/nonce` and `attest-initiate`. They are not\ninterchangeable. A client that will call `attest-enroll` or `attest-retrieve`\nMUST obtain the Handle from `attest-initiate` (or complete initiate locally\nfor an `absent-*` kind). A nonce obtained from `/nonce` MUST NOT be sent as\n`handle` on those resources unless the server has stated that the two URLs\nshare Handle state, which this document does not require.\n```\n\n**EST `attest-initiate`**\n\n- Optional query parameter `len`: requested Handle length in bytes, 8..64, only meaningful when the response kind will be `present-nonce`. Server ignores it for other kinds.\n- `expires_in`: same meaning as freshness `expiry`.\n- One sentence: GET that mints a single-use Handle has the same side effect as GET `/nonce` in {{ATTESTATION-FRESHNESS}}; the Handle is bound as in `{{relationship}}`.\n\nNo change to POST vs GET for `-00` unless you want full alignment with freshness POST; query `len` is enough.",
       "createdAt": "2026-10-29T00:44:53Z",
-      "updatedAt": "2026-10-29T01:36:10Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T01:38:24Z",
+      "closedAt": "2026-10-30T01:38:24Z",
       "comments": [
         {
           "author": "nikolaichuk7",
@@ -452,6 +452,13 @@
           "body": "Done in #31 and TheBankster/rats-tacra#27: a present-nonce Handle is 8 to 64 octets, at least 64 bits of entropy, issued once and not reused, in the CDDL and in prose; expires_in is named as the freshness draft's expiry; the two resources are told apart. Two of the suggestions do not fit the architecture, and the text says why: no requested length, since the Handle enters the Evidence through the digest and no platform needs a Handle of a particular size (the bench's are 32 octets); no TLS session or cookie for the association, since either would bind the EST Client, the conduit, not the Attester.\n",
           "createdAt": "2026-10-29T01:36:10Z",
           "updatedAt": "2026-10-29T01:36:10Z"
+        },
+        {
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Merged in #31 (ca1fd9f), with the TACRA part in TheBankster/rats-tacra#27 (30f2579).",
+          "createdAt": "2026-10-30T01:38:23Z",
+          "updatedAt": "2026-10-30T01:38:23Z"
         }
       ]
     },
@@ -460,15 +467,15 @@
       "id": "I_kwDOUNE08M8AAAABawN-kA",
       "title": "EST Server 403 on `credential_type` is not authorization; TACRA type/hint stay unbound",
       "url": "https://github.com/TheBankster/lamps-tacra-est/issues/22",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "TheBankster",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Grok has flagged the following Important issue and suggested a solution for it.\n\nArchitecture says the EST Client and EST Server have no RATS role and **MUST NOT authorize** issuance or release.\n\nEnrollment/retrieval processing then has the EST Server refuse the second leg with **403 Forbidden** when `target`, `freshness_kind`, or `credential_type` (when carried) differ from the `attest-initiate` that returned the Handle. Error Handling uses the same 403 for that mismatch **and** for \u201cattestation failed\u201d / \u201cpolicy denies enrollment/retrieval.\u201d\n\nTACRA `{#untrusted-cas}`: the CAS is a conduit. **Credential Type and Credential Hint are not in the binding.** The RATS Relying Party\u2019s policy, not the CAS, caps what is minted or released. The RP **MUST take the Freshness Kind for a Target from its own policy, not from the request.** Target **is** in the digest, so a substituted Target fails at the RP even if the CAS forwards it.\n\nSo:\n\n- EST Server 403 when second-leg `credential_type` \u2260 initiate\u2019s type treats the CAS copy of type as authoritative. That is appraisal of an unbound field. A malicious EST Server can skip the check and forward anyway; the 403 is not a control against untrusted CAS.\n- Bundling that 403 with \u201cpolicy denies\u201d / \u201cattestation failed\u201d makes a session mismatch look like an RP decision.\n- Correlating `handle` with `target` (and with the kind **initiate returned**) is useful session hygiene so two in-flight exchanges are not mixed. It is not authorization. The RP still recomputes the digest (Target) and still applies its own Freshness Kind policy.\n\nHint is already described as non-authorizing in the EST glossary; it is not in the 403 list. Type should be treated the same way.\n\n**Suggested solution**\n\nKeep Handle\u2194Target correlation. Stop treating type (and request `freshness_kind`) as EST Server policy. Say once in TACRA that type/hint are unbound; EST only implements session correlation and forwards RP 403s.\n\n**TACRA** (untrusted CAS / binding \u2014 make the profile rule explicit):\n\n```md\nCredential Type and Credential Hint are not in the binding. The CAS MAY\nforward them. The RATS Relying Party MUST apply its own policy to the type\nand the hint and MUST NOT treat the CAS's copies as authorizing issuance or\nrelease.\n\nThe Relying Party MUST take the Freshness Kind for a Target from its own\npolicy, not from the request. The Target is in the binding; a CAS that\nsubstitutes a Target fails the digest check.\n\nA Credential Acquisition Mechanism MAY correlate a Freshness Handle with the\nTarget (and with the Freshness Kind returned for that Handle) so that two\nin-flight exchanges are not mixed. That correlation is session hygiene. It\nis not appraisal and does not replace the Relying Party's checks.\n```\n\n**EST \u2014 processing step 2** (enroll and retrieve, same idea):\n\n```md\n2. For `present-nonce` and `present-epoch`, correlate `handle` with the\n   `attest-initiate` that returned it:\n   * 409 Conflict when no `attest-initiate` returned this Handle or it has\n     expired; a `present-nonce` Handle is single-use;\n   * 403 Forbidden when the request `target` differs from that\n     `attest-initiate`'s, or when request `freshness_kind` differs from the\n     kind that `attest-initiate` returned.\n\n   This correlation is session hygiene ({{TACRA}}). It is not authorization.\n   The EST Server MUST still forward a well-formed request that passes it.\n   The Credential Authority or Secret Vault takes Freshness Kind from its\n   policy for the Target, recomputes the digest, and authorizes issuance or\n   release.\n\n   `credential_type` and `credential_hint` are not correlated. The EST Server\n   forwards them; the Relying Party MAY use them, ignore them, or deny with\n   403 Forbidden.\n\n   For `absent-*` kinds no Handle was returned. The Relying Party checks the\n   freshness element under the Freshness Kind its policy sets for the Target.\n```\n\n**EST \u2014 Error Handling 403**, split the CAS case from the RP case:\n\n```md\n* 403 Forbidden:\n  * from the EST Server: it does not serve the `target` of `attest-initiate`\n    (or that `credential_type` on initiate, when asking for the first-leg\n    mode); or, on the second leg, `target` or `freshness_kind` differ from\n    the `attest-initiate` that returned this Handle (session correlation);\n  * forwarded from the RATS Relying Party: attestation failed, or policy\n    denies enrollment or retrieval (including type or hint the RP will not\n    honor).\n```\n\nInitiate 403 \u201cdoes not serve that Target, or that `credential_type` for it\u201d can stay: that is \u201cthis EST Server has no configured mode for that pair,\u201d not second-leg authorization.\n\n**EST \u2014 Architecture restrictions:** keep MUST NOT authorize. Add one sentence: correlating a Handle with Target/kind does not count as authorizing; denying on type/hint does, and is the RP\u2019s job.\n\nNo change to the binding construction. Type and hint stay out of the digest.",
       "createdAt": "2026-10-29T00:49:47Z",
-      "updatedAt": "2026-10-29T01:36:11Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T01:38:26Z",
+      "closedAt": "2026-10-30T01:38:26Z",
       "comments": [
         {
           "author": "nikolaichuk7",
@@ -476,6 +483,13 @@
           "body": "Done in #31 and TheBankster/rats-tacra#27: the correlation named as the EST Server keeping its two legs together, not authorization; the 403 list split into the EST Server's own refusals and the forwarded ones; one sentence in TACRA's Trust Model, which already said that the type and the hint travel unbound and the Relying Party's policy decides. credential_type stays among the correlated members, as the code correlates it; your call to drop it.\n",
           "createdAt": "2026-10-29T01:36:11Z",
           "updatedAt": "2026-10-29T01:36:11Z"
+        },
+        {
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Merged in #31 (ca1fd9f), with the TACRA part in TheBankster/rats-tacra#27 (30f2579).",
+          "createdAt": "2026-10-30T01:38:25Z",
+          "updatedAt": "2026-10-30T01:38:25Z"
         }
       ]
     },
@@ -484,15 +498,15 @@
       "id": "I_kwDOUNE08M8AAAABawPPHw",
       "title": "Security Considerations omit Evidence/AR on the CAS path, channel binding, privacy, and EST client authentication",
       "url": "https://github.com/TheBankster/lamps-tacra-est/issues/23",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "TheBankster",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Grok has flagged the following Important issue and suggested a solution for it:\n\n`{{security}}` covers key substitution, over-issuance, shared replica keys, freshness, the EST Server\u2192Verifier channel, size/rate limits, and not swapping in classic EST. It does not cover the TACRA threat model this profile instantiates.\n\nMissing, all already in (or implied by) TACRA / RFC 9334:\n\n**Evidence and Attestation Results on the CAS path.** Goal 10 hides **secrets** from the CAS. Evidence and AR are not secrets. They travel as JSON/bytes through EST Client and EST Server (RFC 9334 \u00a712.2). The draft never says that. Enrollment returns a cert in plaintext (public); retrieval ciphertext is opaque \u2014 that split is unstated in Security Considerations.\n\n**No channel binding.** TACRA\u2019s digest is freshness || Target || CSR/CEKpub. It has no Relying Party identifier and no TLS exporter. A relay on the EST path can forward a live exchange to another Credential Authority or Secret Vault that serves the **same Target name**. TACRA `{#untrusted-cas}` discusses RP substitution; EST does not. The Attester has no network (Goal 8), so it cannot bind to the EST Client\u2194Server TLS session unless the exporter is passed into the Attesting Environment. That is an architecture gap, not an EST-only omission.\n\n**Privacy.** Evidence often carries device/firmware identifiers (RFC 9334 \u00a711). They are visible to EST Client, EST Server, Verifier, and RP. No Privacy Considerations.\n\n**Who may call `attest-*`.** RFC 7030 requires client authentication for `/simpleenroll`. This profile never says whether `attest-initiate` / `attest-enroll` / `attest-retrieve` do. An unauthenticated GET that mints `present-nonce` Handles is Handle exhaustion / DoS. globalsign-est uses mTLS on the TACRA backend; the draft does not. TACRA `{#cas-client-auth}` leaves CAS Client authentication to **profiles**. This document is that profile and is silent.\n\n**EST Server \u2192 RP.** Only the Verifier channel is required to provide integrity/authenticity/replay protection. The path to the Credential Authority / Secret Vault is unstated (AR or Evidence on that hop).\n\nType/hint unbound is Important #5; do not duplicate it here beyond a pointer.\n\n**Suggested solution**\n\nPut architecture threats in TACRA once. EST states the EST mapping (who sees what, client auth, initiate rate limits) and does **not** add a TLS exporter to the digest unless you deliberately drop or qualify Goal 8.\n\n**TACRA Security Considerations** \u2014 add if not already this explicit:\n\n```md\nEvidence and Attestation Results are visible to the CAS Client and CAS Server\n(Section 12.2 of {{RFC9334}}). Goal 10 applies to retrieved secrets and to\nCSKpri, not to Evidence, AR, or public certificates.\n\nThe binding ({{binding}}) does not include a Relying Party identifier or a\nchannel binding (for example a TLS exporter {{RFC9266}}). A CAS that relays\nan exchange to a different Credential Authority or Secret Vault that serves\nthe same Target can still satisfy the digest. Deployments that need to pin\nthe RP do so by configuration of the CAS Server (which RPs it may contact),\nnot by the digest. Binding the EST/CAS TLS session would require the\nAttesting Environment to learn a channel binding from the CAS Client, which\nthis architecture does not assume (Goal 8).\n\nEvidence may contain identifiers that fingerprint a device or workload\n(Section 11 of {{RFC9334}}).\n\nAuthentication of the CAS Client to the CAS Server, and of the CAS Server to\nthe Verifier and RATS Relying Party, is specified by the Credential\nAcquisition Mechanism profile. This document requires integrity, authenticity,\nand replay protection on those hops; it does not require a particular method.\n```\n\nKeep `{#untrusted-cas}` as the RP-substitution discussion; the paragraph above is the pointer from Security Considerations.\n\n**Do not** add the TLS exporter to `binding_input` for `-00`. That is a new binding version and needs the exporter inside the TEE.\n\n**EST `{{security}}` \u2014 Common to Both Modes**, keep the existing bullets and add:\n\n```md\n* Evidence and Attestation Results: the EST Client and EST Server see Evidence\n  and, in Passport mode, Attestation Results, in plaintext (Section 12.2 of\n  {{RFC9334}}, {{TACRA}}). Retrieved secrets stay in EncryptedCredentialBundle\n  ({{bundle}}). Newly enrolled certificates are public and returned as\n  simpleenroll. CSKpri and CEKpri MUST NOT leave the Attester.\n\n* Channel binding: the digest of {{TACRA}} does not bind the exchange to the\n  EST TLS session or to a particular Credential Authority or Secret Vault.\n  A relay that preserves Target, freshness element, and CSR/CEKpub still\n  verifies. Which RP the EST Server contacts is a deployment choice of the\n  EST Server. This profile does not require a TLS exporter in Evidence.\n\n* Privacy: Evidence may fingerprint the Attester (Section 11 of {{RFC9334}}).\n  Error bodies MUST NOT echo Evidence or Attestation Results (already under\n  Error Handling).\n\n* EST client authentication: `attest-enroll` and `attest-retrieve` follow\n  Section 3.3.2 of {{RFC7030}} (client authentication as for simpleenroll).\n  `attest-initiate` MAY be offered without client authentication; an EST\n  Server that mints `present-nonce` Handles on unauthenticated GET MUST rate-\n  limit and cap outstanding Handles per source (DoS / Handle exhaustion).\n  Deployments MAY require TLS client certificates on all three resources.\n\n* Channels: the EST Server's channels to the Verifier and to the Credential\n  Authority or Secret Vault MUST provide integrity, authenticity, and replay\n  protection (replace the Verifier-only bullet).\n\n* Classic EST: keep the existing MUST NOT substitute classic EST for an\n  attested request.\n\n* Type and hint: unbound; see {{TACRA}} and the processing rules (Important #5).\n```\n\n**EST Architecture or `{{attest-initiate}}`:** one sentence that client auth for initiate is OPTIONAL, for enroll/retrieve REQUIRED as simpleenroll, unless the deployment\u2019s EST policy is stronger (mTLS on all three).\n\n**Privacy:** either a short `## Privacy Considerations` that points at RFC 9334 \u00a711 and the Evidence-on-CAS-path bullet, or fold it into Common as above. A separate section is easier for RATS reviewers.\n\nNo IANA or CDDL change. No binding-construction change unless you later specify an optional `method` that includes a channel binding passed in through CAAPI.",
       "createdAt": "2026-10-29T00:51:44Z",
-      "updatedAt": "2026-10-29T01:36:12Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T01:38:33Z",
+      "closedAt": "2026-10-30T01:38:33Z",
       "comments": [
         {
           "author": "nikolaichuk7",
@@ -500,6 +514,13 @@
           "body": "Done in #31: Evidence and Attestation Results on the conduit's path, channel binding (none, by Design Goal 8, and TACRA's Trust Model says what a relay to another Relying Party obtains), client authentication (none required for attest-*, a deployment may require it as for simpleenroll, rate limits on Handles minted on an unauthenticated initiate), both channels of the EST Server, the unbound type and hint, and a Privacy Considerations section. TACRA (TheBankster/rats-tacra#27) gains the channel-binding sentence in its Trust Model, where the rest already was. No TLS exporter in the digest, as you say.\n",
           "createdAt": "2026-10-29T01:36:12Z",
           "updatedAt": "2026-10-29T01:36:12Z"
+        },
+        {
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Merged in #31 (ca1fd9f).",
+          "createdAt": "2026-10-30T01:38:32Z",
+          "updatedAt": "2026-10-30T01:38:32Z"
         }
       ]
     },
@@ -508,15 +529,15 @@
       "id": "I_kwDOUNE08M8AAAABawQXlA",
       "title": "`group_id` hashes an unbound `credential_hint` and never names H",
       "url": "https://github.com/TheBankster/lamps-tacra-est/issues/24",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "TheBankster",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Grok has flagged the following Important issue and suggested a solution for it:\n\nRetrieval currently:\n\n```md\nThe Secret Vault MUST map Attestation Results to a credential group ID that is\nstable for replica workloads and distinct across security domains, tenants, and\ncredential selections.\n\nA typical construction is:\n\ngroup_id = H(attestation_subject || credential_hint || policy_version)\n\nWhere attestation_subject is derived from Attestation Results (not raw Evidence)\nto avoid nonce/freshness variability.\n```\n\nProblems:\n\n- **`credential_hint` is unbound** (TACRA `{#untrusted-cas}`, EST glossary: the Vault MAY use, ignore, or reject it). Putting the raw request hint in `group_id` lets the CAS or Attester change which vault slot is selected by rewriting the hint. That can enlarge the set of secrets a given AR can reach (confused deputy) or split replicas that should share a group.\n- **`H` is unnamed.** SHA-256 vs SHA-512 vs HMAC vs \u201cwhatever\u201d is not interoperable if two Vaults must compute the same id.\n- **Concatenation has no length prefixes.** TACRA\u2019s binding uses `len32` for that reason. `attestation_subject` and `policy_version` encodings are unspecified, so even a named H would not be stable.\n- The paragraph is labeled \u201ctypical construction\u201d but sits under a MUST that the Vault map AR to a group id. Readers will treat the formula as the mapping.\n\nTACRA today: replica workloads share credentials; the Vault MAY use the hint to **locate** a credential. It does not define `group_id` and does not say the hint MUST NOT enlarge the set that AR+policy already allows.\n\nBundle AAD authenticating `credential_hint` (critical #1) is a different issue: that binds the hint that was **sent**, it does not use the hint as a group key.\n\n**3) Suggested solution**\n\n`group_id` is Vault policy, not an EST wire algorithm. Select the group from Attestation Results and Vault policy only. Use the hint, if at all, as a selector **inside** that set. Name this once in TACRA; EST drops the MUST-formula.\n\n**TACRA** (Retrieval / Secret Vault):\n\n```md\nThe Secret Vault maps Attestation Results to a credential group that is stable\nfor replica workloads and distinct across security domains, tenants, and the\nVault's credential selections. That mapping is the Vault's policy. This\ndocument does not specify the identifier's syntax.\n\nA Credential Hint MAY select among credentials that mapping already allows.\nIt MUST NOT enlarge that set. The CAS cannot select a group by rewriting the\nhint; a hint the policy does not recognize is ignored or the request is denied.\n```\n\n**EST \u2014 replace \u201cCredential Group ID Determination\u201d:**\n\n```md\n### Credential Group ID Determination {#group-id}\n\nThe Secret Vault maps Attestation Results to a `group_id` as {{TACRA}}\nrequires: stable for replica workloads, distinct across security domains,\ntenants, and the Vault's credential selections. The identifier is the Vault's\npolicy. This profile does not require a particular construction and does not\nrequire two Vaults to compute the same value.\n\n`credential_hint` MUST NOT be an input to that mapping. The Vault MAY use the\nhint only to choose among credentials `group_id` already allows, or it MAY\nignore the hint, or it MAY deny the request with 403 Forbidden.\n\nAn example (not a requirement) of a mapping that does not take the hint is:\n\n  group_id = SHA-256( len32(attestation_subject) || attestation_subject\n                    || len32(policy_version)      || policy_version )\n\nwhere `attestation_subject` is a Vault-chosen octet string derived from\nAttestation Results (not raw Evidence, so freshness does not churn the group)\nand `policy_version` is a Vault-chosen octet string that names the release\npolicy. `len32` is as in {{TACRA}}.\n```\n\nProcessing step 4 can stay \u201ccomputes `group_id`\u201d; it now means \u201capplies `{#group-id}`,\u201d not the old hash.\n\nIf `{#bundle}` AAD includes `credential_hint`, that authenticates the hint **on that response**. It does not put the hint in `group_id`. Keep those roles separate.\n\nNo CDDL change unless `group_id` is already a text field of the bundle (it should remain an opaque string the Vault mints).",
       "createdAt": "2026-10-29T00:53:17Z",
-      "updatedAt": "2026-10-29T01:36:13Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T01:38:28Z",
+      "closedAt": "2026-10-30T01:38:28Z",
       "comments": [
         {
           "author": "nikolaichuk7",
@@ -524,6 +545,13 @@
           "body": "Done in #31 and TheBankster/rats-tacra#27: the group is the Secret Vault's policy, no construction specified, the hint selects within what the policy allows and cannot enlarge it, the formula with the hint gone. One difference from the suggestion: the hint may select among the credentials the policy allows, which is what the bench's Vault does (Target and hint name the group, the policy bounds the set), rather than being forbidden as an input altogether; the security property is the same.\n",
           "createdAt": "2026-10-29T01:36:13Z",
           "updatedAt": "2026-10-29T01:36:13Z"
+        },
+        {
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Merged in #31 (ca1fd9f), with the TACRA part in TheBankster/rats-tacra#27 (30f2579).",
+          "createdAt": "2026-10-30T01:38:28Z",
+          "updatedAt": "2026-10-30T01:38:28Z"
         }
       ]
     },
@@ -532,15 +560,15 @@
       "id": "I_kwDOUNE08M8AAAABawRvjw",
       "title": "IANA: drop unspecified identifier registries; fix change controller, contact, and algorithm tokens",
       "url": "https://github.com/TheBankster/lamps-tacra-est/issues/25",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "TheBankster",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Grok has flagged the following Important issue and suggested a solution for it:\n\n`{{iana}}` currently:\n\n- Correctly does **not** request an EST path registry (`attest-*` are additional services under RFC 7030 \u00a73.2.2).\n- Requests media types for the `attest-*` JSON messages (templates are close to RFC 6838).\n- Then: \u201cThis document also requests a registry of acceptable_evidence identifiers and credential_type identifiers (if not reused from existing registries).\u201d\n\nThat last sentence is not a registry request. There is no registry name, allocation policy (FCFS / Expert Review / Specification Required), registration template, or initial contents. IANA and the IESG will bounce it. Critical #3 already proposes in-document `credential_type` tokens instead of a registry.\n\nMedia-type template nits:\n\n- **Change controller** is `IETF`. RFC 7030 and usual IETF media types use **IESG**.\n- **Person to contact** is \u201cIETF LAMPS Working Group (spasm@ietf.org)\u201d on an **unadopted individual** Informational draft. RFC 6838 wants a person; until LAMPS adopts this, use an author.\n\n`acceptable_csk` / `acceptable_cek` are arrays of unconstrained `text` in CDDL. No format (COSE alg, JWA, OID, HPKE suite string). globalsign-est uses `ecdsa-p256-sha256` and `ECDH-P256+HKDF-SHA256+A256GCM`. Two implementations cannot advertise a suite.\n\n`acceptable_evidence` / `profile` have the same hole (also Important #11). Do not invent a registry to paper over missing tokens.\n\nRegistering `application/est-attest-bundle+json` while `{{bundle}}` is still a TODO is Critical #1, not this issue.\n\nTACRA has no IANA section for these tokens. A shared \u201cCredential Type\u201d registry across mechanisms would live in TACRA, not here. Neither draft should request it in `-00`.\n\n**Suggested solution**\n\nFor `-00`: register only the media types whose payloads are defined. Define CSK/CEK/evidence/type **tokens in the document**. No new registries. Align the media-type boilerplate with RFC 7030.\n\n**TACRA:** do not add IANA registries for Credential Type or Evidence format. Keep types as prose (X.509, WIC, WIT, JWT, \u2026). If a later WG document wants a registry, that is a TACRA (or WIMSE) document with a real policy, not a one-liner in this EST profile.\n\n**EST `{#iana}`** \u2014 replace the registry sentence and fix the templates:\n\n```md\n# IANA Considerations {#iana}\n\nThe `attest-*` resources are additional services of an EST server\n(Section 3.2.2 of {{RFC7030}}), under the well-known URI suffix \"est\"\nthat {{RFC7030}} registered. No registry of EST operation paths exists,\nso none is requested.\n\nIANA is requested to register the media types of {{media-types}} in the\n\"Media Types\" registry {{RFC6838}}.\n\nThis document does not request registries for `credential_type`,\n`acceptable_evidence`, `acceptable_csk`, or `acceptable_cek`. Those values\nare protocol tokens defined in this document ({{credential-type}},\n{{alg-tokens}}).\n```\n\nIn **every** media-type registration:\n\n```md\nPerson & email address to contact for further information:\n: Serhii Nikolaichuk <nikolaichuk.s.f@gmail.com>\n\nChange controller:\n: IESG\n```\n\n(Use whichever author should own IANA mail; not `spasm@ietf.org` until the WG adopts the draft.)\n\nIf `{#bundle}` is still undefined, omit `application/est-attest-bundle+json` from the request (Critical #1).\n\n**EST \u2014 algorithm / evidence tokens** (new short section, referenced from IANA and from `{{initiation-response}}`):\n\n```md\n## Protocol tokens {#alg-tokens}\n\n`acceptable_csk` and `acceptable_cek` are arrays of ASCII tokens.\n\nThis profile's mandatory CSK token is:\n\n* `ecdsa-p256-sha256`: ECDSA on NIST P-256 with SHA-256 (CSK for Enrollment)\n\nThis profile's mandatory CEK token is:\n\n* `HPKE-Base-P256-SHA256-A256GCM`: HPKE Base with DHKEM(P-256, HKDF-SHA256),\n  HKDF-SHA256, AES-256-GCM ({{RFC9180}}, {{bundle}})\n\nAn EST Server that returns `mode` `enroll` MUST include `ecdsa-p256-sha256`\nin `acceptable_csk`. One that returns `retrieve` MUST include\n`HPKE-Base-P256-SHA256-A256GCM` in `acceptable_cek`. Other tokens are\nout of scope for this version; a client MUST NOT use a token not listed\nin the `attest-initiate` response.\n\n`acceptable_evidence` / `profile`, when present, are ASCII tokens naming\nan Evidence format. This version does not define a token; if the array is\nomitted, `profile` on the second leg is omitted and the Relying Party\naccepts the Evidence formats its policy allows for the Target.\n```\n\n(`credential_type` tokens stay in `{#credential-type}` from Critical #3.)\n\n**CDDL:** keep `[+ text]` for the arrays; the prose above is the profile constraint. Optionally:\n\n```cddl\nacceptable_csk = [+ tstr]\nacceptable_cek = [+ tstr]\n```\n\nNo Expert Review, no \u201cTBD registry.\u201d Revisit a registry only if LAMPS wants other suites to be added without a new RFC.",
       "createdAt": "2026-10-29T00:55:15Z",
-      "updatedAt": "2026-10-29T01:36:15Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T01:38:35Z",
+      "closedAt": "2026-10-30T01:38:35Z",
       "comments": [
         {
           "author": "nikolaichuk7",
@@ -548,6 +576,13 @@
           "body": "Done in #31: no registries, the protocol tokens in a section of their own (ecdsa-p256-sha256; the two HPKE suites named by their registry names, DHKEM(P-256, HKDF-SHA256)+HKDF-SHA256+AES-256-GCM mandatory and MLKEM768-P256+HKDF-SHA256+AES-256-GCM recommended; Evidence formats as media types), the IESG as change controller, and an author as the contact. I put the first author; change it to whoever should own the IANA mail.\n",
           "createdAt": "2026-10-29T01:36:14Z",
           "updatedAt": "2026-10-29T01:36:14Z"
+        },
+        {
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Merged in #31 (ca1fd9f).",
+          "createdAt": "2026-10-30T01:38:34Z",
+          "updatedAt": "2026-10-30T01:38:34Z"
         }
       ]
     },
@@ -556,15 +591,15 @@
       "id": "I_kwDOUNE08M8AAAABawTjzQ",
       "title": "`attest-*` paths omit RFC 7030\u2019s optional extra path segment (`/.well-known/est/<label>/`)",
       "url": "https://github.com/TheBankster/lamps-tacra-est/issues/26",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "TheBankster",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Grok has flagged the following Important issue and has suggested a solution for it.\n\nProtocol Overview lists only:\n\n```\n/.well-known/est/attest-initiate\n/.well-known/est/attest-enroll\n/.well-known/est/attest-retrieve\n```\n\nRFC 7030 \u00a73.2.2: an EST server **MAY** insert an extra path segment between `est` and the operation (`/.well-known/est/<label>/simpleenroll`) so one host can serve several CAs. The label MUST NOT collide with an operation name. The server MUST still serve the unlabeled URLs.\n\n`attest-initiate`, `attest-enroll`, and `attest-retrieve` are additional operations in that same tree (IANA already says so). They need the same rule. As written, a client that already talks to `/.well-known/est/tenant-a/simpleenroll` has no specified place for `attest-*`.\n\nglobalsign-est already implements this (`aps`). The draft does not.\n\nDo not conflate `<label>` with TACRA **Target**. Target is the RATS-unaware Relying Party the Attester wants credentials **for** (query/body `target`). The EST label selects which EST issuer / front-end on that host (which Credential Authority or Secret Vault the EST Server is configured to use). A deployment MAY use one label per Target; this profile must not require that.\n\n`attest-initiate` / `attest-enroll` / `attest-retrieve` as labels would be illegal under RFC 7030 (collision with operation names).\n\nTACRA has no HTTP paths. Multiplexing several RPs on one CAS Server is a mechanism detail.\n\n**Suggested solution**\n\nState RFC 7030 labels once in EST. Keep Target as the TACRA field. Optional one-liner in TACRA that profiles MAY multiplex RPs with mechanism-specific names.\n\n**EST \u2014 Protocol Overview:**\n\n```md\nThree new EST operations are added under the existing EST well-known prefix\n(Section 3.2.2 of {{RFC7030}}):\n\n* `attest-initiate`\n* `attest-enroll`\n* `attest-retrieve`\n\nThey sit next to `/cacerts`, `/simpleenroll`, and the other RFC 7030 operations.\nAn EST Server that uses the optional extra path segment of Section 3.2.2\n(for example `/.well-known/est/arbitraryLabel1/simpleenroll`) MUST offer the\n`attest-*` operations under that same prefix:\n\n* `/.well-known/est/attest-initiate`\n* `/.well-known/est/<label>/attest-initiate`\n\nand likewise for `attest-enroll` and `attest-retrieve`.\nThe label MUST NOT be `attest-initiate`, `attest-enroll`, or `attest-retrieve`.\n\nThe extra path segment selects an EST issuer configuration (which Credential\nAuthority or Secret Vault that EST Server uses). It is not the TACRA Target.\nThe Target remains the `target` query parameter or JSON member ({{TACRA}}).\nA client uses the same `<label>` for `attest-*` that it uses for `/simpleenroll`\non that issuer.\n```\n\n**EST \u2014 `{#iana}`:** keep \u201cno path registry.\u201d Add: the optional label is RFC 7030\u2019s, not a new registration; the new operation names are `attest-initiate`, `attest-enroll`, `attest-retrieve`.\n\n**EST \u2014 `attest-initiate`:** no change to query parameters. Label is in the URL path, not in `target`.\n\n**TACRA** (CAS / mechanism profile, optional):\n\n```md\nA Credential Acquisition Mechanism MAY multiplex several Credential Authorities\nor Secret Vaults on one CAS Server using mechanism-specific names (for EST, the\noptional extra path segment of Section 3.2.2 of {{RFC7030}}). Those names are\nnot the Target. The Target is the RATS-unaware Relying Party the Attester\nseeks credentials for.\n```\n\nNo CDDL or media-type change. Examples, if added (Important #10), should show both `/.well-known/est/attest-initiate?target=...` and `/.well-known/est/label1/attest-initiate?target=...`.",
       "createdAt": "2026-10-29T00:57:57Z",
-      "updatedAt": "2026-10-29T01:36:16Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T01:38:31Z",
+      "closedAt": "2026-10-30T01:38:31Z",
       "comments": [
         {
           "author": "nikolaichuk7",
@@ -572,6 +607,13 @@
           "body": "Done in #31 and TheBankster/rats-tacra#27: the attest-* operations offered under the optional path segment of RFC 7030 as well, the segment selecting the issuer and never the Target.\n",
           "createdAt": "2026-10-29T01:36:16Z",
           "updatedAt": "2026-10-29T01:36:16Z"
+        },
+        {
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Merged in #31 (ca1fd9f), with the TACRA part in TheBankster/rats-tacra#27 (30f2579).",
+          "createdAt": "2026-10-30T01:38:30Z",
+          "updatedAt": "2026-10-30T01:38:30Z"
         }
       ]
     },
@@ -580,15 +622,15 @@
       "id": "I_kwDOUNE08M8AAAABawUs7g",
       "title": "Add HTTP examples for `attest-initiate`, `attest-enroll`, and `attest-retrieve`",
       "url": "https://github.com/TheBankster/lamps-tacra-est/issues/27",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "TheBankster",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Grok has flagged the following Important issue and has suggested a solution for it:\n\nThe draft has no examples: no HTTP exchanges, no JSON payloads, no `curl`. RFC 7030 Appendix A, `draft-ietf-lamps-attestation-freshness-09`, and the globalsign-est README all show request/response pairs. Implementers cannot check CDDL, query parameters, or media types against a worked message.\n\nWhat is missing, in particular:\n\n- GET `attest-initiate` with required `target` and optional `credential_type` (URI-encoded).\n- 200 `AttestationInitiationResponse` for enroll vs retrieve (`present-nonce` with `handle` / `expires_in` vs `absent-*` with no handle).\n- 400 (no `target`) and 403 (unknown Target).\n- POST `attest-enroll` / `attest-retrieve` with `Content-Type`, `handle` as freshness element, `binding`, truncated `csr` / `evidence` / `cek_pub`.\n- Success: PKCS#7 certs-only for enroll; bundle JSON for retrieve (once Critical #1 defines it).\n- Optional RFC 7030 extra path segment (Important #9): one URL with `<label>`.\n\nglobalsign-est\u2019s `curl` uses `/api/v1/attestation/initiate`, not `/.well-known/est/\u2026`. Do not copy that path into this document.\n\nTACRA is architecture (commands, not HTTP). Examples belong in this EST profile. No TACRA change required beyond keeping Target / kind / Handle names aligned.\n\n**3) Suggested solution**\n\nAdd an informative appendix. Use RFC 7030-style hosts (`est.example.com`), truncated base64url, and a note that payloads are illustrative. One complete initiate exchange is worth more than three incomplete ones. Fill enroll/retrieve bodies with placeholders until `{#est-binding}` and `{#bundle}` land; then replace the placeholders.\n\n**New appendix:**\n\n```md\n# Appendix A. Example Messages {#examples}\n\nThese examples are informative. Line wrapping and truncated base64url\nvalues are for readability. Evidence, CSRs, and HPKE ciphertexts are\nnot valid platform artifacts.\n\n## A.1. attest-initiate (enroll, present-nonce)\n\nGET /.well-known/est/attest-initiate?target=https%3A%2F%2Fca.example.com%2Fworkloads&credential_type=x509 HTTP/1.1\nHost: est.example.com\nAccept: application/est-attest-initiate+json\n\nHTTP/1.1 200 OK\nContent-Type: application/est-attest-initiate+json\n\n{\n  \"freshness_kind\": \"present-nonce\",\n  \"handle\": \"VGhpc0lzQVByZXNlbnROb25jZUhhbmRsZQ\",\n  \"expires_in\": 600,\n  \"mode\": \"enroll\",\n  \"acceptable_csk\": [\"ecdsa-p256-sha256\"]\n}\n\nThe same operation under an RFC 7030 extra path segment:\n\nGET /.well-known/est/tenant-a/attest-initiate?target=https%3A%2F%2Fca.example.com%2Fworkloads HTTP/1.1\n\n## A.2. attest-initiate errors\n\nGET /.well-known/est/attest-initiate HTTP/1.1\nHost: est.example.com\n\nHTTP/1.1 400 Bad Request\n\nGET /.well-known/est/attest-initiate?target=https%3A%2F%2Funknown.example HTTP/1.1\nHost: est.example.com\n\nHTTP/1.1 403 Forbidden\n\n## A.3. attest-enroll\n\nPOST /.well-known/est/attest-enroll HTTP/1.1\nHost: est.example.com\nContent-Type: application/est-attest-enroll+json\n\n{\n  \"target\": \"https://ca.example.com/workloads\",\n  \"freshness_kind\": \"present-nonce\",\n  \"handle\": \"VGhpc0lzQVByZXNlbnROb25jZUhhbmRsZQ\",\n  \"csr\": \"<base64url DER PKCS#10>\",\n  \"evidence\": \"<base64url Evidence>\",\n  \"binding\": { \"method\": \"binding-input\", \"hash\": \"sha512\" },\n  \"credential_type\": \"x509\"\n}\n\nHTTP/1.1 200 OK\nContent-Type: application/pkcs7-mime; smime-type=certs-only\nContent-Transfer-Encoding: base64\n\n<certs-only CMS, as simpleenroll>\n\n## A.4. attest-initiate then attest-retrieve\n\nGET /.well-known/est/attest-initiate?target=https%3A%2F%2Fvault.example.com%2Fsvc&credential_type=x509 HTTP/1.1\nHost: est.example.com\nAccept: application/est-attest-initiate+json\n\nHTTP/1.1 200 OK\nContent-Type: application/est-attest-initiate+json\n\n{\n  \"freshness_kind\": \"present-nonce\",\n  \"handle\": \"QW5vdGhlclByZXNlbnROb25jZUhhbmRsZQ\",\n  \"expires_in\": 600,\n  \"mode\": \"retrieve\",\n  \"acceptable_cek\": [\"HPKE-Base-P256-SHA256-A256GCM\"]\n}\n\nPOST /.well-known/est/attest-retrieve HTTP/1.1\nHost: est.example.com\nContent-Type: application/est-attest-retrieve+json\n\n{\n  \"target\": \"https://vault.example.com/svc\",\n  \"freshness_kind\": \"present-nonce\",\n  \"handle\": \"QW5vdGhlclByZXNlbnROb25jZUhhbmRsZQ\",\n  \"evidence\": \"<base64url Evidence>\",\n  \"cek_pub\": \"<base64url SubjectPublicKeyInfo>\",\n  \"binding\": { \"method\": \"binding-input\", \"hash\": \"sha512\" }\n}\n\nHTTP/1.1 200 OK\nContent-Type: application/est-attest-bundle+json\n\n{\n  \"group_id\": \"bGFiLWdyb3VwLWlk\",\n  \"enc\": \"HPKE-Base-P256-SHA256-A256GCM\",\n  \"target\": \"https://vault.example.com/svc\",\n  \"handle\": \"QW5vdGhlclByZXNlbnROb25jZUhhbmRsZQ\",\n  \"encapsulated_key\": \"<base64url HPKE enc>\",\n  \"ciphertext\": \"<base64url HPKE ct>\"\n}\n```\n\nAdjust A.4 to whatever `{#bundle}` becomes. If retrieve stays a TODO in `-00`, ship A.1\u2013A.3 only and say retrieve examples wait on the container.\n\n**Normative text:** one sentence in Protocol Overview: \u201cExample exchanges are in {{examples}}.\u201d\n\n**TACRA:** no HTTP appendix. Optional: a one-paragraph command trace (Initiate \u2192 Enroll) that uses the same Target string as A.1 so the two drafts can be read together.\n\nUse documentation certificates and a fake Handle; do not paste live SEV-SNP reports unless you have a dedicated sample-data repo (CSR-ATTEST\u2019s pattern).",
       "createdAt": "2026-10-29T00:59:40Z",
-      "updatedAt": "2026-10-29T01:36:17Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T01:38:37Z",
+      "closedAt": "2026-10-30T01:38:37Z",
       "comments": [
         {
           "author": "nikolaichuk7",
@@ -596,6 +638,13 @@
           "body": "Done in #31: an appendix with four exchanges recorded tonight between an EST Client and an EST Server implementing this profile, on a Google Cloud SEV-SNP guest, byte for byte except the base64url values cut to 24 characters, folded per RFC 8792: attest-initiate for Enrollment, attest-enroll, attest-initiate for Retrieval, and attest-retrieve with the container of #15.\n",
           "createdAt": "2026-10-29T01:36:17Z",
           "updatedAt": "2026-10-29T01:36:17Z"
+        },
+        {
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Merged in #31 (ca1fd9f).",
+          "createdAt": "2026-10-30T01:38:36Z",
+          "updatedAt": "2026-10-30T01:38:36Z"
         }
       ]
     },
@@ -604,15 +653,15 @@
       "id": "I_kwDOUNE08M8AAAABawV09A",
       "title": "CDDL leftovers: `profile` vs omitted `acceptable_evidence`, and Architecture list markup",
       "url": "https://github.com/TheBankster/lamps-tacra-est/issues/28",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "TheBankster",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
       "body": "Grok has flagged the following Important issue and has suggested a solution for it:\n\nTwo leftovers in the same pass: a wire-rule hole and a kramdown list that will not render as a list.\n\n**`profile` / `acceptable_evidence`**\n\nCDDL:\n\n```cddl\nattestation-initiation-response = {\n  initiation-freshness,\n  initiation-mode,\n  ? acceptable_evidence: [+ text],\n}\nrequest-common = (\n  ...\n  ? profile: text,\n  ...\n)\n```\n\nProse:\n\n- Initiate: `acceptable_evidence` (OPTIONAL) is \u201cthe Evidence formats the EST Server accepts; a request of the second leg names the format of its Evidence in `profile`.\u201d\n- Enroll/retrieve: `profile` is OPTIONAL, \u201cthe format of `evidence`, **one of `acceptable_evidence`**.\u201d\n\nIf `acceptable_evidence` is omitted (allowed), \u201cone of `acceptable_evidence`\u201d is empty. `attest-initiate` itself is optional for `absent-*` kinds, so there is often **no** initiate response at all. A client that omits `profile` (CDDL-legal) cannot be checked against a list that was never sent.\n\nNo token is defined for either field (Important #8). CDDL `text` plus \u201cone of\u201d an optional list is not implementable.\n\n**Architecture restrictions list**\n\n```md\nBoth are subject to the following restrictions:\n* MUST NOT generate keys, Evidence, or CSRs\n* MUST NOT mint `present-nonce` or `present-epoch` Freshness Handles\n...\n```\n\nkramdown needs a blank line before `*` or the items are glued to the preceding sentence and do not become a list in the XML/HTML. Same file: `attest-initiate`({{attest-initiate}}) is missing a space.\n\nTACRA does not define Evidence-format identifiers. This is EST wire/CDDL plus markdown. No TACRA change except not inventing a parallel token list.\n\n**Suggested solution**\n\nDefine when `profile` is required, what happens when the list is absent, and fix the list markup. Do not add an IANA registry (Important #8).\n\n**EST \u2014 field rules** (initiate + both second-leg field lists):\n\n```md\n* acceptable_evidence (array of strings, OPTIONAL): Evidence-format tokens\n  this EST Server will forward for this Target. If omitted, the Relying Party\n  accepts the formats its policy allows for the Target; the second leg MUST\n  omit `profile`.\n\n* profile (string, OPTIONAL): the format of `evidence`.\n  If the preceding `attest-initiate` carried `acceptable_evidence`, `profile`\n  MUST be present and MUST be one of those tokens.\n  If `acceptable_evidence` was omitted, or `attest-initiate` was completed\n  locally, `profile` MUST be absent.\n```\n\n**EST \u2014 processing:** 400 if `profile` is present and not in that initiate\u2019s `acceptable_evidence`, or if `profile` is present when the list was omitted / initiate was local. 415 remains for Evidence the RP will not accept (already under Error Handling).\n\n**CDDL** \u2014 keep both fields optional; the MUST/MUST NOT is prose (same pattern as `handle` vs kind). Optional comment:\n\n```cddl\n? acceptable_evidence: [+ text], ; omit => second leg omits profile\n? profile: text,                 ; only if initiate listed acceptable_evidence\n```\n\nDo **not** put `profile` in a CDDL group with `acceptable_evidence`; they are different messages.\n\n**Tokens:** none in this version (as in Important #8 `{#alg-tokens}`). If you later add one MTI, e.g. `sev-snp-report`, list it there and in `acceptable_evidence` examples. Until then the arrays are either omitted or deployment-specific strings the two parties already know.\n\n**Architecture markup:**\n\n```md\nNeither EST Client nor EST Server has a RATS role.\nBoth are subject to the following restrictions:\n\n* MUST NOT generate keys, Evidence, or CSRs\n* MUST NOT mint `present-nonce` or `present-epoch` Freshness Handles\n* MUST NOT appraise Evidence or Attestation Results\n* MUST NOT authorize credential issuance or release\n```\n\nAnd: `optional `attest-initiate` ({{attest-initiate}})`.\n\n**TACRA:** no CDDL. Do not add Evidence-format names. The RP\u2019s policy for which Evidence it accepts stays in TACRA as policy, not as EST `profile` tokens.\n\nCheck the rendered HTML after `make` so the four MUST NOTs are a bullet list, not a single paragraph.",
       "createdAt": "2026-10-29T01:01:18Z",
-      "updatedAt": "2026-10-29T01:36:18Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-30T01:38:39Z",
+      "closedAt": "2026-10-30T01:38:39Z",
       "comments": [
         {
           "author": "nikolaichuk7",
@@ -620,8 +669,31 @@
           "body": "Done in #31: profile is one of the acceptable_evidence of the attest-initiate that returned the Handle, else the first of them, and a format the server does not accept is refused with 415, as the code does; the restrictions list renders as a list, and the missing space is there.\n",
           "createdAt": "2026-10-29T01:36:18Z",
           "updatedAt": "2026-10-29T01:36:18Z"
+        },
+        {
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Merged in #31 (ca1fd9f).",
+          "createdAt": "2026-10-30T01:38:39Z",
+          "updatedAt": "2026-10-30T01:38:39Z"
         }
       ]
+    },
+    {
+      "number": 32,
+      "id": "I_kwDOUNE08M8AAAABa-kQdg",
+      "title": "Crypto agility: every primitive of the profile as a named token with a mandatory-to-implement default",
+      "url": "https://github.com/TheBankster/lamps-tacra-est/issues/32",
+      "state": "OPEN",
+      "author": "nikolaichuk7",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "From the review of #30. The profile fixes `binding.hash` to `sha512` and `method` to `binding-input`, and #30 as opened fixed the signature of the container to ECDSA-P256-SHA256. The HPKE suites and the CSK algorithms are already tokens, listed in `acceptable_cek` and `acceptable_csk`.\n\nProposal: `binding.hash` takes a token of the algorithm token section, with `sha512` mandatory to implement. Any signature the profile ever carries names its algorithm by a token, with one mandatory default. IANA Considerations register the tokens. No single cipher or signature mechanism hard-coded anywhere.\n",
+      "createdAt": "2026-10-29T17:48:31Z",
+      "updatedAt": "2026-10-29T17:48:31Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -2700,78 +2772,2322 @@
       "id": "PR_kwDOUNE08M8AAAABLaFxNg",
       "title": "The binding in this profile, the Credential Type tokens, the freshness element by name",
       "url": "https://github.com/TheBankster/lamps-tacra-est/pull/29",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "nikolaichuk7",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Closes #16, #17 and #19. A section names the three octet strings of TACRA's digest as this profile carries them, the two members of the binding object and their values, and the refusal of a method the Relying Party does not know. The Credential Type tokens are listed once. Enrollment mints x509, every other type goes through Retrieval, as the running code does: 430 enrollments of x509 and 415 retrievals of api-key in 94 runs. The glossary cites TACRA for the Freshness Kinds, separates the Freshness Handle from the freshness element, and the handle members of both requests say what they carry for each kind. The Relationship sentence names the digest. The CDDL pins hash to sha512. One typo of 28 October corrected (serve).\n\nBuilt as the Datatracker does, idnits in submission mode reports nothing new. The cddl tool accepts the wire logs of the 82 runs since the wire format of 8 October against the CDDL.\n",
       "createdAt": "2026-10-29T01:32:47Z",
-      "updatedAt": "2026-10-29T01:32:47Z",
+      "updatedAt": "2026-10-29T16:27:14Z",
       "baseRepository": "TheBankster/lamps-tacra-est",
       "baseRefName": "master",
       "baseRefOid": "1378ead6f9517a5dd1eda1100a2f566fc023069d",
       "headRepository": "nikolaichuk7/lamps-tacra-est",
       "headRefName": "est-slots-types",
       "headRefOid": "595ccf9d4a1f711ed9178fc06ae3ea5f009f394f",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-10-29T16:27:13Z",
+      "mergedAt": "2026-10-29T16:27:13Z",
+      "mergedBy": "TheBankster",
+      "mergeCommit": {
+        "oid": "68aa36b69ac6a967cb84289b95e096c460f1cac6"
+      },
       "comments": [],
       "reviews": []
     },
     {
       "number": 30,
       "id": "PR_kwDOUNE08M8AAAABLaGMbQ",
-      "title": "EncryptedCredentialBundle: the HPKE container, DHKEM(P-256) mandatory, MLKEM768-P256 recommended, origin authentication by the Target's policy",
+      "title": "EncryptedCredentialBundle: the HPKE container, DHKEM(P-256) mandatory, MLKEM768-P256 recommended",
       "url": "https://github.com/TheBankster/lamps-tacra-est/pull/30",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "nikolaichuk7",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
-      "body": "On top of #29, one commit.\n\nCloses #15. The container is the one of TACRA's Sealing the Released Credential (TheBankster/rats-tacra#27): HPKE in base mode to CEKpub, the associated data and the plaintext as the JCS of RFC 8785, and the Secret Vault's ECDSA P-256 signature in an optional `origin` member, present where the Target requires origin authentication. The mandatory suite is DHKEM(P-256, HKDF-SHA256) with HKDF-SHA256 and AES-256-GCM, on RFC 9180 alone; MLKEM768-P256 with the same KDF and AEAD is RECOMMENDED, and draft-ietf-hpke-pq is a normative reference for it. The CDDL defines the container, its origin member and its plaintext. Security Considerations state the accepted risk with its consequence: a container of the EST Client's or EST Server's making opens, the Attester holds a credential they chose, and with an api-key its calls run under the account they chose; a deployment that does not accept it requires origin authentication for the Target. The variant in which the EST Server seals a plaintext secret itself stays not permitted.\n\nMeasured on 29 October, 12 runs: 10 Targets in Passport on Google Cloud SEV-SNP, AWS SEV-SNP and Google Cloud TDX and in Background Check on Google Cloud SEV-SNP, all 10 of 10; the conduit's drills with origin authentication (its container refused) and without it (its container opened, the key it chose taken and refused by the relying party: the accepted risk, measured); MLKEM768-P256 on the same path. The cddl tool accepts every message of the 12 wire logs against the new rules, the 70 containers among them, and refuses 96 alterations of each log. The group's mock in globalsign-est seals the same container (TWI-Unified-Model/globalsign-est#8), and the two implementations open each other's output under both suites, with the origin member and without it.\n",
+      "body": "On top of #29, two commits. Closes #15.\n\nThe container is the one of TACRA's Sealing the Released Credential (TheBankster/rats-tacra#27): HPKE in base mode to CEKpub, the associated data and the plaintext as the JCS of RFC 8785. The mandatory suite is DHKEM(P-256, HKDF-SHA256) with HKDF-SHA256 and AES-256-GCM, on RFC 9180 alone. MLKEM768-P256 with the same KDF and AEAD is RECOMMENDED, and draft-ietf-hpke-pq is a normative reference for it. The CDDL defines the container and its plaintext.\n\nThe second commit is the review of 29 October: the Target takes no part, origin authentication is out of this version with the risk in Security Considerations, attest-enroll mints x509 or wic, an absent credential_type means the client takes what it is given and a named one is honoured or refused, 406 for a Credential Type not served and 400 for a binding or correlation mismatch. Evidence-to-Target stays, as the second value of TACRA's binding digest. Five bare \"Relying Party\" are \"RATS Relying Party\" now. Built with kramdown-rfc and xml2rfc, idnits clean. The same series is on TheBankster/rats-tacra#27 and the mock TWI-Unified-Model/globalsign-est#8, and #31 carries it forward.\n",
       "createdAt": "2026-10-29T01:33:33Z",
-      "updatedAt": "2026-10-29T01:33:33Z",
+      "updatedAt": "2026-10-29T22:56:26Z",
       "baseRepository": "TheBankster/lamps-tacra-est",
       "baseRefName": "master",
       "baseRefOid": "1378ead6f9517a5dd1eda1100a2f566fc023069d",
       "headRepository": "nikolaichuk7/lamps-tacra-est",
       "headRefName": "bundle-origin",
-      "headRefOid": "e94249e81209ed18044a2fa320b0f564a15ef7d8",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "headRefOid": "8b587702f1854e8f035cb25d0a366b275afafcd3",
+      "closedAt": "2026-10-29T22:56:25Z",
+      "mergedAt": "2026-10-29T22:56:25Z",
+      "mergedBy": "TheBankster",
+      "mergeCommit": {
+        "oid": "c98bdaa8f3e143c8cc35b817fdbf2c7ddcb0f613"
+      },
+      "comments": [
+        {
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "body": "All of it is in 0b95aeb: the Target takes no part, the signature is out of this version with the risk in Security Considerations, wic is minted, a named type is honoured, 406 and 400 where 403 was, and five bare \"Relying Party\" are \"RATS Relying Party\". The one open thread is evidence-to-Target (line 407), where TACRA already carries it. The same series is on TACRA #27 and the mock #8, and #31 carries it forward. Built with kramdown-rfc and xml2rfc, idnits clean.",
+          "createdAt": "2026-10-29T17:50:45Z",
+          "updatedAt": "2026-10-29T17:50:45Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9OiZQ",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T16:32:44Z",
+          "updatedAt": "2026-10-29T16:32:45Z",
+          "comments": [
+            {
+              "originalPosition": 216,
+              "body": "Might want to file an issue as we should be crypto agile everywhere. No single cipher or signature mechanism can be hard-coded.",
+              "createdAt": "2026-10-29T16:32:45Z",
+              "updatedAt": "2026-10-29T16:32:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9Qf8w",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T16:35:09Z",
+          "updatedAt": "2026-10-29T16:35:09Z",
+          "comments": [
+            {
+              "originalPosition": 216,
+              "body": "The Target only cares that the credential is from a source it trusts. Do you mean the Attester here not the Target? As in, the Secret Vault signs the bundle, and the Attester verifies the signature before trusting the contents? In that case, you also need to specify how the Attester communicates this requirement to the Secret Vault. This, as we discussed, is additional complexity that we can easily leave for later, documenting it now only as a Security Consideration.",
+              "createdAt": "2026-10-29T16:35:09Z",
+              "updatedAt": "2026-10-29T16:35:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9RuNA",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T16:36:23Z",
+          "updatedAt": "2026-10-29T16:36:23Z",
+          "comments": [
+            {
+              "originalPosition": 212,
+              "body": "Here again, I think you don't mean Target. Target is a RUP -- it does not change, we in fact don't know anything about it, other than it won't work with credentials from an issuer it doesn't already trust.",
+              "createdAt": "2026-10-29T16:36:23Z",
+              "updatedAt": "2026-10-29T16:36:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9UWMw",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T16:39:19Z",
+          "updatedAt": "2026-10-29T16:39:20Z",
+          "comments": [
+            {
+              "originalPosition": 136,
+              "body": "... or 'wic'. See above.",
+              "createdAt": "2026-10-29T16:39:20Z",
+              "updatedAt": "2026-10-29T16:39:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9U2FA",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T16:39:53Z",
+          "updatedAt": "2026-10-29T16:39:53Z",
+          "comments": [
+            {
+              "originalPosition": 129,
+              "body": "WICs can be minted (or retrieved) just like x.509 certificates; we may not support this in the PoC, but that's of no interest to the draft.",
+              "createdAt": "2026-10-29T16:39:53Z",
+              "updatedAt": "2026-10-29T16:39:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9hqXw",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T16:53:07Z",
+          "updatedAt": "2026-10-29T16:53:08Z",
+          "comments": [
+            {
+              "originalPosition": 137,
+              "body": "Add 'wic'",
+              "createdAt": "2026-10-29T16:53:08Z",
+              "updatedAt": "2026-10-29T16:53:08Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9i8tg",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T16:54:35Z",
+          "updatedAt": "2026-10-29T16:54:36Z",
+          "comments": [
+            {
+              "originalPosition": 138,
+              "body": "I wouldn't default to that. In the future the default may be 'wic'. If the client specifies nothing, it is saying it can deal with whatever comes back: same for enroll, same for retrieve. If it needs something it specifies it.",
+              "createdAt": "2026-10-29T16:54:35Z",
+              "updatedAt": "2026-10-29T16:54:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9jedw",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T16:55:10Z",
+          "updatedAt": "2026-10-29T16:55:11Z",
+          "comments": [
+            {
+              "originalPosition": 140,
+              "body": "MUST use 'credential_type' -- or fail the request. If it doesn't, it will return something the Attester can't use.",
+              "createdAt": "2026-10-29T16:55:11Z",
+              "updatedAt": "2026-10-29T16:55:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9k0AQ",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T16:56:50Z",
+          "updatedAt": "2026-10-29T16:56:50Z",
+          "comments": [
+            {
+              "originalPosition": 141,
+              "body": "Is 403 correct here? I think 406 is more appropriate. This is not an access control issue, it's closer to \"requested resource exists but in a different format\".",
+              "createdAt": "2026-10-29T16:56:50Z",
+              "updatedAt": "2026-10-29T16:56:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9lOeA",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T16:57:20Z",
+          "updatedAt": "2026-10-29T16:57:20Z",
+          "comments": [
+            {
+              "originalPosition": 141,
+              "body": "By \"Target\" here I'm sure you mean the RRP.",
+              "createdAt": "2026-10-29T16:57:20Z",
+              "updatedAt": "2026-10-29T16:57:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9qlXw",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:03:32Z",
+          "updatedAt": "2026-10-29T17:03:33Z",
+          "comments": [
+            {
+              "originalPosition": 168,
+              "body": "I would keep evidence-to-Target binding out of the draft for now. We can note it as a security configuration and add it later if requested. Simpler is better.",
+              "createdAt": "2026-10-29T17:03:33Z",
+              "updatedAt": "2026-10-29T17:03:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9sjAw",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "CHANGES_REQUESTED",
+          "body": "\"Target\" is often used where RRP should be. Multiple other issues. I will add other comments as I find them.",
+          "createdAt": "2026-10-29T17:05:31Z",
+          "updatedAt": "2026-10-29T17:06:12Z",
+          "comments": [
+            {
+              "originalPosition": 196,
+              "body": "I think it's 400 -- invalid request, not 403 (nothing is 'forbidden', it's a bad request that could have been served successfully if not malformed)",
+              "createdAt": "2026-10-29T17:05:31Z",
+              "updatedAt": "2026-10-29T17:06:12Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9vLmA",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:08:28Z",
+          "updatedAt": "2026-10-29T17:08:28Z",
+          "comments": [
+            {
+              "originalPosition": 233,
+              "body": "Target does not require anything -- other than the credential is issued by the issuer it trusts. RRP may request Attester authentication, or Attester may require RRP authentication, but again, I would keep those as security considerations and add them later if there's interest in doing so.",
+              "createdAt": "2026-10-29T17:08:28Z",
+              "updatedAt": "2026-10-29T17:08:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9weIQ",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:10:03Z",
+          "updatedAt": "2026-10-29T17:10:04Z",
+          "comments": [
+            {
+              "originalPosition": 245,
+              "body": "If we are going to add origin (RRP) authentication to the response, then we need to do this in the TACRA draft. Right now it's a complication that can easily be added later if required. I recommend dropping it in favor of a security consideration note.",
+              "createdAt": "2026-10-29T17:10:03Z",
+              "updatedAt": "2026-10-29T17:10:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU9w6-w",
+          "commit": {
+            "abbreviatedOid": "e94249e"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:10:38Z",
+          "updatedAt": "2026-10-29T17:10:38Z",
+          "comments": [
+            {
+              "originalPosition": 254,
+              "body": "Same comment as before on origin authentication (and it's not the Target that requires it)",
+              "createdAt": "2026-10-29T17:10:38Z",
+              "updatedAt": "2026-10-29T17:10:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-RHSA",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:18Z",
+          "updatedAt": "2026-10-29T17:50:18Z",
+          "comments": [
+            {
+              "originalPosition": 216,
+              "body": "Agreed. Filed as #32: every primitive of the profile named by a token with a mandatory-to-implement default, the hash of the binding included.",
+              "createdAt": "2026-10-29T17:50:18Z",
+              "updatedAt": "2026-10-29T17:50:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-RJFg",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:20Z",
+          "updatedAt": "2026-10-29T17:50:20Z",
+          "comments": [
+            {
+              "originalPosition": 216,
+              "body": "You read it right: the Secret Vault signs, the Attester verifies, the Target takes no part. The requirement was deployment configuration on both sides, never carried in the request, which is the gap you name. Done as you say: the signature is out of this version, and Security Considerations keep the risk, its consequence and the note that a deployment can add it. The same commit series is on TACRA #27 and the mock #8.",
+              "createdAt": "2026-10-29T17:50:20Z",
+              "updatedAt": "2026-10-29T17:50:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-RKyQ",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:21Z",
+          "updatedAt": "2026-10-29T17:50:22Z",
+          "comments": [
+            {
+              "originalPosition": 212,
+              "body": "Reworded: the suites the Secret Vault accepts. The Target takes no part, and one paragraph in attest-initiate now says so.",
+              "createdAt": "2026-10-29T17:50:21Z",
+              "updatedAt": "2026-10-29T17:50:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-RMnw",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:23Z",
+          "updatedAt": "2026-10-29T17:50:23Z",
+          "comments": [
+            {
+              "originalPosition": 136,
+              "body": "Done: attest-enroll mints x509 or wic.",
+              "createdAt": "2026-10-29T17:50:23Z",
+              "updatedAt": "2026-10-29T17:50:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-ROaA",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:25Z",
+          "updatedAt": "2026-10-29T17:50:25Z",
+          "comments": [
+            {
+              "originalPosition": 129,
+              "body": "Right: a WIC is an X.509 certificate (Section 6.1 of the WIMSE credentials draft). Enrollment now mints wic as it mints x509, the Credential Authority setting the Workload Identifier under its policy. The mock does not mint one yet, and its README says so.",
+              "createdAt": "2026-10-29T17:50:25Z",
+              "updatedAt": "2026-10-29T17:50:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-RP6w",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:27Z",
+          "updatedAt": "2026-10-29T17:50:27Z",
+          "comments": [
+            {
+              "originalPosition": 137,
+              "body": "Done, with 406 for any other type at enrollment.",
+              "createdAt": "2026-10-29T17:50:27Z",
+              "updatedAt": "2026-10-29T17:50:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-RRbA",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:29Z",
+          "updatedAt": "2026-10-29T17:50:29Z",
+          "comments": [
+            {
+              "originalPosition": 138,
+              "body": "Done: absent, the client takes what the RATS Relying Party issues or releases, at enrollment and at retrieval alike. A client that needs a Credential Type names it.",
+              "createdAt": "2026-10-29T17:50:29Z",
+              "updatedAt": "2026-10-29T17:50:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-RSrg",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:31Z",
+          "updatedAt": "2026-10-29T17:50:31Z",
+          "comments": [
+            {
+              "originalPosition": 140,
+              "body": "Done: the Secret Vault releases the Credential Type named, or refuses the request.",
+              "createdAt": "2026-10-29T17:50:31Z",
+              "updatedAt": "2026-10-29T17:50:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-RUSQ",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:33Z",
+          "updatedAt": "2026-10-29T17:50:33Z",
+          "comments": [
+            {
+              "originalPosition": 141,
+              "body": "Done: 406 Not Acceptable, the body naming the Credential Types served for that target, as RFC 9110 asks of a 406, and a 406 line in the status list. One caveat for your eyes: RFC 9110 ties 406 to the Accept header fields, so a strict reader may ask. 422 Unprocessable Content is the fallback if you would rather not have that question.",
+              "createdAt": "2026-10-29T17:50:33Z",
+              "updatedAt": "2026-10-29T17:50:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-RV1w",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:34Z",
+          "updatedAt": "2026-10-29T17:50:34Z",
+          "comments": [
+            {
+              "originalPosition": 141,
+              "body": "Yes, the RATS Relying Party. Reworded here and in the enrollment line.",
+              "createdAt": "2026-10-29T17:50:34Z",
+              "updatedAt": "2026-10-29T17:50:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-RXig",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:36Z",
+          "updatedAt": "2026-10-29T17:50:36Z",
+          "comments": [
+            {
+              "originalPosition": 168,
+              "body": "The Target is already the second value of TACRA's binding digest (Binding Credential Keys to Evidence, item 2), merged earlier, and this profile only fills that slot. Taking it out of this profile alone leaves two digests. Taking it out honestly means TACRA too: the binding section and the three Security Considerations that rest on it, the substitution of the Target among them. Your call, and I will do either in one commit. Left in place for now.",
+              "createdAt": "2026-10-29T17:50:36Z",
+              "updatedAt": "2026-10-29T17:50:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-RZDg",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:38Z",
+          "updatedAt": "2026-10-29T17:50:38Z",
+          "comments": [
+            {
+              "originalPosition": 196,
+              "body": "Done: 400 on a binding mismatch, in the enrollment and the retrieval sections and in the status list. The same rule now applies to a request that differs from its attest-initiate: 400, not 403.",
+              "createdAt": "2026-10-29T17:50:38Z",
+              "updatedAt": "2026-10-29T17:50:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-Rasw",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:39Z",
+          "updatedAt": "2026-10-29T17:50:40Z",
+          "comments": [
+            {
+              "originalPosition": 233,
+              "body": "Done as you say: the member is gone, and the note in Security Considerations names it as a security configuration a deployment can add.",
+              "createdAt": "2026-10-29T17:50:39Z",
+              "updatedAt": "2026-10-29T17:50:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-RcVw",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:41Z",
+          "updatedAt": "2026-10-29T17:50:41Z",
+          "comments": [
+            {
+              "originalPosition": 245,
+              "body": "Done, and the same in TACRA #27.",
+              "createdAt": "2026-10-29T17:50:41Z",
+              "updatedAt": "2026-10-29T17:50:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-ReYA",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T17:50:43Z",
+          "updatedAt": "2026-10-29T17:50:43Z",
+          "comments": [
+            {
+              "originalPosition": 254,
+              "body": "Done.",
+              "createdAt": "2026-10-29T17:50:43Z",
+              "updatedAt": "2026-10-29T17:50:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU-1kLw",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T18:34:41Z",
+          "updatedAt": "2026-10-29T18:34:41Z",
+          "comments": [
+            {
+              "originalPosition": 153,
+              "body": "why set name to `x509` if it is a `wic`?",
+              "createdAt": "2026-10-29T18:34:41Z",
+              "updatedAt": "2026-10-29T18:34:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU_BIkQ",
+          "commit": {
+            "abbreviatedOid": "0b95aeb"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T18:47:53Z",
+          "updatedAt": "2026-10-29T18:47:54Z",
+          "comments": [
+            {
+              "originalPosition": 153,
+              "body": "This sentence is confusing: \"the Credential Authority setting the Workload Identifier under its policy as it sets the names of an `x509`.\" What is it trying to say?",
+              "createdAt": "2026-10-29T18:47:53Z",
+              "updatedAt": "2026-10-29T18:47:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU_GjSg",
+          "commit": {
+            "abbreviatedOid": "8b58770"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T18:54:25Z",
+          "updatedAt": "2026-10-29T18:54:25Z",
+          "comments": [
+            {
+              "originalPosition": 153,
+              "body": "It does not: the sentence compared setting the Workload Identifier to setting a certificate's subject names, and read badly. Reworded.",
+              "createdAt": "2026-10-29T18:54:25Z",
+              "updatedAt": "2026-10-29T18:54:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABU_Gkzg",
+          "commit": {
+            "abbreviatedOid": "8b58770"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T18:54:26Z",
+          "updatedAt": "2026-10-29T18:54:27Z",
+          "comments": [
+            {
+              "originalPosition": 153,
+              "body": "That the Credential Authority chooses the Workload Identifier it puts in the certificate under its own policy, as it chooses the subject names of any certificate it issues. Reworded.",
+              "createdAt": "2026-10-29T18:54:26Z",
+              "updatedAt": "2026-10-29T18:54:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVBo8xw",
+          "commit": {
+            "abbreviatedOid": "8b58770"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T22:48:13Z",
+          "updatedAt": "2026-10-29T22:48:13Z",
+          "comments": [
+            {
+              "originalPosition": 168,
+              "body": "We'll keep it for now. We need to get this over the line, so not worth worrying about this detail right now.",
+              "createdAt": "2026-10-29T22:48:13Z",
+              "updatedAt": "2026-10-29T22:48:14Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 31,
       "id": "PR_kwDOUNE08M8AAAABLaGN5w",
       "title": "The Important list of 29 October: #20 to #28, with examples from the wire",
       "url": "https://github.com/TheBankster/lamps-tacra-est/pull/31",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "nikolaichuk7",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "On top of #29 and #30, one commit.\n\nCloses #20, #21, #22, #23, #24, #25, #26, #27 and #28, each as the issue asks except where the architecture says otherwise, and then the text says why.\n\n#20: the Relationship section tells the two attestations apart, and TACRA (TheBankster/rats-tacra#27) carries the caveat, that a public key in platform Evidence does not by itself show where its private key is, with the digest kept over the DER CSR. The citation of Section 6.1 of CSR-ATTEST stays: revision 32 makes the CA/RA responsible for ensuring that the binding has been validated, which is the sentence cited.\n\n#21: a present-nonce Handle is 8 to 64 octets, at least 64 bits of entropy, issued once and not reused, in the CDDL (the response Handle's size) and in prose, with expires_in named as the freshness draft's expiry and the two resources told apart. No requested length: the Handle enters the Evidence through the digest, so no platform needs a Handle of a particular size. No TLS session or cookie for the association: either would bind the EST Client, the conduit, not the Attester; the association is the correlation of the processing steps and the Relying Party's digest.\n\n#22: the correlation of the second leg with its attest-initiate is named for what it is, the EST Server keeping its two legs together, not authorization; the 403 list is split into the EST Server's own refusals and the ones forwarded from the Relying Party; the restriction on authorization says what is and is not authorization. credential_type stays among the correlated members, as the code does it.\n\n#23: Security Considerations gain Evidence and Attestation Results on the conduit's path, channel binding (none, by Design Goal 8), client authentication (none required for attest-*, a deployment may require TLS client authentication, rate limits on Handles minted on an unauthenticated initiate), both channels of the EST Server, and the unbound type and hint; a Privacy Considerations section points at Section 11 of RFC 9334 and TACRA.\n\n#24: group_id is the Secret Vault's policy, no construction specified, the hint selects within what the policy allows and cannot enlarge it; the formula with the hint is gone, an example without it stays as an example.\n\n#25: no registries; the protocol tokens in a section of their own (ecdsa-p256-sha256, the two HPKE suite names, Evidence formats as media types); the media type templates name an author as the contact and the IESG as the change controller. The contact is the first author; change it if another should own the IANA mail.\n\n#26: the attest-* operations under the optional path segment of RFC 7030 as well, the segment selecting the issuer and never the Target.\n\n#27: an appendix with four exchanges recorded on 29 October between the bench's EST Client and EST Server on a Google Cloud SEV-SNP guest, byte for byte except the base64url values cut to 24 characters, folded per RFC 8792: attest-initiate for Enrollment, attest-enroll, attest-initiate for Retrieval, attest-retrieve with the container of #15.\n\n#28: the profile rules (one of acceptable_evidence of the attest-initiate that returned the Handle, else the first of them; 415 for a format the server does not accept, as the code does), and the restrictions list renders as a list.\n\nBuilt as the Datatracker does, idnits in submission mode reports nothing, no line over 72 columns. The cddl tool accepts the 12 wire logs of 29 October against the CDDL of this commit and refuses a 4-octet Handle.\n",
       "createdAt": "2026-10-29T01:33:35Z",
-      "updatedAt": "2026-10-29T01:33:35Z",
+      "updatedAt": "2026-10-30T01:09:05Z",
       "baseRepository": "TheBankster/lamps-tacra-est",
       "baseRefName": "master",
-      "baseRefOid": "1378ead6f9517a5dd1eda1100a2f566fc023069d",
+      "baseRefOid": "c98bdaa8f3e143c8cc35b817fdbf2c7ddcb0f613",
       "headRepository": "nikolaichuk7/lamps-tacra-est",
       "headRefName": "important-list",
-      "headRefOid": "399b532cb425bba41053e1f47bad63335a371522",
+      "headRefOid": "13e5154a5c603040f7b2dc48c3ec857c86c9ec1f",
+      "closedAt": "2026-10-30T01:09:05Z",
+      "mergedAt": "2026-10-30T01:09:05Z",
+      "mergedBy": "TheBankster",
+      "mergeCommit": {
+        "oid": "ca1fd9f72a2131eeda15d2c4c3d40f390829b5da"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVBvRCg",
+          "commit": {
+            "abbreviatedOid": "f4bb094"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:01:19Z",
+          "updatedAt": "2026-10-29T23:01:19Z",
+          "comments": [
+            {
+              "originalPosition": 75,
+              "body": "Should we settle on just one term: \"credential bundle\" or \"container\", or is there a reason to keep them separate?",
+              "createdAt": "2026-10-29T23:01:19Z",
+              "updatedAt": "2026-10-29T23:01:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVBwkPg",
+          "commit": {
+            "abbreviatedOid": "412dd13"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:04:06Z",
+          "updatedAt": "2026-10-29T23:04:07Z",
+          "comments": [
+            {
+              "originalPosition": 75,
+              "body": "Two things, so both stay. The Credential Bundle is the plaintext the Secret Vault releases: credential items and metadata. The container is the sealed object that carries it, the EncryptedCredentialBundle. The terminology list now defines Container beside Credential Bundle, step 7 names both, and the Security Considerations bullet is \"Origin of the container\".",
+              "createdAt": "2026-10-29T23:04:06Z",
+              "updatedAt": "2026-10-29T23:04:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVBwkpg",
+          "commit": {
+            "abbreviatedOid": "f4bb094"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:04:07Z",
+          "updatedAt": "2026-10-29T23:04:08Z",
+          "comments": [
+            {
+              "originalPosition": 94,
+              "body": "\"For `attest-*` the client uses the same segment is uses for `simpleenroll` at that issuer.",
+              "createdAt": "2026-10-29T23:04:07Z",
+              "updatedAt": "2026-10-29T23:04:08Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVBxPmg",
+          "commit": {
+            "abbreviatedOid": "f4bb094"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:05:38Z",
+          "updatedAt": "2026-10-29T23:05:39Z",
+          "comments": [
+            {
+              "originalPosition": 104,
+              "body": "If the Server does not serve that Target, should that be a 404? At any rate, we need consistency across this and the PoC. Not a blocker for now, so fix or file an issue -- either works.",
+              "createdAt": "2026-10-29T23:05:39Z",
+              "updatedAt": "2026-10-29T23:05:39Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVByxIQ",
+          "commit": {
+            "abbreviatedOid": "f4bb094"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:09:05Z",
+          "updatedAt": "2026-10-29T23:09:05Z",
+          "comments": [
+            {
+              "originalPosition": 115,
+              "body": "Why is that a \"side effect\"?",
+              "createdAt": "2026-10-29T23:09:05Z",
+              "updatedAt": "2026-10-29T23:09:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVBzVsA",
+          "commit": {
+            "abbreviatedOid": "f4bb094"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:10:23Z",
+          "updatedAt": "2026-10-29T23:10:23Z",
+          "comments": [
+            {
+              "originalPosition": 121,
+              "body": "... for a Target per its policy for that Target, since the Target only recognizes credentials from an issuer it already trusts.",
+              "createdAt": "2026-10-29T23:10:23Z",
+              "updatedAt": "2026-10-29T23:10:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVB0wmw",
+          "commit": {
+            "abbreviatedOid": "f4bb094"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:13:33Z",
+          "updatedAt": "2026-10-29T23:13:33Z",
+          "comments": [
+            {
+              "originalPosition": 132,
+              "body": "just for `present-nonce`? Why not list all Freshness kinds for which `attest-initiate` returns something? Also consider whether this duplicates other existing text.",
+              "createdAt": "2026-10-29T23:13:33Z",
+              "updatedAt": "2026-10-29T23:13:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVB0-Yg",
+          "commit": {
+            "abbreviatedOid": "f4bb094"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:14:05Z",
+          "updatedAt": "2026-10-29T23:14:05Z",
+          "comments": [
+            {
+              "originalPosition": 132,
+              "body": "drop the comma between \"nonce\" and \"as\"",
+              "createdAt": "2026-10-29T23:14:05Z",
+              "updatedAt": "2026-10-29T23:14:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVB7g2Q",
+          "commit": {
+            "abbreviatedOid": "a01f5b2"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:29:02Z",
+          "updatedAt": "2026-10-29T23:29:03Z",
+          "comments": [
+            {
+              "originalPosition": 94,
+              "body": "Done, in your words.",
+              "createdAt": "2026-10-29T23:29:03Z",
+              "updatedAt": "2026-10-29T23:29:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVB7hsw",
+          "commit": {
+            "abbreviatedOid": "a01f5b2"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:29:04Z",
+          "updatedAt": "2026-10-29T23:29:05Z",
+          "comments": [
+            {
+              "originalPosition": 104,
+              "body": "Done, 404, here and in the mock: the query is part of the target URI, so a target the EST Server does not serve is a resource it does not have. The PoC returns 404 now too.",
+              "createdAt": "2026-10-29T23:29:04Z",
+              "updatedAt": "2026-10-29T23:29:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVB7iWA",
+          "commit": {
+            "abbreviatedOid": "a01f5b2"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:29:06Z",
+          "updatedAt": "2026-10-29T23:29:06Z",
+          "comments": [
+            {
+              "originalPosition": 115,
+              "body": "Because HTTP calls a GET safe (Section 9.2.1 of RFC 9110) and this one creates state, a single-use Handle, as the nonce resource of the freshness draft does. Reworded without the term: \"mints a single-use Handle and records it, as the nonce resource of ATTESTATION-FRESHNESS does\".",
+              "createdAt": "2026-10-29T23:29:06Z",
+              "updatedAt": "2026-10-29T23:29:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVB7jBQ",
+          "commit": {
+            "abbreviatedOid": "a01f5b2"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:29:07Z",
+          "updatedAt": "2026-10-29T23:29:07Z",
+          "comments": [
+            {
+              "originalPosition": 121,
+              "body": "Done, in your words.",
+              "createdAt": "2026-10-29T23:29:07Z",
+              "updatedAt": "2026-10-29T23:29:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVB7jrw",
+          "commit": {
+            "abbreviatedOid": "a01f5b2"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:29:09Z",
+          "updatedAt": "2026-10-29T23:29:09Z",
+          "comments": [
+            {
+              "originalPosition": 132,
+              "body": "Done: the sentence now names the Handle of every kind, a nonce for present-nonce, the epoch marker for present-epoch, none for absent-*. The next sentence lists what attest-initiate returns beyond the nonce resource, so it is not a repeat, and the normative text stays in the attest-initiate section.",
+              "createdAt": "2026-10-29T23:29:09Z",
+              "updatedAt": "2026-10-29T23:29:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVB7kSg",
+          "commit": {
+            "abbreviatedOid": "a01f5b2"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:29:10Z",
+          "updatedAt": "2026-10-29T23:29:10Z",
+          "comments": [
+            {
+              "originalPosition": 132,
+              "body": "Gone with the rewrite.",
+              "createdAt": "2026-10-29T23:29:10Z",
+              "updatedAt": "2026-10-29T23:29:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVB_DOg",
+          "commit": {
+            "abbreviatedOid": "a01f5b2"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:37:31Z",
+          "updatedAt": "2026-10-29T23:37:31Z",
+          "comments": [
+            {
+              "originalPosition": 158,
+              "body": "\"... Evidence, in the format the Verifier recognizes, for example...\"",
+              "createdAt": "2026-10-29T23:37:31Z",
+              "updatedAt": "2026-10-29T23:37:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVB_Qsg",
+          "commit": {
+            "abbreviatedOid": "a01f5b2"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:37:59Z",
+          "updatedAt": "2026-10-29T23:38:00Z",
+          "comments": [
+            {
+              "originalPosition": 159,
+              "body": "I'd drop this line.",
+              "createdAt": "2026-10-29T23:38:00Z",
+              "updatedAt": "2026-10-29T23:38:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCDYjA",
+          "commit": {
+            "abbreviatedOid": "849f58f"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:45:51Z",
+          "updatedAt": "2026-10-29T23:45:51Z",
+          "comments": [
+            {
+              "originalPosition": 158,
+              "body": "Done, in your words.",
+              "createdAt": "2026-10-29T23:45:51Z",
+              "updatedAt": "2026-10-29T23:45:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCDZVQ",
+          "commit": {
+            "abbreviatedOid": "849f58f"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:45:53Z",
+          "updatedAt": "2026-10-29T23:45:53Z",
+          "comments": [
+            {
+              "originalPosition": 159,
+              "body": "Dropped.",
+              "createdAt": "2026-10-29T23:45:53Z",
+              "updatedAt": "2026-10-29T23:45:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCJAwg",
+          "commit": {
+            "abbreviatedOid": "a01f5b2"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-29T23:59:38Z",
+          "updatedAt": "2026-10-29T23:59:38Z",
+          "comments": [
+            {
+              "originalPosition": 172,
+              "body": "else the first of them? I don't understand.",
+              "createdAt": "2026-10-29T23:59:38Z",
+              "updatedAt": "2026-10-29T23:59:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCJuIw",
+          "commit": {
+            "abbreviatedOid": "849f58f"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:01:32Z",
+          "updatedAt": "2026-10-30T00:01:32Z",
+          "comments": [
+            {
+              "originalPosition": 180,
+              "body": "I would check if 409 is acceptable here, I suspect not. 400 might be a fine fallback.",
+              "createdAt": "2026-10-30T00:01:32Z",
+              "updatedAt": "2026-10-30T00:01:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCKJHQ",
+          "commit": {
+            "abbreviatedOid": "849f58f"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:02:36Z",
+          "updatedAt": "2026-10-30T00:02:36Z",
+          "comments": [
+            {
+              "originalPosition": 189,
+              "body": "\"else the first of them\" is a statement I don't understand",
+              "createdAt": "2026-10-30T00:02:36Z",
+              "updatedAt": "2026-10-30T00:02:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCKbig",
+          "commit": {
+            "abbreviatedOid": "849f58f"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:03:20Z",
+          "updatedAt": "2026-10-30T00:03:20Z",
+          "comments": [
+            {
+              "originalPosition": 205,
+              "body": "two Secret Vaults -- different Secret Vaults",
+              "createdAt": "2026-10-30T00:03:20Z",
+              "updatedAt": "2026-10-30T00:03:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCMWkg",
+          "commit": {
+            "abbreviatedOid": "849f58f"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:07:54Z",
+          "updatedAt": "2026-10-30T00:07:54Z",
+          "comments": [
+            {
+              "originalPosition": 214,
+              "body": "does not change the group id.",
+              "createdAt": "2026-10-30T00:07:54Z",
+              "updatedAt": "2026-10-30T00:07:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCM2vg",
+          "commit": {
+            "abbreviatedOid": "849f58f"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:08:58Z",
+          "updatedAt": "2026-10-30T00:08:58Z",
+          "comments": [
+            {
+              "originalPosition": 223,
+              "body": "Same comment on 409. I suspect 409 has a very specific meaning in HTTP land, and this doesn't mean the same thing. I could be wrong.",
+              "createdAt": "2026-10-30T00:08:58Z",
+              "updatedAt": "2026-10-30T00:08:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCNWxw",
+          "commit": {
+            "abbreviatedOid": "849f58f"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:10:04Z",
+          "updatedAt": "2026-10-30T00:10:04Z",
+          "comments": [
+            {
+              "originalPosition": 235,
+              "body": "Keep if 409 is the right choice, change otherwise",
+              "createdAt": "2026-10-30T00:10:04Z",
+              "updatedAt": "2026-10-30T00:10:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCNpnA",
+          "commit": {
+            "abbreviatedOid": "849f58f"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:10:48Z",
+          "updatedAt": "2026-10-30T00:10:48Z",
+          "comments": [
+            {
+              "originalPosition": 242,
+              "body": "opens only under CEKpri -- can only be unsealed with CEKpri",
+              "createdAt": "2026-10-30T00:10:48Z",
+              "updatedAt": "2026-10-30T00:10:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCOTUA",
+          "commit": {
+            "abbreviatedOid": "849f58f"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:12:12Z",
+          "updatedAt": "2026-10-30T00:12:13Z",
+          "comments": [
+            {
+              "originalPosition": 242,
+              "body": "... and one of their making carries none of it -- \"and one created by CAS Server will not authenticate the Attester to the Target\".",
+              "createdAt": "2026-10-30T00:12:12Z",
+              "updatedAt": "2026-10-30T00:13:01Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCObRg",
+          "commit": {
+            "abbreviatedOid": "37b3f03"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:12:29Z",
+          "updatedAt": "2026-10-30T00:12:29Z",
+          "comments": [
+            {
+              "originalPosition": 172,
+              "body": "It meant a default: no profile, the first listed format. Gone. Absent, the EST Server forwards the Evidence as it is and the Verifier recognizes its format, which is what the mock does.",
+              "createdAt": "2026-10-30T00:12:29Z",
+              "updatedAt": "2026-10-30T00:12:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCOb4w",
+          "commit": {
+            "abbreviatedOid": "37b3f03"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:12:30Z",
+          "updatedAt": "2026-10-30T00:12:30Z",
+          "comments": [
+            {
+              "originalPosition": 180,
+              "body": "Checked: RFC 9110 keeps 409 for a conflict with the state of the target resource, which a replayed Handle fits loosely and a Handle never issued does not. Your fallback is simpler: 400 for all of them, here and in the mock, and the 409 line is gone.",
+              "createdAt": "2026-10-30T00:12:30Z",
+              "updatedAt": "2026-10-30T00:12:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCOc4A",
+          "commit": {
+            "abbreviatedOid": "37b3f03"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:12:32Z",
+          "updatedAt": "2026-10-30T00:12:32Z",
+          "comments": [
+            {
+              "originalPosition": 189,
+              "body": "Same as above: gone.",
+              "createdAt": "2026-10-30T00:12:32Z",
+              "updatedAt": "2026-10-30T00:12:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCOdyQ",
+          "commit": {
+            "abbreviatedOid": "37b3f03"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:12:34Z",
+          "updatedAt": "2026-10-30T00:12:34Z",
+          "comments": [
+            {
+              "originalPosition": 205,
+              "body": "Done.",
+              "createdAt": "2026-10-30T00:12:34Z",
+              "updatedAt": "2026-10-30T00:12:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCOeoQ",
+          "commit": {
+            "abbreviatedOid": "37b3f03"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:12:35Z",
+          "updatedAt": "2026-10-30T00:12:36Z",
+          "comments": [
+            {
+              "originalPosition": 214,
+              "body": "Done, in your words.",
+              "createdAt": "2026-10-30T00:12:35Z",
+              "updatedAt": "2026-10-30T00:12:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCOfNw",
+          "commit": {
+            "abbreviatedOid": "37b3f03"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:12:37Z",
+          "updatedAt": "2026-10-30T00:12:37Z",
+          "comments": [
+            {
+              "originalPosition": 223,
+              "body": "Changed to 400 here too.",
+              "createdAt": "2026-10-30T00:12:37Z",
+              "updatedAt": "2026-10-30T00:12:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCOgDA",
+          "commit": {
+            "abbreviatedOid": "37b3f03"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:12:38Z",
+          "updatedAt": "2026-10-30T00:12:39Z",
+          "comments": [
+            {
+              "originalPosition": 235,
+              "body": "Changed: the 409 line is gone, and its cases are in the 400 line.",
+              "createdAt": "2026-10-30T00:12:38Z",
+              "updatedAt": "2026-10-30T00:12:39Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCO_5g",
+          "commit": {
+            "abbreviatedOid": "849f58f"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:13:50Z",
+          "updatedAt": "2026-10-30T00:13:50Z",
+          "comments": [
+            {
+              "originalPosition": 242,
+              "body": "It's unclear in this paragraph what \"they\" means. Presumably the CAS server? I would drop the sentence that starts with \"The Attester\".",
+              "createdAt": "2026-10-30T00:13:50Z",
+              "updatedAt": "2026-10-30T00:13:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCPdkg",
+          "commit": {
+            "abbreviatedOid": "37b3f03"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:15:02Z",
+          "updatedAt": "2026-10-30T00:15:02Z",
+          "comments": [
+            {
+              "originalPosition": 171,
+              "body": "Absent --> \"If absent, ...\"",
+              "createdAt": "2026-10-30T00:15:02Z",
+              "updatedAt": "2026-10-30T00:15:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCSBaA",
+          "commit": {
+            "abbreviatedOid": "37b3f03"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:21:51Z",
+          "updatedAt": "2026-10-30T00:21:51Z",
+          "comments": [
+            {
+              "originalPosition": 242,
+              "body": "Done, in your words.",
+              "createdAt": "2026-10-30T00:21:51Z",
+              "updatedAt": "2026-10-30T00:21:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCSCGw",
+          "commit": {
+            "abbreviatedOid": "6e39aec"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:21:53Z",
+          "updatedAt": "2026-10-30T00:21:53Z",
+          "comments": [
+            {
+              "originalPosition": 242,
+              "body": "Done, in your words. The consequence by Credential Type, the API key among them, stays in the Trust Model of TACRA, which this bullet cites.",
+              "createdAt": "2026-10-30T00:21:53Z",
+              "updatedAt": "2026-10-30T00:21:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCSCyA",
+          "commit": {
+            "abbreviatedOid": "6e39aec"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:21:55Z",
+          "updatedAt": "2026-10-30T00:21:55Z",
+          "comments": [
+            {
+              "originalPosition": 242,
+              "body": "Dropped, with the \"they\" in it. The paragraph names the EST Client and the EST Server only.",
+              "createdAt": "2026-10-30T00:21:55Z",
+              "updatedAt": "2026-10-30T00:21:55Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCSDTg",
+          "commit": {
+            "abbreviatedOid": "6e39aec"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:21:57Z",
+          "updatedAt": "2026-10-30T00:21:57Z",
+          "comments": [
+            {
+              "originalPosition": 171,
+              "body": "Done, in all four places that had the rule.",
+              "createdAt": "2026-10-30T00:21:57Z",
+              "updatedAt": "2026-10-30T00:21:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCS6uA",
+          "commit": {
+            "abbreviatedOid": "37b3f03"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:24:15Z",
+          "updatedAt": "2026-10-30T00:24:15Z",
+          "comments": [
+            {
+              "originalPosition": 255,
+              "body": "what does \"satisfies the digest\" mean?",
+              "createdAt": "2026-10-30T00:24:15Z",
+              "updatedAt": "2026-10-30T00:24:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCUCXA",
+          "commit": {
+            "abbreviatedOid": "6e39aec"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:27:16Z",
+          "updatedAt": "2026-10-30T00:27:16Z",
+          "comments": [
+            {
+              "originalPosition": 265,
+              "body": "\"is not that decision\"... could use a rewording. What did you mean to say?",
+              "createdAt": "2026-10-30T00:27:16Z",
+              "updatedAt": "2026-10-30T00:27:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCUoow",
+          "commit": {
+            "abbreviatedOid": "6e39aec"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:28:50Z",
+          "updatedAt": "2026-10-30T00:28:50Z",
+          "comments": [
+            {
+              "originalPosition": 272,
+              "body": "\"what a deployment accepts by that\" needs a rewording.",
+              "createdAt": "2026-10-30T00:28:50Z",
+              "updatedAt": "2026-10-30T00:28:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCVLnA",
+          "commit": {
+            "abbreviatedOid": "6e39aec"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:30:06Z",
+          "updatedAt": "2026-10-30T00:30:06Z",
+          "comments": [
+            {
+              "originalPosition": 296,
+              "body": "Why separate lines?",
+              "createdAt": "2026-10-30T00:30:06Z",
+              "updatedAt": "2026-10-30T00:30:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCV4Nw",
+          "commit": {
+            "abbreviatedOid": "6e39aec"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:31:32Z",
+          "updatedAt": "2026-10-30T00:31:33Z",
+          "comments": [
+            {
+              "originalPosition": 285,
+              "body": "This sentence needs a rewording: proper grammar almost never ends a sentence with \"that document's.\"",
+              "createdAt": "2026-10-30T00:31:33Z",
+              "updatedAt": "2026-10-30T00:31:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCV-Yw",
+          "commit": {
+            "abbreviatedOid": "6e39aec"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:31:45Z",
+          "updatedAt": "2026-10-30T00:31:45Z",
+          "comments": [
+            {
+              "originalPosition": 284,
+              "body": "Does it make sense to say what it doesn't do?",
+              "createdAt": "2026-10-30T00:31:45Z",
+              "updatedAt": "2026-10-30T00:31:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCYtkg",
+          "commit": {
+            "abbreviatedOid": "13e5154"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:39:03Z",
+          "updatedAt": "2026-10-30T00:39:04Z",
+          "comments": [
+            {
+              "originalPosition": 255,
+              "body": "That the other RATS Relying Party recomputes the same digest, since the digest binds the Target name and not the RATS Relying Party. Reworded to say exactly that.",
+              "createdAt": "2026-10-30T00:39:04Z",
+              "updatedAt": "2026-10-30T00:39:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCYubQ",
+          "commit": {
+            "abbreviatedOid": "13e5154"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:39:05Z",
+          "updatedAt": "2026-10-30T00:39:05Z",
+          "comments": [
+            {
+              "originalPosition": 265,
+              "body": "That the EST Server's correlation only checks that the second leg repeats the same credential_type, and authorizes nothing: what is issued or released for a type or a hint is the RATS Relying Party's policy. Reworded to say that.",
+              "createdAt": "2026-10-30T00:39:05Z",
+              "updatedAt": "2026-10-30T00:39:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCYvUw",
+          "commit": {
+            "abbreviatedOid": "13e5154"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:39:07Z",
+          "updatedAt": "2026-10-30T00:39:07Z",
+          "comments": [
+            {
+              "originalPosition": 272,
+              "body": "Reworded: the Trust Model of TACRA states what the EST Client and the EST Server read, and a deployment that operates them accepts that exposure.",
+              "createdAt": "2026-10-30T00:39:07Z",
+              "updatedAt": "2026-10-30T00:39:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCYwLg",
+          "commit": {
+            "abbreviatedOid": "13e5154"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:39:09Z",
+          "updatedAt": "2026-10-30T00:39:09Z",
+          "comments": [
+            {
+              "originalPosition": 296,
+              "body": "My tool took the initial for the end of a sentence. Rejoined, in all four registrations.",
+              "createdAt": "2026-10-30T00:39:09Z",
+              "updatedAt": "2026-10-30T00:39:09Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCYw7A",
+          "commit": {
+            "abbreviatedOid": "13e5154"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:39:11Z",
+          "updatedAt": "2026-10-30T00:39:11Z",
+          "comments": [
+            {
+              "originalPosition": 285,
+              "body": "See the reply at the next thread.",
+              "createdAt": "2026-10-30T00:39:11Z",
+              "updatedAt": "2026-10-30T00:39:11Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVCYx5A",
+          "commit": {
+            "abbreviatedOid": "13e5154"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T00:39:13Z",
+          "updatedAt": "2026-10-30T00:39:13Z",
+          "comments": [
+            {
+              "originalPosition": 284,
+              "body": "No. Both sentences on what this document does not request are gone, and the one in the token section with them.",
+              "createdAt": "2026-10-30T00:39:13Z",
+              "updatedAt": "2026-10-30T00:39:13Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 33,
+      "id": "PR_kwDOUNE08M8AAAABL1vvOw",
+      "title": "The list of 30 October: nine clarifications, and the paragraph of #18",
+      "url": "https://github.com/TheBankster/lamps-tacra-est/pull/33",
+      "state": "OPEN",
+      "author": "nikolaichuk7",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Grok's remaining list against the text, one commit per item, the paragraph of #18 last so it can be dropped on its own. TheBankster/rats-tacra#28 specifies the container, the Credential Type tokens and the example of a group mapping, which the last commits take out of this profile.\n\n- TACRA stays informative, as work in progress. The binding_input and info constructions are in this text, in TACRA's words, in a commit that can be dropped.\n- The EST Server returns present-nonce Handles their originator minted. Two sentences said it mints them.\n- acceptable_csk and acceptable_cek are REQUIRED for their mode, since a client uses no token they do not list.\n- Server processing: a present-epoch marker serves many requests and is refused only when it has moved. A Credential Authority serves attest-enroll and a Secret Vault attest-retrieve, so a request to the other resource is 400, as both backends of the mock do. credential_type is on both legs with the same value, or on neither.\n- freshness_kind matches the attest-initiate response, or the configuration of a locally completed attest-initiate.\n- CEKpub for DHKEM(P-256): the uncompressed point inside the SubjectPublicKeyInfo is the recipient key HPKE deserializes, stated in TACRA with the suite.\n- The container is TACRA's (TheBankster/rats-tacra#28): this profile carries it and names the suites, and the CDDL keeps the wire messages. The value encoding and the Credential Type tokens moved there with it.\n- Architecture: the two models here against Sections 5.1 and 5.2 of RFC 9334, the paragraph proposed in #18.\n\nLeft as they are, for your call: 406 for a Credential Type not served, and the origin bullet of the Security Considerations.\nHPKE-PQ is informative: MLKEM768-P256 is a suite a Secret Vault MAY offer. JCS output is UTF-8 by Section 3.2.4 of RFC 8785.\n\nBuilt as the Datatracker does. idnits in submission mode: the same three findings as master, all from the -latest docname of the editor's copy. The CDDL parses, refuses an initiation response without acceptable_csk, and refuses a value that is not base64url.\n\nRun on hardware on 30 October with the EST server, the RRPs and the CAI following this text: Passport on GCP SEV-SNP, AWS SEV-SNP and GCP TDX, Background Check and the conduit's seal drill on GCP SEV-SNP, and the MLKEM768-P256 suite. Six runs, all 10 Targets of each acquired and admitted, the five Freshness Kinds among them. In the drill the Attester opened the conduit's container and the relying party refused the key it held, 403, the accepted risk as the text states it. The 120 exchanges of those runs, 30 containers among them, pass the cddl tool against the CDDL of this PR, and 96 alterations of each log are refused. The mock follows in TWI-Unified-Model/globalsign-est#8: 404 for a Target not served, 400 for the resource of the other mode, the items typed and encoded as this text says.",
+      "createdAt": "2026-10-30T18:53:37Z",
+      "updatedAt": "2026-10-31T02:16:21Z",
+      "baseRepository": "TheBankster/lamps-tacra-est",
+      "baseRefName": "master",
+      "baseRefOid": "2bfb1482bb3e4da33e77f99b8dce83396dd23ada",
+      "headRepository": "nikolaichuk7/lamps-tacra-est",
+      "headRefName": "grok-pass-2026-10-30",
+      "headRefOid": "52aadf9a1028fe277397a7b9f3654d1a1d2963b6",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "comments": [
+        {
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Done. What moved to TACRA, in TheBankster/rats-tacra#28: the container with its label, suites, encodings and plaintext, the Credential Type tokens, and the example of a group mapping. The copy of the binding formula is gone from this profile, which points at TACRA for it. What stays here is EST: the three resources and their messages, the binding slots this profile fills, the status codes, the suite and algorithm tokens of attest-initiate, the media types. The three Security Considerations on shared keys predate this PR and are not EST specific either, and I can move them in the same way if you want. The hardware ran the whole flow again with the new label this morning: six runs on the three platforms, in both models, all passed, and the 120 exchanges pass the CDDL of both documents.",
+          "createdAt": "2026-10-31T01:35:26Z",
+          "updatedAt": "2026-10-31T01:35:26Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVOrZTA",
+          "commit": {
+            "abbreviatedOid": "33330f0"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T23:09:32Z",
+          "updatedAt": "2026-10-30T23:09:33Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "Grok is mistaken: TACRA is work in progress; cannot be cited as normative. I told it yesterday but it wouldn't listen, damn clanker.",
+              "createdAt": "2026-10-30T23:09:32Z",
+              "updatedAt": "2026-10-30T23:09:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVOrwgg",
+          "commit": {
+            "abbreviatedOid": "33330f0"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T23:10:36Z",
+          "updatedAt": "2026-10-30T23:10:36Z",
+          "comments": [
+            {
+              "originalPosition": 33,
+              "body": "... obtains the Attestation Results by contacting the Verifier itself.",
+              "createdAt": "2026-10-30T23:10:36Z",
+              "updatedAt": "2026-10-30T23:10:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVOuPJA",
+          "commit": {
+            "abbreviatedOid": "33330f0"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T23:16:52Z",
+          "updatedAt": "2026-10-30T23:16:52Z",
+          "comments": [
+            {
+              "originalPosition": 35,
+              "body": "In {{RFC9334}}, the Passport model is where the Attester obtains the Attestation Results from the Verifier and sends them to the Relying Party.",
+              "createdAt": "2026-10-30T23:16:52Z",
+              "updatedAt": "2026-10-30T23:16:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVOuyfg",
+          "commit": {
+            "abbreviatedOid": "33330f0"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T23:18:12Z",
+          "updatedAt": "2026-10-30T23:18:12Z",
+          "comments": [
+            {
+              "originalPosition": 36,
+              "body": "Under TACRA, the Attester always uses the Background Check model. The difference between the two models is whether the EST Server or the RATS Relying Party obtains the Attestation Results from the Verifier.",
+              "createdAt": "2026-10-30T23:18:12Z",
+              "updatedAt": "2026-10-30T23:18:12Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVOx9sw",
+          "commit": {
+            "abbreviatedOid": "33330f0"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T23:26:43Z",
+          "updatedAt": "2026-10-30T23:26:44Z",
+          "comments": [
+            {
+              "originalPosition": 87,
+              "body": "Check that a Credential Authority serves this `target` and `credential_type`, and that the `mode` that `attest-initiate` reports for them ({{initiation-response}}) is `enroll`.",
+              "createdAt": "2026-10-30T23:26:44Z",
+              "updatedAt": "2026-10-30T23:26:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVO8jsw",
+          "commit": {
+            "abbreviatedOid": "e12803a"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T23:54:25Z",
+          "updatedAt": "2026-10-30T23:54:25Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "Right, and that one was mine, not Grok's. Its list says EST must copy the formulas, and I moved the reference instead. TACRA is back among the informative references, and the last commit puts the binding_input and info constructions in this text, in TACRA's words. As written here the formula reproduces the freshness input the hardware signed in all 60 second-leg requests of today's runs. Drop that commit if you would rather keep the pointer.\n\nThe same reasoning reaches HPKE-PQ, the one work in progress left among the normative references, and the RECOMMENDED suite rests on it. It can stay, as a working group draft, or move to informative with MLKEM768-P256 lowered to MAY. Your call.",
+              "createdAt": "2026-10-30T23:54:25Z",
+              "updatedAt": "2026-10-30T23:54:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVO8kUQ",
+          "commit": {
+            "abbreviatedOid": "e12803a"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T23:54:26Z",
+          "updatedAt": "2026-10-30T23:54:26Z",
+          "comments": [
+            {
+              "originalPosition": 33,
+              "body": "Done, in your words.",
+              "createdAt": "2026-10-30T23:54:26Z",
+              "updatedAt": "2026-10-30T23:54:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVO8lFw",
+          "commit": {
+            "abbreviatedOid": "e12803a"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T23:54:28Z",
+          "updatedAt": "2026-10-30T23:54:28Z",
+          "comments": [
+            {
+              "originalPosition": 35,
+              "body": "Done, in your words.",
+              "createdAt": "2026-10-30T23:54:28Z",
+              "updatedAt": "2026-10-30T23:54:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVO8log",
+          "commit": {
+            "abbreviatedOid": "e12803a"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T23:54:30Z",
+          "updatedAt": "2026-10-30T23:54:30Z",
+          "comments": [
+            {
+              "originalPosition": 36,
+              "body": "Done, in your words.",
+              "createdAt": "2026-10-30T23:54:30Z",
+              "updatedAt": "2026-10-30T23:54:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVO8mlA",
+          "commit": {
+            "abbreviatedOid": "e12803a"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T23:54:32Z",
+          "updatedAt": "2026-10-30T23:54:32Z",
+          "comments": [
+            {
+              "originalPosition": 87,
+              "body": "Done, in your words, and the same at Retrieval.",
+              "createdAt": "2026-10-30T23:54:32Z",
+              "updatedAt": "2026-10-30T23:54:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVPChdg",
+          "commit": {
+            "abbreviatedOid": "33330f0"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-31T00:12:37Z",
+          "updatedAt": "2026-10-31T00:12:37Z",
+          "comments": [
+            {
+              "originalPosition": 109,
+              "body": "Can we drop 'whole' and retain the meaning or is there a reason it's there?",
+              "createdAt": "2026-10-31T00:12:37Z",
+              "updatedAt": "2026-10-31T00:12:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVPD20Q",
+          "commit": {
+            "abbreviatedOid": "e12803a"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-31T00:17:23Z",
+          "updatedAt": "2026-10-31T00:17:24Z",
+          "comments": [
+            {
+              "originalPosition": 123,
+              "body": "Can we drop 'whole' and retain the meaning, or is there a reason this word is here?",
+              "createdAt": "2026-10-31T00:17:24Z",
+              "updatedAt": "2026-10-31T00:17:24Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVPFFFg",
+          "commit": {
+            "abbreviatedOid": "e12803a"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-31T00:21:31Z",
+          "updatedAt": "2026-10-31T00:21:31Z",
+          "comments": [
+            {
+              "originalPosition": 124,
+              "body": "We have to be careful here. The Attester does not know it is working with EST, so it has no idea what 'label' value to apply, certainly not one that has 'est' in it.",
+              "createdAt": "2026-10-31T00:21:31Z",
+              "updatedAt": "2026-10-31T00:21:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVPF2kQ",
+          "commit": {
+            "abbreviatedOid": "e12803a"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-31T00:23:40Z",
+          "updatedAt": "2026-10-31T00:23:40Z",
+          "comments": [
+            {
+              "originalPosition": 147,
+              "body": "from that `attest-initiate`'s --> from the corresponding `attest-initiate`",
+              "createdAt": "2026-10-31T00:23:40Z",
+              "updatedAt": "2026-10-31T00:23:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVPGKgQ",
+          "commit": {
+            "abbreviatedOid": "e12803a"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-31T00:24:24Z",
+          "updatedAt": "2026-10-31T00:24:24Z",
+          "comments": [
+            {
+              "originalPosition": 147,
+              "body": "serves many requests --> serves all requests during that epoch",
+              "createdAt": "2026-10-31T00:24:24Z",
+              "updatedAt": "2026-10-31T00:24:24Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVPI4dA",
+          "commit": {
+            "abbreviatedOid": "be39d70"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-31T00:33:46Z",
+          "updatedAt": "2026-10-31T00:33:46Z",
+          "comments": [
+            {
+              "originalPosition": 109,
+              "body": "The same question landed twice. Answered below, at line 526, and the word is gone.",
+              "createdAt": "2026-10-31T00:33:46Z",
+              "updatedAt": "2026-10-31T00:33:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVPI47A",
+          "commit": {
+            "abbreviatedOid": "be39d70"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-31T00:33:48Z",
+          "updatedAt": "2026-10-31T00:33:48Z",
+          "comments": [
+            {
+              "originalPosition": 123,
+              "body": "Dropped. The octets of cek_pub are the subject, all of them, as the binding section already says. The word set them apart from the 65 octets HPKE takes, and the next sentence does that.",
+              "createdAt": "2026-10-31T00:33:48Z",
+              "updatedAt": "2026-10-31T00:33:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVPI5ww",
+          "commit": {
+            "abbreviatedOid": "be39d70"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-31T00:33:50Z",
+          "updatedAt": "2026-10-31T00:33:50Z",
+          "comments": [
+            {
+              "originalPosition": 124,
+              "body": "Agreed. The label belongs to the container, not to the mechanism: the Attester's Credential Acquisition Interface implements the hpke-base container, learns which container it holds from the container member, and never learns that EST carried it, which is how the bench's CAI works today. Two ways to say that, your pick: the label becomes tacra hpke-base v1 and this section says the container format is the Attester's and the EST Server only carries it, or the container format moves to TACRA, where every mechanism finds it, and this profile keeps only the suites it names. Either way the mock and the bench change one constant, and I rerun the hardware before pushing.",
+              "createdAt": "2026-10-31T00:33:50Z",
+              "updatedAt": "2026-10-31T00:33:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVPI6gA",
+          "commit": {
+            "abbreviatedOid": "be39d70"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-31T00:33:52Z",
+          "updatedAt": "2026-10-31T00:33:52Z",
+          "comments": [
+            {
+              "originalPosition": 147,
+              "body": "Done, in your words, in both processing lists.",
+              "createdAt": "2026-10-31T00:33:52Z",
+              "updatedAt": "2026-10-31T00:33:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVPI7Pw",
+          "commit": {
+            "abbreviatedOid": "be39d70"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-31T00:33:53Z",
+          "updatedAt": "2026-10-31T00:33:53Z",
+          "comments": [
+            {
+              "originalPosition": 147,
+              "body": "Done, in your words, in both lists.",
+              "createdAt": "2026-10-31T00:33:53Z",
+              "updatedAt": "2026-10-31T00:33:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVPMP6A",
+          "commit": {
+            "abbreviatedOid": "be39d70"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-31T00:45:11Z",
+          "updatedAt": "2026-10-31T00:45:11Z",
+          "comments": [
+            {
+              "originalPosition": 124,
+              "body": "As EST is the conduit, the container is an agreement between the Secret Vault that generates it and the Attester that receives it. EST carries it, so it has to be specified in the base TACRA draft.\nThe same reasoning applies to all instances with possible exception where the EST Server needs to do some inspection, such as to figure out where to route a request to.",
+              "createdAt": "2026-10-31T00:45:11Z",
+              "updatedAt": "2026-10-31T00:46:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVPSlKA",
+          "commit": {
+            "abbreviatedOid": "be39d70"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "CHANGES_REQUESTED",
+          "body": "Move anything that is not EST specific into the base TACRA draft, then we can merge this PR.",
+          "createdAt": "2026-10-31T01:09:08Z",
+          "updatedAt": "2026-10-31T01:09:08Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABVPYkzA",
+          "commit": {
+            "abbreviatedOid": "3f6f02c"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-31T01:35:23Z",
+          "updatedAt": "2026-10-31T01:35:23Z",
+          "comments": [
+            {
+              "originalPosition": 124,
+              "body": "Done as you say. The container is specified in TACRA now, in TheBankster/rats-tacra#28: the members, the label tacra hpke-base v1, the mandatory suite with others as MAY, the encodings, and the Credential Type tokens the items carry. This profile carries it and names the suites in acceptable_cek, and its CDDL keeps the wire messages only. HPKE-PQ is informative in both documents. The mock and the bench changed the label, and the hardware ran the whole flow again with the new label this morning: six runs on the three platforms, in both models, all passed, and the 120 exchanges pass the CDDL of both documents.",
+              "createdAt": "2026-10-31T01:35:23Z",
+              "updatedAt": "2026-10-31T01:35:24Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
