@@ -426,8 +426,10 @@ Table of Contents
    Query parameters:
 
    *  target: the Target of Initiate-Credential-Acquisition (Section 5.1
-      of [TACRA]).  The client URI-encodes it; the EST Server compares
-      the decoded UTF-8 string.
+      of [TACRA]), an octet string.  In this profile a configured name
+      is UTF-8 in Normalization Form C ([RFC5198]), a URI for instance.
+      The client percent-encodes that string in the query.  The EST
+      Server decodes it and compares the octets.
 
    *  credential_type: the Credential Type the Attester plans to use
       with this Target (Section 8.3).  If omitted, the EST Server
@@ -465,7 +467,7 @@ Table of Contents
    for a Target per its policy for that Target, since the Target only
    recognizes credentials from an issuer it already trusts.  The Target
    itself takes no part in this profile: it is the RATS-unaware Relying
-   Party of [TACRA], named in the request and in the binding. * If the
+   Party of [TACRA], named in the request and in the binding.  If the
    second leg fails because a present-epoch moved or a present-nonce is
    no longer valid, the Attester retries attest-initiate.
 
@@ -574,10 +576,12 @@ Table of Contents
 
    A client MUST send a POST of the resource's media type.  An attest-
    initiate GET has no body; the client SHOULD set Accept to
-   application/est-attest-initiate+json.  An EST Server responds to a
-   request of another media type with 415 (Unsupported Media Type) and
-   SHOULD name the resource's media type in an Accept header field
-   (Section 15.5.16 of [RFC9110]).
+   application/est-attest-initiate+json.  An attest-initiate GET for
+   present-nonce is not idempotent: each one mints a Handle, as the
+   nonce resource of [ATTESTATION-FRESHNESS] does.  An EST Server
+   responds to a request of another media type with 415 (Unsupported
+   Media Type) and SHOULD name the resource's media type in an Accept
+   header field (Section 15.5.16 of [RFC9110]).
 
 7.1.  Message Definitions
 
@@ -606,7 +610,11 @@ Table of Contents
    }
 
    initiation-freshness = (
-     freshness_kind: "present-nonce" / "present-epoch",
+     freshness_kind: "present-nonce",
+     handle: text .b64u (bytes .size (16..64)),
+     ? expires_in: uint,
+   //
+     freshness_kind: "present-epoch",
      handle: text .b64u (bytes .size (8..64)),
      ? expires_in: uint,
    //
@@ -648,9 +656,14 @@ Table of Contents
    request-freshness = (
      freshness_kind: "absent-none"
    //
-     freshness_kind: "absent-timestamp" / "absent-epoch"
-                   / "present-nonce" / "present-epoch",
-     handle: text .b64u bytes,
+     freshness_kind: "absent-timestamp",
+     handle: text .b64u (bytes .size 8),
+   //
+     freshness_kind: "absent-epoch" / "present-epoch",
+     handle: text .b64u (bytes .size (8..64)),
+   //
+     freshness_kind: "present-nonce",
+     handle: text .b64u (bytes .size (16..64)),
    )
 
    binding = {
@@ -687,7 +700,8 @@ Table of Contents
 
    *  expires_in (integer, OPTIONAL): seconds until a present-nonce or
       present-epoch Handle is no longer valid, the expiry of
-      [ATTESTATION-FRESHNESS]
+      [ATTESTATION-FRESHNESS].  The Handle originator SHOULD NOT set it
+      below 60 seconds ([TACRA])
 
    *  max_age (integer, OPTIONAL): for absent-timestamp, the maximum
       Evidence age in seconds acceptable to the Verifier or RATS Relying
@@ -707,8 +721,7 @@ Table of Contents
       EST Server forwards, each named by its media type (Section 8.4).
       A request of the second leg MAY name the format of its Evidence in
       profile, one of them.  When the list is absent, or attest-initiate
-      was completed locally, the EST Client sends the format its
-      configuration names, or none
+      was completed locally, the EST Client sends no profile
 
    For present-nonce, the Freshness Handle originator MUST ensure
    uniqueness and MUST correlate the second-leg request with the Handle
@@ -735,12 +748,15 @@ Table of Contents
       Attester's timestamp, 8 octets, as [TACRA] encodes it.  For
       absent-none it is empty, and handle is absent.
 
-   *  target: the UTF-8 encoding of the target member, used as an exact
-      octet string.
+   *  target: the octets of the target member, the Target octet string
+      of [TACRA], neither recoded nor normalized.  The member carries
+      the same string as the Target of the attest-initiate, on the wire
+      or completed locally.
 
    *  subject: for Enrollment, the DER encoding of the PKCS#10 CSR, the
       octets of csr.  For Retrieval, CEKpub as the request carries it,
-      the octets of cek_pub, in the encoding of its KEM ([TACRA]).
+      the octets of cek_pub, in the encoding of its KEM in
+      Section "Sealing the Released Credential" of [TACRA].
 
    The digest is SHA-512, as [TACRA] sets for a freshness input of 64
    octets, which REPORT_DATA of AMD SEV-SNP and REPORTDATA of Intel TDX
@@ -804,7 +820,8 @@ Table of Contents
 
    acceptable_csk, acceptable_cek and acceptable_evidence are arrays of
    ASCII tokens, and profile is one such token.  This document defines
-   them.
+   them.  Further tokens, for other CSK algorithms, digests and
+   freshness inputs, are left for a later revision.
 
    CSK algorithms, for Enrollment:
 
@@ -854,7 +871,9 @@ Table of Contents
       otherwise.  For present-nonce and present-epoch it MUST equal the
       Freshness Handle returned by attest-initiate.  For absent-
       timestamp it is the 8-octet timestamp and for absent-epoch the
-      locally held epoch marker.
+      locally held epoch marker.  Its size is 16 to 64 octets for
+      present-nonce, 8 to 64 for present-epoch and absent-epoch, and 8
+      for absent-timestamp (Section 7.1).
 
    *  csr (bytes, REQUIRED): DER-encoded PKCS#10 CSR
 
@@ -862,8 +881,12 @@ Table of Contents
       returned by attest-initiate, if any
 
    *  profile (string, OPTIONAL): the media type of evidence, one of the
-      acceptable_evidence of the attest-initiate (Section 8.1).  If
-      absent, the EST Server forwards the Evidence as it is, and the
+      acceptable_evidence of the attest-initiate (Section 8.1).  It MUST
+      be absent when that response carried no acceptable_evidence or
+      attest-initiate was completed locally, and MUST be one of the
+      listed tokens otherwise.  The EST Server refuses another value
+      with 415 Unsupported Media Type, as a format it does not accept.
+      If absent, the EST Server forwards the Evidence as it is, and the
       Verifier recognizes its format.  A format the EST Server does not
       accept is refused with 415 Unsupported Media Type
 
@@ -905,9 +928,10 @@ Table of Contents
    1.  Validate syntax, media type, and size limits.
 
    2.  Check that a Credential Authority serves this target and
-       credential_type, and that the mode that attest-initiate reports
-       for them (Section 8.1) is enroll.  Refuse the request with 400
-       Bad Request when a Secret Vault serves them.
+       credential_type, and that the mode the EST Server's configuration
+       sets for them, which attest-initiate reports (Section 8.1), is
+       enroll.  Refuse the request with 400 Bad Request when a Secret
+       Vault serves them.
 
    3.  For present-nonce, correlate handle with the attest-initiate that
        returned it.  Refuse the request with 400 Bad Request when no
@@ -959,17 +983,24 @@ Table of Contents
       otherwise.  For present-nonce and present-epoch it MUST equal the
       Freshness Handle returned by attest-initiate.  For absent-
       timestamp it is the 8-octet timestamp and for absent-epoch the
-      locally held epoch marker.
+      locally held epoch marker.  Its size is 16 to 64 octets for
+      present-nonce, 8 to 64 for present-epoch and absent-epoch, and 8
+      for absent-timestamp (Section 7.1).
 
    *  evidence (bytes, REQUIRED) -- MUST include CEKpub; MUST be bound
       to the Freshness returned by attest-initiate, if any
 
-   *  cek_pub (bytes, REQUIRED): CEKpub in the encoding of its KEM
-      ([TACRA]), to which the Secret Vault seals the bundle
+   *  cek_pub (bytes, REQUIRED): CEKpub in the encoding of its KEM in
+      Section "Sealing the Released Credential" of [TACRA], to which the
+      Secret Vault seals the bundle
 
    *  profile (string, OPTIONAL): the media type of evidence, one of the
-      acceptable_evidence of the attest-initiate (Section 8.1).  If
-      absent, the EST Server forwards the Evidence as it is, and the
+      acceptable_evidence of the attest-initiate (Section 8.1).  It MUST
+      be absent when that response carried no acceptable_evidence or
+      attest-initiate was completed locally, and MUST be one of the
+      listed tokens otherwise.  The EST Server refuses another value
+      with 415 Unsupported Media Type, as a format it does not accept.
+      If absent, the EST Server forwards the Evidence as it is, and the
       Verifier recognizes its format.  A format the EST Server does not
       accept is refused with 415 Unsupported Media Type
 
@@ -1015,8 +1046,10 @@ Table of Contents
    attest-bundle+json.  The EST Client and the EST Server MUST treat it
    as opaque.  That section specifies the container: its members, its
    suites, the info and the associated data of its HPKE sealing, and its
-   plaintext, the Credential Bundle.  This profile adds nothing to it.
-   The Secret Vault names in acceptable_cek the suites it accepts
+   plaintext, the Credential Bundle.  In its aad, target is the
+   base64url of the Target octets of the request, the octets of the
+   target member of Section 5.3.  This profile adds nothing to it.  The
+   Secret Vault names in acceptable_cek the suites it accepts
    (Section 8.4), the mandatory suite of [TACRA] among them, and the
    Attester generates its CEK for one of them.
 
@@ -1034,9 +1067,10 @@ Table of Contents
    1.  Validate syntax, media type, and size limits.
 
    2.  Check that a Secret Vault serves this target and credential_type,
-       and that the mode that attest-initiate reports for them
-       (Section 8.1) is retrieve.  Refuse the request with 400 Bad
-       Request when a Credential Authority serves them.
+       and that the mode the EST Server's configuration sets for them,
+       which attest-initiate reports (Section 8.1), is retrieve.  Refuse
+       the request with 400 Bad Request when a Credential Authority
+       serves them.
 
    3.  For present-nonce, correlate handle with the attest-initiate that
        returned it, as in Enrollment.  Refuse the request with 400 Bad
@@ -1075,8 +1109,8 @@ Table of Contents
 10.  Error Handling
 
    An error response carries one of the status codes below, and a human-
-   readable body as a simpleenroll error does (Section 4.2.3 of
-   [RFC7030], updated by Section 5.1 of [RFC8951]):
+   readable body of media type text/plain, as a simpleenroll error does
+   (Section 4.2.3 of [RFC7030], updated by Section 5.1 of [RFC8951]):
 
    *  400 Bad Request: a request that does not match its definition
       (Section 7.1), or an attest-initiate with no target.  A binding
@@ -1107,7 +1141,8 @@ Table of Contents
       (Section 15.5.14 of [RFC9110])
 
    *  415 Unsupported Media Type: a request not of the resource's media
-      type (Section 7), or Evidence of a format that is not accepted
+      type (Section 7), or Evidence of a format that is not accepted, a
+      profile the attest-initiate response did not list among them
 
    *  429 Too Many Requests: rate limiting (Section 4 of [RFC6585])
 
@@ -1417,6 +1452,10 @@ Table of Contents
               Encodings", RFC 4648, DOI 10.17487/RFC4648, October 2006,
               <https://www.rfc-editor.org/rfc/rfc4648>.
 
+   [RFC5198]  Klensin, J. and M. Padlipsky, "Unicode Format for Network
+              Interchange", RFC 5198, DOI 10.17487/RFC5198, March 2008,
+              <https://www.rfc-editor.org/rfc/rfc5198>.
+
    [RFC6838]  Freed, N., Klensin, J., and T. Hansen, "Media Type
               Specifications and Registration Procedures", BCP 13,
               RFC 6838, DOI 10.17487/RFC6838, January 2013,
@@ -1527,11 +1566,12 @@ Table of Contents
               for HTTP APIs", RFC 9457, DOI 10.17487/RFC9457, July 2023,
               <https://www.rfc-editor.org/rfc/rfc9457>.
 
-   [TACRA]    Novak, M., Richardson, M., and H. Birkholz, "Trustworthy
-              Acquisition of Credentials via Remote Attestation", Work
-              in Progress, Internet-Draft, draft-novak-rats-tacra-01, 11
-              September 2026, <https://datatracker.ietf.org/doc/html/
-              draft-novak-rats-tacra-01>.
+   [TACRA]    Novak, M., Richardson, M., Birkholz, H., and S.
+              Nikolaichuk, "Trustworthy Acquisition of Credentials via
+              Remote Attestation", Work in Progress, Internet-Draft,
+              draft-novak-rats-tacra-02, 1 November 2026,
+              <https://datatracker.ietf.org/doc/html/draft-novak-rats-
+              tacra-02>.
 
    [TWISIGDef]
               Confidential Computing Consortium Trustworthy Workload
@@ -1558,10 +1598,14 @@ Appendix A.  Example Messages
    October 2026 between an EST Client and an EST Server that implement
    this profile, on an AMD SEV-SNP guest, with the mandatory CEK suite.
    The Targets, the Handles and the structures are as they crossed the
-   wire.  The base64url values are cut to their first 24 characters and
-   marked ..., and the Host header names the EST Server as this
-   document's examples do.  Lines longer than 69 characters are folded
-   as [RFC8792] describes.
+   wire, with long base64url values shortened to their first 24
+   characters.  An EST Server that uses a path segment of Section 3.2.2
+   of [RFC7030] serves the same resources under it, /.well-
+   known/est/arbitraryLabel1/attest-initiate for instance.  The
+   base64url values are cut to their first 24 characters and marked ...,
+   and the Host header names the EST Server as this document's examples
+   do.  Lines longer than 69 characters are folded as [RFC8792]
+   describes.
 
 A.1.  attest-initiate for Enrollment
 
@@ -1611,7 +1655,6 @@ A.2.  attest-enroll
 
    HTTP/1.1 200 OK
    Content-Type: application/pkcs7-mime; smime-type=certs-only
-   Content-Transfer-Encoding: base64
 
    MIICswYJKoZIhvcNAQcCoIICpDCCAqACAQExADAL...
 
@@ -1678,7 +1721,7 @@ A.4.  attest-retrieve
      "aad": {
        "group_id": "0156b1ec5fc72a6ccc6c04b33e23cb114c9e19979cd3fe68bdd\
        7e9495544a46c",
-       "target": "https://ledger-nonce.tacra.example",
+       "target": "aHR0cHM6Ly9sZWRnZXItbm9uY2UudGFjcmEuZXhhbXBsZQ",
        "handle": "JRAAJxYwTJ-tsqU1Kqk_PQpA...",
        "credential_hint": "payments.workload.tacra.example"
      }
