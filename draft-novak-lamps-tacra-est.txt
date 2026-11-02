@@ -5,12 +5,12 @@
 Limited Additional Mechanisms for PKIX and SMIME                M. Novak
 Internet-Draft                                   J.P. Morgan Chase & Co.
 Intended status: Informational                             M. Richardson
-Expires: 5 May 2027                             Sandelman Software Works
+Expires: 6 May 2027                             Sandelman Software Works
                                                              H. Birkholz
                                                           Fraunhofer SIT
                                                           S. Nikolaichuk
                                                    The Capital Index LLC
-                                                         1 November 2026
+                                                         2 November 2026
 
 
                  Remote Attestation Extensions for EST
@@ -75,7 +75,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 May 2027.
+   This Internet-Draft will expire on 6 May 2027.
 
 Copyright Notice
 
@@ -369,7 +369,7 @@ Table of Contents
        which seals the matching Credential Bundle to CEKpub in a
        container.  The EST Server, through the EST Client, returns that
        container to the Attester, which checks it and decrypts it with
-       CEKpri
+       CEKpri.
 
 4.  Protocol Overview
 
@@ -523,7 +523,7 @@ Table of Contents
    profile takes no nonce length: the Handle reaches the Evidence
    through the digest, so no platform needs a Handle of a particular
    size.  An EST Server MAY offer both resources.  They are not
-   interchangeable: a nonce the nonce resource returned is not a
+   interchangeable: a nonce returned by the nonce resource is not a
    Freshness Handle of this profile, and attest-enroll and attest-
    retrieve take a Handle from attest-initiate, or none for the absent-*
    kinds.
@@ -696,12 +696,12 @@ Table of Contents
       present-nonce and present-epoch, and MUST be absent otherwise
       (Section 5.1).  A present-nonce Handle is a nonce as [TACRA]
       specifies: 16 to 64 octets, at least 128 bits of entropy, issued
-      once and not reused
+      once and not reused.
 
    *  expires_in (integer, OPTIONAL): seconds until a present-nonce or
       present-epoch Handle is no longer valid, the expiry of
       [ATTESTATION-FRESHNESS].  The Handle originator SHOULD NOT set it
-      below 60 seconds ([TACRA])
+      below 60 seconds ([TACRA]).
 
    *  max_age (integer, OPTIONAL): for absent-timestamp, the maximum
       Evidence age in seconds acceptable to the Verifier or RATS Relying
@@ -888,13 +888,13 @@ Table of Contents
       with 415 Unsupported Media Type, as a format it does not accept.
       If absent, the EST Server forwards the Evidence as it is, and the
       Verifier recognizes its format.  A format the EST Server does not
-      accept is refused with 415 Unsupported Media Type
+      accept is refused with 415 Unsupported Media Type.
 
    *  binding (object, REQUIRED): declares how the CSR key is bound to
       Evidence
 
    *  credential_type (string, OPTIONAL): x509 or wic (Section 8.3).  If
-      absent, the client takes what the Credential Authority mints
+      absent, the client takes what the Credential Authority mints.
 
    *  credential_hint (string, OPTIONAL): Credential Hint supplied by
       the Attester; the Credential Authority MAY use it, ignore it, or
@@ -1002,14 +1002,14 @@ Table of Contents
       with 415 Unsupported Media Type, as a format it does not accept.
       If absent, the EST Server forwards the Evidence as it is, and the
       Verifier recognizes its format.  A format the EST Server does not
-      accept is refused with 415 Unsupported Media Type
+      accept is refused with 415 Unsupported Media Type.
 
    *  binding (object, REQUIRED): declares how CEKpub is bound to
       Evidence
 
    *  credential_type (string, OPTIONAL): one of the tokens of
       Section 8.3.  If absent, the client takes what the Secret Vault
-      releases
+      releases.
 
    *  credential_hint (string, OPTIONAL): Credential Hint supplied by
       the Attester; the RATS Relying Party (Secret Vault or Credential
@@ -1120,7 +1120,7 @@ Table of Contents
       Credential Hint the policy does not know and does not ignore.  A
       request that differs from the attest-initiate that returned its
       Handle, or one to the resource of the other mode (Section 9.1.4,
-      Section 9.2.5)
+      Section 9.2.5).
 
    *  401 Unauthorized: missing/invalid authentication required by
       deployment policy
@@ -1135,7 +1135,7 @@ Table of Contents
 
    *  406 Not Acceptable: a credential_type the RATS Relying Party does
       not serve for the target (Section 15.5.7 of [RFC9110]).  The body
-      names the Credential Types it serves for that target
+      names the Credential Types it serves for that target.
 
    *  413 Content Too Large: a request larger than the server takes
       (Section 15.5.14 of [RFC9110])
