@@ -419,9 +419,10 @@ Table of Contents
       kind, Credential Acquisition Mode (enroll or retrieve), acceptable
       ciphers
 
-   *  Error: 400 when target is absent, 404 when the EST Server does not
-      serve that Target, 406 when the RATS Relying Party does not serve
-      that credential_type for it (Section 10)
+   *  Error: 400 when target is absent or credential_type is not a token
+      of Section 8.3, 404 when the EST Server does not serve that
+      Target, 403 when the RATS Relying Party does not serve that
+      Credential Type for it (Section 10)
 
    Query parameters:
 
@@ -434,6 +435,10 @@ Table of Contents
    *  credential_type: the Credential Type the Attester plans to use
       with this Target (Section 8.3).  If omitted, the EST Server
       returns the mode and algorithms its policy sets for the Target.
+      The second leg then MAY omit credential_type or name the
+      Credential Type those imply.  When attest-initiate named one, the
+      second leg of the same present-nonce exchange MUST name the same
+      token (Section 9.1.4, Section 9.2.5).
 
    *  If the EST Client already knows all the information the Attester
       needs to proceed, i.e., it is already configured for an absent
@@ -577,11 +582,12 @@ Table of Contents
    A client MUST send a POST of the resource's media type.  An attest-
    initiate GET has no body; the client SHOULD set Accept to
    application/est-attest-initiate+json.  An attest-initiate GET for
-   present-nonce is not idempotent: each one mints a Handle, as the
-   nonce resource of [ATTESTATION-FRESHNESS] does.  An EST Server
-   responds to a request of another media type with 415 (Unsupported
-   Media Type) and SHOULD name the resource's media type in an Accept
-   header field (Section 15.5.16 of [RFC9110]).
+   present-nonce is not idempotent: each one returns a Handle its
+   originator issued anew, as the nonce resource of
+   [ATTESTATION-FRESHNESS] does.  An EST Server responds to a request of
+   another media type with 415 (Unsupported Media Type) and SHOULD name
+   the resource's media type in an Accept header field (Section 15.5.16
+   of [RFC9110]).
 
 7.1.  Message Definitions
 
@@ -692,11 +698,11 @@ Table of Contents
       -  present-epoch: current epoch marker as Freshness Handle; embed
          it in Evidence; retry attest-initiate if the epoch moved
 
-   *  handle (bytes, 8 to 64 octets): Freshness Handle, REQUIRED for
-      present-nonce and present-epoch, and MUST be absent otherwise
-      (Section 5.1).  A present-nonce Handle is a nonce as [TACRA]
-      specifies: 16 to 64 octets, at least 128 bits of entropy, issued
-      once and not reused.
+   *  handle (bytes, 16 to 64 octets for present-nonce, 8 to 64 for
+      present-epoch): Freshness Handle, REQUIRED for present-nonce and
+      present-epoch, and MUST be absent otherwise (Section 5.1).  A
+      present-nonce Handle is a nonce as [TACRA] specifies: 16 to 64
+      octets, at least 128 bits of entropy, issued once and not reused.
 
    *  expires_in (integer, OPTIONAL): seconds until a present-nonce or
       present-epoch Handle is no longer valid, the expiry of
@@ -719,9 +725,9 @@ Table of Contents
 
    *  acceptable_evidence (array, OPTIONAL): the Evidence formats the
       EST Server forwards, each named by its media type (Section 8.4).
-      A request of the second leg MAY name the format of its Evidence in
-      profile, one of them.  When the list is absent, or attest-initiate
-      was completed locally, the EST Client sends no profile
+      A request of the second leg MUST name the format of its Evidence
+      in profile, one of them.  When the list is absent, or attest-
+      initiate was completed locally, the EST Client sends no profile
 
    For present-nonce, the Freshness Handle originator MUST ensure
    uniqueness and MUST correlate the second-leg request with the Handle
@@ -804,7 +810,7 @@ Table of Contents
 
    attest-enroll mints x509 or wic.  A credential_type other than these
    on attest-enroll is a Credential Type the RATS Relying Party does not
-   serve, and the EST Server refuses the request with 406 Not Acceptable
+   serve, and the EST Server refuses the request with 403 Forbidden
    (Section 10).  When credential_type is absent, on attest-enroll and
    on attest-retrieve alike, the client takes what the RATS Relying
    Party issues or releases under its policy.  A client that needs a
@@ -813,8 +819,9 @@ Table of Contents
    Results, its policy and the Credential Hint.  Where the request names
    a credential_type, it releases that Credential Type or refuses the
    request.  A Credential Type the RATS Relying Party does not serve is
-   refused with 406 Not Acceptable, and the response names the
-   Credential Types it serves for that target (Section 10).
+   refused with 403 Forbidden, and the response names the Credential
+   Types it serves for that target (Section 10).  A credential_type that
+   is not a token of this section is refused with 400 Bad Request.
 
 8.4.  Protocol Tokens
 
@@ -895,6 +902,9 @@ Table of Contents
 
    *  credential_type (string, OPTIONAL): x509 or wic (Section 8.3).  If
       absent, the client takes what the Credential Authority mints.
+      When the attest-initiate of a present-nonce exchange named a
+      credential_type, this member MUST carry the same token
+      (Section 9.1.4).
 
    *  credential_hint (string, OPTIONAL): Credential Hint supplied by
       the Attester; the Credential Authority MAY use it, ignore it, or
@@ -937,16 +947,21 @@ Table of Contents
        returned it.  Refuse the request with 400 Bad Request when no
        attest-initiate returned this Handle, when it has expired or was
        used before, or when its target or freshness_kind differ from the
-       corresponding attest-initiate.  Refuse it likewise when
-       credential_type is carried on one leg and not the other, or with
-       another value.  A present-nonce Handle is single-use.  For
+       corresponding attest-initiate.  Refuse it likewise when that
+       attest-initiate named a credential_type and the request omits it
+       or names another token.  A request MAY name a credential_type its
+       attest-initiate omitted, the one the mode and the algorithms
+       returned imply.  A present-nonce Handle is single-use.  For
        present-epoch, handle is the epoch marker that every attest-
        initiate of the epoch returned for this target, and it serves all
        requests during that epoch.  Refuse the request with 400 Bad
        Request when the marker has moved.  For the absent-* Freshness
        Kinds no Handle was returned, and the RATS Relying Party checks
        the freshness element under the Freshness Kind its policy sets
-       for the Target ([TACRA]).  This correlation keeps the two legs of
+       for the Target ([TACRA]).  For present-epoch and the absent-*
+       Freshness Kinds the EST Server does not correlate credential_type
+       and forwards it to the RATS Relying Party, which decides under
+       its policy (Section 8.3).  This correlation keeps the two legs of
        one exchange together at the EST Server.  It is not
        authorization: the Credential Authority takes the Freshness Kind
        from its policy for the Target, recomputes the digest and decides
@@ -1009,7 +1024,9 @@ Table of Contents
 
    *  credential_type (string, OPTIONAL): one of the tokens of
       Section 8.3.  If absent, the client takes what the Secret Vault
-      releases.
+      releases.  When the attest-initiate of a present-nonce exchange
+      named a credential_type, this member MUST carry the same token
+      (Section 9.2.5).
 
    *  credential_hint (string, OPTIONAL): Credential Hint supplied by
       the Attester; the RATS Relying Party (Secret Vault or Credential
@@ -1077,18 +1094,23 @@ Table of Contents
        Request when no attest-initiate returned this Handle, when it has
        expired or was used before, or when its target or freshness_kind
        differ from the corresponding attest-initiate.  Refuse it
-       likewise when credential_type is carried on one leg and not the
-       other, or with another value.  A present-nonce Handle is single-
-       use.  For present-epoch, handle is the epoch marker that every
-       attest-initiate of the epoch returned for this target, and it
-       serves all requests during that epoch.  Refuse the request with
-       400 Bad Request when the marker has moved.  For the absent-*
+       likewise when that attest-initiate named a credential_type and
+       the request omits it or names another token.  A request MAY name
+       a credential_type its attest-initiate omitted, the one the mode
+       and the algorithms returned imply.  A present-nonce Handle is
+       single-use.  For present-epoch, handle is the epoch marker that
+       every attest-initiate of the epoch returned for this target, and
+       it serves all requests during that epoch.  Refuse the request
+       with 400 Bad Request when the marker has moved.  For the absent-*
        Freshness Kinds no Handle was returned, and the RATS Relying
        Party checks the freshness element under the Freshness Kind its
-       policy sets for the Target ([TACRA]).  This correlation keeps the
-       two legs of one exchange together at the EST Server.  It is not
-       authorization: the Secret Vault takes the Freshness Kind from its
-       policy for the Target, recomputes the digest and decides
+       policy sets for the Target ([TACRA]).  For present-epoch and the
+       absent-* Freshness Kinds the EST Server does not correlate
+       credential_type and forwards it to the RATS Relying Party, which
+       decides under its policy (Section 8.3).  This correlation keeps
+       the two legs of one exchange together at the EST Server.  It is
+       not authorization: the Secret Vault takes the Freshness Kind from
+       its policy for the Target, recomputes the digest and decides
        ([TACRA]).
 
    4.  Passport: forward Evidence to the Verifier and obtain Attestation
@@ -1113,29 +1135,29 @@ Table of Contents
    (Section 4.2.3 of [RFC7030], updated by Section 5.1 of [RFC8951]):
 
    *  400 Bad Request: a request that does not match its definition
-      (Section 7.1), or an attest-initiate with no target.  A binding
-      digest that does not recompute (Section 8.2).  A present-nonce
-      Handle that no attest-initiate returned, that has expired or was
-      used before, or a present-epoch marker that has moved.  A
-      Credential Hint the policy does not know and does not ignore.  A
-      request that differs from the attest-initiate that returned its
-      Handle, or one to the resource of the other mode (Section 9.1.4,
-      Section 9.2.5).
+      (Section 7.1), or an attest-initiate with no target.  A
+      credential_type that is not a token of Section 8.3.  A present-
+      nonce request whose credential_type is not the one its attest-
+      initiate named.  A binding digest that does not recompute
+      (Section 8.2).  A present-nonce Handle that no attest-initiate
+      returned, that has expired or was used before, or a present-epoch
+      marker that has moved.  A Credential Hint the policy does not know
+      and does not ignore.  A request that differs from the attest-
+      initiate that returned its Handle, or one to the resource of the
+      other mode (Section 9.1.4, Section 9.2.5).
 
    *  401 Unauthorized: missing/invalid authentication required by
       deployment policy
 
    *  403 Forbidden, forwarded from the RATS Relying Party: attestation
-      failed, or its policy denies enrollment or retrieval, the
-      Credential Hint included
+      failed, its policy denies enrollment or retrieval, the Credential
+      Hint included, or it does not serve the credential_type for the
+      target.  In the last case the body names the Credential Types it
+      serves for that target.
 
    *  404 Not Found: a target the EST Server does not serve
       (Section 15.5.5 of [RFC9110]: the query is part of the target URI,
       and a request of the second leg names the same target)
-
-   *  406 Not Acceptable: a credential_type the RATS Relying Party does
-      not serve for the target (Section 15.5.7 of [RFC9110]).  The body
-      names the Credential Types it serves for that target.
 
    *  413 Content Too Large: a request larger than the server takes
       (Section 15.5.14 of [RFC9110])
@@ -1242,9 +1264,9 @@ Table of Contents
    *  The Credential Type and the Credential Hint are not in the
       binding.  The RATS Relying Party decides by its policy what it
       issues or releases for them.  The EST Server's correlation of a
-      Handle with its attest-initiate only checks that the second leg
-      repeats the same credential_type, and authorizes nothing
-      ([TACRA]).
+      present-nonce Handle with its attest-initiate only checks that the
+      second leg does not change a credential_type the attest-initiate
+      named, and authorizes nothing ([TACRA]).
 
    *  If classic EST and attested resources both exist, the RATS Relying
       Party MUST be able to require attestation.  The EST Server MUST
@@ -1412,7 +1434,8 @@ Table of Contents
    Security considerations:  See Section 11 of this document.
 
    Interoperability considerations:  The response of attest-retrieve,
-      the EncryptedCredentialBundle (Section 9.2.4).
+      the EncryptedCredentialBundle (Section 9.2.4).  The JSON object is
+      the encrypted-credential-bundle that [TACRA] specifies.
 
    Published specification:  This document.
 
@@ -1599,13 +1622,11 @@ Appendix A.  Example Messages
    this profile, on an AMD SEV-SNP guest, with the mandatory CEK suite.
    The Targets, the Handles and the structures are as they crossed the
    wire, with long base64url values shortened to their first 24
-   characters.  An EST Server that uses a path segment of Section 3.2.2
-   of [RFC7030] serves the same resources under it, /.well-
-   known/est/arbitraryLabel1/attest-initiate for instance.  The
-   base64url values are cut to their first 24 characters and marked ...,
-   and the Host header names the EST Server as this document's examples
-   do.  Lines longer than 69 characters are folded as [RFC8792]
-   describes.
+   characters and marked .... An EST Server that uses a path segment of
+   Section 3.2.2 of [RFC7030] serves the same resources under it,
+   /.well-known/est/arbitraryLabel1/attest-initiate for instance.  The
+   Host header names the EST Server as this document's examples do.
+   Lines longer than 69 characters are folded as [RFC8792] describes.
 
 A.1.  attest-initiate for Enrollment
 

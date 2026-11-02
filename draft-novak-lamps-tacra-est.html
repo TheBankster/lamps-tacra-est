@@ -1710,7 +1710,7 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.1-2.4.1">Response: AttestationInitiationResponse (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>): Freshness kind, Credential Acquisition Mode (<code>enroll</code> or <code>retrieve</code>), acceptable ciphers<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.5">
-            <p id="section-5.1-2.5.1">Error: 400 when <code>target</code> is absent, 404 when the EST Server does not serve that Target, 406 when the RATS Relying Party does not serve that <code>credential_type</code> for it (<a href="#errors" class="auto internal xref">Section 10</a>)<a href="#section-5.1-2.5.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-2.5.1">Error: 400 when <code>target</code> is absent or <code>credential_type</code> is not a token of <a href="#credential-type" class="auto internal xref">Section 8.3</a>, 404 when the EST Server does not serve that Target, 403 when the RATS Relying Party does not serve that Credential Type for it (<a href="#errors" class="auto internal xref">Section 10</a>)<a href="#section-5.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-5.1-3">Query parameters:<a href="#section-5.1-3" class="pilcrow">¶</a></p>
@@ -1723,7 +1723,9 @@ The EST Server decodes it and compares the octets.<a href="#section-5.1-4.1.1" c
 </li>
           <li class="normal" id="section-5.1-4.2">
             <p id="section-5.1-4.2.1"><code>credential_type</code>: the Credential Type the Attester plans to use with this Target (<a href="#credential-type" class="auto internal xref">Section 8.3</a>).
-If omitted, the EST Server returns the mode and algorithms its policy sets for the Target.<a href="#section-5.1-4.2.1" class="pilcrow">¶</a></p>
+If omitted, the EST Server returns the mode and algorithms its policy sets for the Target.
+The second leg then <span class="bcp14">MAY</span> omit <code>credential_type</code> or name the Credential Type those imply.
+When <code>attest-initiate</code> named one, the second leg of the same <code>present-nonce</code> exchange <span class="bcp14">MUST</span> name the same token (<a href="#enrollment-processing" class="auto internal xref">Section 9.1.4</a>, <a href="#retrieval-processing" class="auto internal xref">Section 9.2.5</a>).<a href="#section-5.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-4.3">
             <p id="section-5.1-4.3.1">If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (<code>absent-timestamp</code>, <code>absent-none</code>, or <code>absent-epoch</code>), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it <span class="bcp14">MAY</span> complete <code>attest-initiate</code> locally and, in that case, <span class="bcp14">MUST NOT</span> contact the EST Server.<a href="#section-5.1-4.3.1" class="pilcrow">¶</a></p>
@@ -1881,7 +1883,7 @@ Evidence is an opaque byte string.<a href="#section-7-1" class="pilcrow">¶</a><
       </table>
 <p id="section-7-4">A client <span class="bcp14">MUST</span> send a POST of the resource's media type.
 An <code>attest-initiate</code> GET has no body; the client <span class="bcp14">SHOULD</span> set Accept to <code>application/est-attest-initiate+json</code>.
-An <code>attest-initiate</code> GET for <code>present-nonce</code> is not idempotent: each one mints a Handle, as the nonce resource of <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span> does.
+An <code>attest-initiate</code> GET for <code>present-nonce</code> is not idempotent: each one returns a Handle its originator issued anew, as the nonce resource of <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span> does.
 An EST Server responds to a request of another media type with 415 (Unsupported Media Type) and <span class="bcp14">SHOULD</span> name the resource's media type in an Accept header field (Section 15.5.16 of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>).<a href="#section-7-4" class="pilcrow">¶</a></p>
 <div id="cddl">
 <section id="section-7.1">
@@ -2004,7 +2006,7 @@ binding = {
             </ul>
 </li>
           <li class="normal" id="section-8.1-2.2">
-            <p id="section-8.1-2.2.1"><code>handle</code> (bytes, 8 to 64 octets): Freshness Handle, <span class="bcp14">REQUIRED</span> for <code>present-nonce</code> and <code>present-epoch</code>, and <span class="bcp14">MUST</span> be absent otherwise (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>).
+            <p id="section-8.1-2.2.1"><code>handle</code> (bytes, 16 to 64 octets for <code>present-nonce</code>, 8 to 64 for <code>present-epoch</code>): Freshness Handle, <span class="bcp14">REQUIRED</span> for <code>present-nonce</code> and <code>present-epoch</code>, and <span class="bcp14">MUST</span> be absent otherwise (<a href="#attest-initiate" class="auto internal xref">Section 5.1</a>).
 A <code>present-nonce</code> Handle is a nonce as <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> specifies: 16 to 64 octets, at least 128 bits of entropy, issued once and not reused.<a href="#section-8.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.1-2.3">
@@ -2025,7 +2027,7 @@ The Handle originator <span class="bcp14">SHOULD NOT</span> set it below 60 seco
 </li>
           <li class="normal" id="section-8.1-2.8">
             <p id="section-8.1-2.8.1"><code>acceptable_evidence</code> (array, <span class="bcp14">OPTIONAL</span>): the Evidence formats the EST Server forwards, each named by its media type (<a href="#alg-tokens" class="auto internal xref">Section 8.4</a>).
-A request of the second leg <span class="bcp14">MAY</span> name the format of its Evidence in <code>profile</code>, one of them.
+A request of the second leg <span class="bcp14">MUST</span> name the format of its Evidence in <code>profile</code>, one of them.
 When the list is absent, or <code>attest-initiate</code> was completed locally, the EST Client sends no <code>profile</code><a href="#section-8.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -2115,13 +2117,14 @@ Retrieval only, under the conditions of <a href="#security" class="auto internal
 </li>
         </ul>
 <p id="section-8.3-3"><code>attest-enroll</code> mints <code>x509</code> or <code>wic</code>.
-A <code>credential_type</code> other than these on <code>attest-enroll</code> is a Credential Type the RATS Relying Party does not serve, and the EST Server refuses the request with 406 Not Acceptable (<a href="#errors" class="auto internal xref">Section 10</a>).
+A <code>credential_type</code> other than these on <code>attest-enroll</code> is a Credential Type the RATS Relying Party does not serve, and the EST Server refuses the request with 403 Forbidden (<a href="#errors" class="auto internal xref">Section 10</a>).
 When <code>credential_type</code> is absent, on <code>attest-enroll</code> and on <code>attest-retrieve</code> alike, the client takes what the RATS Relying Party issues or releases under its policy.
 A client that needs a Credential Type names it.
 <code>attest-retrieve</code> <span class="bcp14">MAY</span> carry any token above.
 The Secret Vault selects what it releases from the Attestation Results, its policy and the Credential Hint.
 Where the request names a <code>credential_type</code>, it releases that Credential Type or refuses the request.
-A Credential Type the RATS Relying Party does not serve is refused with 406 Not Acceptable, and the response names the Credential Types it serves for that <code>target</code> (<a href="#errors" class="auto internal xref">Section 10</a>).<a href="#section-8.3-3" class="pilcrow">¶</a></p>
+A Credential Type the RATS Relying Party does not serve is refused with 403 Forbidden, and the response names the Credential Types it serves for that <code>target</code> (<a href="#errors" class="auto internal xref">Section 10</a>).
+A <code>credential_type</code> that is not a token of this section is refused with 400 Bad Request.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="alg-tokens">
@@ -2204,7 +2207,8 @@ A format the EST Server does not accept is refused with 415 Unsupported Media Ty
 </li>
             <li class="normal" id="section-9.1.1-2.8">
               <p id="section-9.1.1-2.8.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): <code>x509</code> or <code>wic</code> (<a href="#credential-type" class="auto internal xref">Section 8.3</a>).
-If absent, the client takes what the Credential Authority mints.<a href="#section-9.1.1-2.8.1" class="pilcrow">¶</a></p>
+If absent, the client takes what the Credential Authority mints.
+When the <code>attest-initiate</code> of a <code>present-nonce</code> exchange named a <code>credential_type</code>, this member <span class="bcp14">MUST</span> carry the same token (<a href="#enrollment-processing" class="auto internal xref">Section 9.1.4</a>).<a href="#section-9.1.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.1.1-2.9">
               <p id="section-9.1.1-2.9.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the Credential Authority <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-9.1.1-2.9.1" class="pilcrow">¶</a></p>
@@ -2255,11 +2259,13 @@ If absent, the client takes what the Credential Authority mints.<a href="#sectio
             <li id="section-9.1.4-2.3">
               <p id="section-9.1.4-2.3.1">For <code>present-nonce</code>, correlate <code>handle</code> with the <code>attest-initiate</code> that returned it.
   Refuse the request with 400 Bad Request when no <code>attest-initiate</code> returned this Handle, when it has expired or was used before, or when its <code>target</code> or <code>freshness_kind</code> differ from the corresponding <code>attest-initiate</code>.
-  Refuse it likewise when <code>credential_type</code> is carried on one leg and not the other, or with another value.
+  Refuse it likewise when that <code>attest-initiate</code> named a <code>credential_type</code> and the request omits it or names another token.
+  A request <span class="bcp14">MAY</span> name a <code>credential_type</code> its <code>attest-initiate</code> omitted, the one the mode and the algorithms returned imply.
   A <code>present-nonce</code> Handle is single-use.
   For <code>present-epoch</code>, <code>handle</code> is the epoch marker that every <code>attest-initiate</code> of the epoch returned for this <code>target</code>, and it serves all requests during that epoch.
   Refuse the request with 400 Bad Request when the marker has moved.
   For the <code>absent-*</code> Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).
+  For <code>present-epoch</code> and the <code>absent-*</code> Freshness Kinds the EST Server does not correlate <code>credential_type</code> and forwards it to the RATS Relying Party, which decides under its policy (<a href="#credential-type" class="auto internal xref">Section 8.3</a>).
   This correlation keeps the two legs of one exchange together at the EST Server.
   It is not authorization: the Credential Authority takes the Freshness Kind from its policy for the Target, recomputes the digest and decides (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.1.4-2.3.1" class="pilcrow">¶</a></p>
 </li>
@@ -2321,7 +2327,8 @@ A format the EST Server does not accept is refused with 415 Unsupported Media Ty
 </li>
             <li class="normal" id="section-9.2.1-2.8">
               <p id="section-9.2.1-2.8.1">credential_type (string, <span class="bcp14">OPTIONAL</span>): one of the tokens of <a href="#credential-type" class="auto internal xref">Section 8.3</a>.
-If absent, the client takes what the Secret Vault releases.<a href="#section-9.2.1-2.8.1" class="pilcrow">¶</a></p>
+If absent, the client takes what the Secret Vault releases.
+When the <code>attest-initiate</code> of a <code>present-nonce</code> exchange named a <code>credential_type</code>, this member <span class="bcp14">MUST</span> carry the same token (<a href="#retrieval-processing" class="auto internal xref">Section 9.2.5</a>).<a href="#section-9.2.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.2.1-2.9">
               <p id="section-9.2.1-2.9.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-9.2.1-2.9.1" class="pilcrow">¶</a></p>
@@ -2386,11 +2393,13 @@ This profile accepts that, and <a href="#security" class="auto internal xref">Se
             <li id="section-9.2.5-2.3">
               <p id="section-9.2.5-2.3.1">For <code>present-nonce</code>, correlate <code>handle</code> with the <code>attest-initiate</code> that returned it, as in Enrollment.
   Refuse the request with 400 Bad Request when no <code>attest-initiate</code> returned this Handle, when it has expired or was used before, or when its <code>target</code> or <code>freshness_kind</code> differ from the corresponding <code>attest-initiate</code>.
-  Refuse it likewise when <code>credential_type</code> is carried on one leg and not the other, or with another value.
+  Refuse it likewise when that <code>attest-initiate</code> named a <code>credential_type</code> and the request omits it or names another token.
+  A request <span class="bcp14">MAY</span> name a <code>credential_type</code> its <code>attest-initiate</code> omitted, the one the mode and the algorithms returned imply.
   A <code>present-nonce</code> Handle is single-use.
   For <code>present-epoch</code>, <code>handle</code> is the epoch marker that every <code>attest-initiate</code> of the epoch returned for this <code>target</code>, and it serves all requests during that epoch.
   Refuse the request with 400 Bad Request when the marker has moved.
   For the <code>absent-*</code> Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).
+  For <code>present-epoch</code> and the <code>absent-*</code> Freshness Kinds the EST Server does not correlate <code>credential_type</code> and forwards it to the RATS Relying Party, which decides under its policy (<a href="#credential-type" class="auto internal xref">Section 8.3</a>).
   This correlation keeps the two legs of one exchange together at the EST Server.
   It is not authorization: the Secret Vault takes the Freshness Kind from its policy for the Target, recomputes the digest and decides (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.2.5-2.3.1" class="pilcrow">¶</a></p>
 </li>
@@ -2421,6 +2430,8 @@ This profile accepts that, and <a href="#security" class="auto internal xref">Se
 <ul class="normal">
 <li class="normal" id="section-10-2.1">
           <p id="section-10-2.1.1">400 Bad Request: a request that does not match its definition (<a href="#cddl" class="auto internal xref">Section 7.1</a>), or an <code>attest-initiate</code> with no <code>target</code>.
+A <code>credential_type</code> that is not a token of <a href="#credential-type" class="auto internal xref">Section 8.3</a>.
+A <code>present-nonce</code> request whose <code>credential_type</code> is not the one its <code>attest-initiate</code> named.
 A binding digest that does not recompute (<a href="#est-binding" class="auto internal xref">Section 8.2</a>).
 A <code>present-nonce</code> Handle that no <code>attest-initiate</code> returned, that has expired or was used before, or a <code>present-epoch</code> marker that has moved.
 A Credential Hint the policy does not know and does not ignore.
@@ -2430,32 +2441,29 @@ A request that differs from the <code>attest-initiate</code> that returned its H
           <p id="section-10-2.2.1">401 Unauthorized: missing/invalid authentication required by deployment policy<a href="#section-10-2.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.3">
-          <p id="section-10-2.3.1">403 Forbidden, forwarded from the RATS Relying Party: attestation failed, or its policy denies enrollment or retrieval, the Credential Hint included<a href="#section-10-2.3.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.3.1">403 Forbidden, forwarded from the RATS Relying Party: attestation failed, its policy denies enrollment or retrieval, the Credential Hint included, or it does not serve the <code>credential_type</code> for the <code>target</code>.
+In the last case the body names the Credential Types it serves for that <code>target</code>.<a href="#section-10-2.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.4">
           <p id="section-10-2.4.1">404 Not Found: a <code>target</code> the EST Server does not serve (Section 15.5.5 of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>: the query is part of the target URI, and a request of the second leg names the same <code>target</code>)<a href="#section-10-2.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.5">
-          <p id="section-10-2.5.1">406 Not Acceptable: a <code>credential_type</code> the RATS Relying Party does not serve for the <code>target</code> (Section 15.5.7 of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>).
-The body names the Credential Types it serves for that <code>target</code>.<a href="#section-10-2.5.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.5.1">413 Content Too Large: a request larger than the server takes (Section 15.5.14 of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>)<a href="#section-10-2.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.6">
-          <p id="section-10-2.6.1">413 Content Too Large: a request larger than the server takes (Section 15.5.14 of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>)<a href="#section-10-2.6.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.6.1">415 Unsupported Media Type: a request not of the resource's media type (<a href="#media-types" class="auto internal xref">Section 7</a>), or Evidence of a format that is not accepted, a <code>profile</code> the <code>attest-initiate</code> response did not list among them<a href="#section-10-2.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.7">
-          <p id="section-10-2.7.1">415 Unsupported Media Type: a request not of the resource's media type (<a href="#media-types" class="auto internal xref">Section 7</a>), or Evidence of a format that is not accepted, a <code>profile</code> the <code>attest-initiate</code> response did not list among them<a href="#section-10-2.7.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.7.1">429 Too Many Requests: rate limiting (Section 4 of <span>[<a href="#RFC6585" class="cite xref">RFC6585</a>]</span>)<a href="#section-10-2.7.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.8">
-          <p id="section-10-2.8.1">429 Too Many Requests: rate limiting (Section 4 of <span>[<a href="#RFC6585" class="cite xref">RFC6585</a>]</span>)<a href="#section-10-2.8.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.8.1">500 Internal Server Error: internal error<a href="#section-10-2.8.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.9">
-          <p id="section-10-2.9.1">500 Internal Server Error: internal error<a href="#section-10-2.9.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.9.1">502 Bad Gateway: the RATS Relying Party did not answer, or answered with a message the EST Server cannot pass on<a href="#section-10-2.9.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.10">
-          <p id="section-10-2.10.1">502 Bad Gateway: the RATS Relying Party did not answer, or answered with a message the EST Server cannot pass on<a href="#section-10-2.10.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-10-2.11">
-          <p id="section-10-2.11.1">503 Service Unavailable: the Verifier is unavailable<a href="#section-10-2.11.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.10.1">503 Service Unavailable: the Verifier is unavailable<a href="#section-10-2.10.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-10-3">A client acts on the status code.
@@ -2545,7 +2553,7 @@ An EST Server that returns <code>present-nonce</code> Handles on an unauthentica
           <li class="normal" id="section-11.3-1.7">
             <p id="section-11.3-1.7.1">The Credential Type and the Credential Hint are not in the binding.
 The RATS Relying Party decides by its policy what it issues or releases for them.
-The EST Server's correlation of a Handle with its <code>attest-initiate</code> only checks that the second leg repeats the same <code>credential_type</code>, and authorizes nothing (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-11.3-1.7.1" class="pilcrow">¶</a></p>
+The EST Server's correlation of a <code>present-nonce</code> Handle with its <code>attest-initiate</code> only checks that the second leg does not change a <code>credential_type</code> the <code>attest-initiate</code> named, and authorizes nothing (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-11.3-1.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-11.3-1.8">
             <p id="section-11.3-1.8.1">If classic EST and attested resources both exist, the RATS Relying Party <span class="bcp14">MUST</span> be able to require attestation.
@@ -2884,7 +2892,8 @@ At publication of this specification, no fragment identification syntax is defin
           <dd class="break"></dd>
 <dt id="section-13.4-1.13">Interoperability considerations:</dt>
           <dd style="margin-left: 1.5em" id="section-13.4-1.14">
-            <p id="section-13.4-1.14.1">The response of <code>attest-retrieve</code>, the EncryptedCredentialBundle (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>).<a href="#section-13.4-1.14.1" class="pilcrow">¶</a></p>
+            <p id="section-13.4-1.14.1">The response of <code>attest-retrieve</code>, the EncryptedCredentialBundle (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>).
+The JSON object is the <code>encrypted-credential-bundle</code> that <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span> specifies.<a href="#section-13.4-1.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-13.4-1.15">Published specification:</dt>
@@ -3078,9 +3087,9 @@ At publication of this specification, no fragment identification syntax is defin
       </h2>
 <p id="appendix-A-1">These examples are informative.
 They are exchanges recorded on 29 October 2026 between an EST Client and an EST Server that implement this profile, on an AMD SEV-SNP guest, with the mandatory CEK suite.
-The Targets, the Handles and the structures are as they crossed the wire, with long base64url values shortened to their first 24 characters.
+The Targets, the Handles and the structures are as they crossed the wire, with long base64url values shortened to their first 24 characters and marked <code>...</code>.
 An EST Server that uses a path segment of Section 3.2.2 of <span>[<a href="#RFC7030" class="cite xref">RFC7030</a>]</span> serves the same resources under it, <code>/.well-known/est/arbitraryLabel1/attest-initiate</code> for instance.
-The base64url values are cut to their first 24 characters and marked <code>...</code>, and the Host header names the EST Server as this document's examples do.
+The Host header names the EST Server as this document's examples do.
 Lines longer than 69 characters are folded as <span>[<a href="#RFC8792" class="cite xref">RFC8792</a>]</span> describes.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 <div id="ex-initiate-enroll">
 <section id="appendix-A.1">
