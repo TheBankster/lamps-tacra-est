@@ -1701,7 +1701,7 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.1-2.1.1">Method: GET<a href="#section-5.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.2">
-            <p id="section-5.1-2.2.1">Request: no body; query parameters <code>target</code> (<span class="bcp14">REQUIRED</span>) and <code>credential_type</code> (<span class="bcp14">OPTIONAL</span>)<a href="#section-5.1-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-2.2.1">Request: no body; query parameters <code>target</code> (<span class="bcp14">REQUIRED</span>) and <code>credential_type</code> and <code>credential_hint</code> (<span class="bcp14">OPTIONAL</span>)<a href="#section-5.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.3">
             <p id="section-5.1-2.3.1">Success: 200 OK<a href="#section-5.1-2.3.1" class="pilcrow">¶</a></p>
@@ -1710,7 +1710,7 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.1-2.4.1">Response: AttestationInitiationResponse (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>): Freshness kind, Credential Acquisition Mode (<code>enroll</code> or <code>retrieve</code>), acceptable ciphers<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.5">
-            <p id="section-5.1-2.5.1">Error: 400 when <code>target</code> is absent or <code>credential_type</code> is not a token of <a href="#credential-type" class="auto internal xref">Section 8.3</a>, 404 when the EST Server does not serve that Target, 403 when the RATS Relying Party does not serve that Credential Type for it (<a href="#errors" class="auto internal xref">Section 10</a>)<a href="#section-5.1-2.5.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-2.5.1">Error: 400 when <code>target</code> is absent or <code>credential_type</code> is not a token of <a href="#credential-type" class="auto internal xref">Section 8.3</a>, 404 when the EST Server does not serve that Target, 403 when the RATS Relying Party does not serve that Credential Type for it, 400 or 403 for a Credential Hint the policy does not know or denies (<a href="#errors" class="auto internal xref">Section 10</a>)<a href="#section-5.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-5.1-3">Query parameters:<a href="#section-5.1-3" class="pilcrow">¶</a></p>
@@ -1728,26 +1728,32 @@ The second leg then <span class="bcp14">MAY</span> omit <code>credential_type</c
 When <code>attest-initiate</code> named one, the second leg of the same <code>present-nonce</code> exchange <span class="bcp14">MUST</span> name the same token (<a href="#enrollment-processing" class="auto internal xref">Section 9.1.4</a>, <a href="#retrieval-processing" class="auto internal xref">Section 9.2.5</a>).<a href="#section-5.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-4.3">
-            <p id="section-5.1-4.3.1">If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (<code>absent-timestamp</code>, <code>absent-none</code>, or <code>absent-epoch</code>), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it <span class="bcp14">MAY</span> complete <code>attest-initiate</code> locally and, in that case, <span class="bcp14">MUST NOT</span> contact the EST Server.<a href="#section-5.1-4.3.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-4.3.1"><code>credential_hint</code>: the Credential Hint of Initiate-Credential-Acquisition (Section 5.1 of <span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).
+The client percent-encodes the string in the query, as for <code>target</code>.
+If omitted, the second leg <span class="bcp14">MAY</span> omit <code>credential_hint</code> or name one.
+When <code>attest-initiate</code> named one, the second leg of the same <code>present-nonce</code> exchange <span class="bcp14">MUST</span> name the same string (<a href="#enrollment-processing" class="auto internal xref">Section 9.1.4</a>, <a href="#retrieval-processing" class="auto internal xref">Section 9.2.5</a>).<a href="#section-5.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-4.4">
-            <p id="section-5.1-4.4.1">The EST Server, if contacted, obtains the Freshness Kind and Handle, if any, from the configured Verifier or RATS Relying Party and returns that result.<a href="#section-5.1-4.4.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-4.4.1">If the EST Client already knows all the information the Attester needs to proceed, i.e., it is already configured for an absent Freshness kind (<code>absent-timestamp</code>, <code>absent-none</code>, or <code>absent-epoch</code>), and it knows what Credential Acquisition Mode is expected, and which ciphers to use, it <span class="bcp14">MAY</span> complete <code>attest-initiate</code> locally and, in that case, <span class="bcp14">MUST NOT</span> contact the EST Server.<a href="#section-5.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-4.5">
-            <p id="section-5.1-4.5.1">For <code>present-nonce</code>, that GET returns a single-use Handle its originator minted, and the EST Server records it for the correlation of <a href="#enrollment-processing" class="auto internal xref">Section 9.1.4</a> and <a href="#retrieval-processing" class="auto internal xref">Section 9.2.5</a>, as the nonce resource of <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span> associates its nonce with the next request (<a href="#relationship" class="auto internal xref">Section 6</a>).<a href="#section-5.1-4.5.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-4.5.1">The EST Server, if contacted, obtains the Freshness Kind and Handle, if any, from the configured Verifier or RATS Relying Party and returns that result.<a href="#section-5.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-4.6">
-            <p id="section-5.1-4.6.1"><code>present-nonce</code> and <code>present-epoch</code> <span class="bcp14">MUST</span> include a Freshness Handle from the party chosen by the EST Server.
-<code>absent-*</code> Freshness Kinds carry no Freshness Handle.<a href="#section-5.1-4.6.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-4.6.1">For <code>present-nonce</code>, that GET returns a single-use Handle its originator minted, and the EST Server records it for the correlation of <a href="#enrollment-processing" class="auto internal xref">Section 9.1.4</a> and <a href="#retrieval-processing" class="auto internal xref">Section 9.2.5</a>, as the nonce resource of <span>[<a href="#ATTESTATION-FRESHNESS" class="cite xref">ATTESTATION-FRESHNESS</a>]</span> associates its nonce with the next request (<a href="#relationship" class="auto internal xref">Section 6</a>).<a href="#section-5.1-4.6.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-4.7">
-            <p id="section-5.1-4.7.1">The EST Client forwards the response to the Attester.<a href="#section-5.1-4.7.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-4.7.1"><code>present-nonce</code> and <code>present-epoch</code> <span class="bcp14">MUST</span> include a Freshness Handle from the party chosen by the EST Server.
+<code>absent-*</code> Freshness Kinds carry no Freshness Handle.<a href="#section-5.1-4.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-4.8">
-            <p id="section-5.1-4.8.1">The Attester produces Evidence as the Freshness Kind requires.<a href="#section-5.1-4.8.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-4.8.1">The EST Client forwards the response to the Attester.<a href="#section-5.1-4.8.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-4.9">
-            <p id="section-5.1-4.9.1">The EST Client then POSTs <code>attest-enroll</code> or <code>attest-retrieve</code> as the Attester indicates.<a href="#section-5.1-4.9.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-4.9.1">The Attester produces Evidence as the Freshness Kind requires.<a href="#section-5.1-4.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-4.10">
+            <p id="section-5.1-4.10.1">The EST Client then POSTs <code>attest-enroll</code> or <code>attest-retrieve</code> as the Attester indicates.<a href="#section-5.1-4.10.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-5.1-5">A Credential Authority or Secret Vault issues or releases credentials for a Target per its policy for that Target, since the Target only recognizes credentials from an issuer it already trusts.
@@ -2211,7 +2217,8 @@ If absent, the client takes what the Credential Authority mints.
 When the <code>attest-initiate</code> of a <code>present-nonce</code> exchange named a <code>credential_type</code>, this member <span class="bcp14">MUST</span> carry the same token (<a href="#enrollment-processing" class="auto internal xref">Section 9.1.4</a>).<a href="#section-9.1.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.1.1-2.9">
-              <p id="section-9.1.1-2.9.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the Credential Authority <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-9.1.1-2.9.1" class="pilcrow">¶</a></p>
+              <p id="section-9.1.1-2.9.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the Credential Authority <span class="bcp14">MAY</span> use it, ignore it, or reject the request.
+When the <code>attest-initiate</code> of a <code>present-nonce</code> exchange named a <code>credential_hint</code>, this member <span class="bcp14">MUST</span> carry the same string (<a href="#enrollment-processing" class="auto internal xref">Section 9.1.4</a>).<a href="#section-9.1.1-2.9.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -2259,13 +2266,14 @@ When the <code>attest-initiate</code> of a <code>present-nonce</code> exchange n
             <li id="section-9.1.4-2.3">
               <p id="section-9.1.4-2.3.1">For <code>present-nonce</code>, correlate <code>handle</code> with the <code>attest-initiate</code> that returned it.
   Refuse the request with 400 Bad Request when no <code>attest-initiate</code> returned this Handle, when it has expired or was used before, or when its <code>target</code> or <code>freshness_kind</code> differ from the corresponding <code>attest-initiate</code>.
-  Refuse it likewise when that <code>attest-initiate</code> named a <code>credential_type</code> and the request omits it or names another token.
+  Refuse it likewise when that <code>attest-initiate</code> named a <code>credential_type</code> and the request omits it or names another token, or named a <code>credential_hint</code> and the request omits it or names another string.
   A request <span class="bcp14">MAY</span> name a <code>credential_type</code> its <code>attest-initiate</code> omitted, the one the mode and the algorithms returned imply.
+  A request <span class="bcp14">MAY</span> name a <code>credential_hint</code> its <code>attest-initiate</code> omitted.
   A <code>present-nonce</code> Handle is single-use.
   For <code>present-epoch</code>, <code>handle</code> is the epoch marker that every <code>attest-initiate</code> of the epoch returned for this <code>target</code>, and it serves all requests during that epoch.
   Refuse the request with 400 Bad Request when the marker has moved.
   For the <code>absent-*</code> Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).
-  For <code>present-epoch</code> and the <code>absent-*</code> Freshness Kinds the EST Server does not correlate <code>credential_type</code> and forwards it to the RATS Relying Party, which decides under its policy (<a href="#credential-type" class="auto internal xref">Section 8.3</a>).
+  For <code>present-epoch</code> and the <code>absent-*</code> Freshness Kinds the EST Server does not correlate <code>credential_type</code> or <code>credential_hint</code> and forwards them to the RATS Relying Party, which decides under its policy (<a href="#credential-type" class="auto internal xref">Section 8.3</a>).
   This correlation keeps the two legs of one exchange together at the EST Server.
   It is not authorization: the Credential Authority takes the Freshness Kind from its policy for the Target, recomputes the digest and decides (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.1.4-2.3.1" class="pilcrow">¶</a></p>
 </li>
@@ -2331,7 +2339,8 @@ If absent, the client takes what the Secret Vault releases.
 When the <code>attest-initiate</code> of a <code>present-nonce</code> exchange named a <code>credential_type</code>, this member <span class="bcp14">MUST</span> carry the same token (<a href="#retrieval-processing" class="auto internal xref">Section 9.2.5</a>).<a href="#section-9.2.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.2.1-2.9">
-              <p id="section-9.2.1-2.9.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) <span class="bcp14">MAY</span> use it, ignore it, or reject the request<a href="#section-9.2.1-2.9.1" class="pilcrow">¶</a></p>
+              <p id="section-9.2.1-2.9.1">credential_hint (string, <span class="bcp14">OPTIONAL</span>): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) <span class="bcp14">MAY</span> use it, ignore it, or reject the request.
+When the <code>attest-initiate</code> of a <code>present-nonce</code> exchange named a <code>credential_hint</code>, this member <span class="bcp14">MUST</span> carry the same string (<a href="#retrieval-processing" class="auto internal xref">Section 9.2.5</a>).<a href="#section-9.2.1-2.9.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -2393,13 +2402,14 @@ This profile accepts that, and <a href="#security" class="auto internal xref">Se
             <li id="section-9.2.5-2.3">
               <p id="section-9.2.5-2.3.1">For <code>present-nonce</code>, correlate <code>handle</code> with the <code>attest-initiate</code> that returned it, as in Enrollment.
   Refuse the request with 400 Bad Request when no <code>attest-initiate</code> returned this Handle, when it has expired or was used before, or when its <code>target</code> or <code>freshness_kind</code> differ from the corresponding <code>attest-initiate</code>.
-  Refuse it likewise when that <code>attest-initiate</code> named a <code>credential_type</code> and the request omits it or names another token.
+  Refuse it likewise when that <code>attest-initiate</code> named a <code>credential_type</code> and the request omits it or names another token, or named a <code>credential_hint</code> and the request omits it or names another string.
   A request <span class="bcp14">MAY</span> name a <code>credential_type</code> its <code>attest-initiate</code> omitted, the one the mode and the algorithms returned imply.
+  A request <span class="bcp14">MAY</span> name a <code>credential_hint</code> its <code>attest-initiate</code> omitted.
   A <code>present-nonce</code> Handle is single-use.
   For <code>present-epoch</code>, <code>handle</code> is the epoch marker that every <code>attest-initiate</code> of the epoch returned for this <code>target</code>, and it serves all requests during that epoch.
   Refuse the request with 400 Bad Request when the marker has moved.
   For the <code>absent-*</code> Freshness Kinds no Handle was returned, and the RATS Relying Party checks the freshness element under the Freshness Kind its policy sets for the Target (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).
-  For <code>present-epoch</code> and the <code>absent-*</code> Freshness Kinds the EST Server does not correlate <code>credential_type</code> and forwards it to the RATS Relying Party, which decides under its policy (<a href="#credential-type" class="auto internal xref">Section 8.3</a>).
+  For <code>present-epoch</code> and the <code>absent-*</code> Freshness Kinds the EST Server does not correlate <code>credential_type</code> or <code>credential_hint</code> and forwards them to the RATS Relying Party, which decides under its policy (<a href="#credential-type" class="auto internal xref">Section 8.3</a>).
   This correlation keeps the two legs of one exchange together at the EST Server.
   It is not authorization: the Secret Vault takes the Freshness Kind from its policy for the Target, recomputes the digest and decides (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-9.2.5-2.3.1" class="pilcrow">¶</a></p>
 </li>
@@ -2431,11 +2441,12 @@ This profile accepts that, and <a href="#security" class="auto internal xref">Se
 <li class="normal" id="section-10-2.1">
           <p id="section-10-2.1.1">400 Bad Request: a request that does not match its definition (<a href="#cddl" class="auto internal xref">Section 7.1</a>), or an <code>attest-initiate</code> with no <code>target</code>.
 A <code>credential_type</code> that is not a token of <a href="#credential-type" class="auto internal xref">Section 8.3</a>.
-A <code>present-nonce</code> request whose <code>credential_type</code> is not the one its <code>attest-initiate</code> named.
+A <code>present-nonce</code> request that omits <code>credential_type</code>, or names another token, when its <code>attest-initiate</code> named one.
+A <code>present-nonce</code> request that omits <code>credential_hint</code>, or names another string, when its <code>attest-initiate</code> named one.
 A binding digest that does not recompute (<a href="#est-binding" class="auto internal xref">Section 8.2</a>).
 A <code>present-nonce</code> Handle that no <code>attest-initiate</code> returned, that has expired or was used before, or a <code>present-epoch</code> marker that has moved.
 A Credential Hint the policy does not know and does not ignore.
-A request that differs from the <code>attest-initiate</code> that returned its Handle, or one to the resource of the other <code>mode</code> (<a href="#enrollment-processing" class="auto internal xref">Section 9.1.4</a>, <a href="#retrieval-processing" class="auto internal xref">Section 9.2.5</a>).<a href="#section-10-2.1.1" class="pilcrow">¶</a></p>
+A <code>present-nonce</code> request whose <code>target</code> or <code>freshness_kind</code> differs from the <code>attest-initiate</code> that returned its Handle, or a request to the resource of the other <code>mode</code> (<a href="#enrollment-processing" class="auto internal xref">Section 9.1.4</a>, <a href="#retrieval-processing" class="auto internal xref">Section 9.2.5</a>).<a href="#section-10-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.2">
           <p id="section-10-2.2.1">401 Unauthorized: missing/invalid authentication required by deployment policy<a href="#section-10-2.2.1" class="pilcrow">¶</a></p>
@@ -2553,7 +2564,7 @@ An EST Server that returns <code>present-nonce</code> Handles on an unauthentica
           <li class="normal" id="section-11.3-1.7">
             <p id="section-11.3-1.7.1">The Credential Type and the Credential Hint are not in the binding.
 The RATS Relying Party decides by its policy what it issues or releases for them.
-The EST Server's correlation of a <code>present-nonce</code> Handle with its <code>attest-initiate</code> only checks that the second leg does not change a <code>credential_type</code> the <code>attest-initiate</code> named, and authorizes nothing (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-11.3-1.7.1" class="pilcrow">¶</a></p>
+The EST Server's correlation of a <code>present-nonce</code> Handle with its <code>attest-initiate</code> only checks that the second leg does not change a <code>credential_type</code> or <code>credential_hint</code> the <code>attest-initiate</code> named, and authorizes nothing (<span>[<a href="#TACRA" class="cite xref">TACRA</a>]</span>).<a href="#section-11.3-1.7.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-11.3-1.8">
             <p id="section-11.3-1.8.1">If classic EST and attested resources both exist, the RATS Relying Party <span class="bcp14">MUST</span> be able to require attestation.
@@ -3100,8 +3111,9 @@ Lines longer than 69 characters are folded as <span>[<a href="#RFC8792" class="c
 <pre>
 NOTE: '\' line wrapping per RFC 8792
 
-GET /.well-known/est/attest-initiate?credential_type=x509&amp;target=htt\
-    ps%3A%2F%2Fdb-nonce.tacra.example HTTP/1.1
+GET /.well-known/est/attest-initiate?credential_type=x509&amp;\
+    credential_hint=payments.workload.tacra.example&amp;target=https%3A%\
+    2F%2Fdb-nonce.tacra.example HTTP/1.1
 Host: est.tacra.example
 Accept: application/est-attest-initiate+json
 
@@ -3167,8 +3179,9 @@ MIICswYJKoZIhvcNAQcCoIICpDCCAqACAQExADAL...
 <pre>
 NOTE: '\' line wrapping per RFC 8792
 
-GET /.well-known/est/attest-initiate?credential_type=api-key&amp;target=\
-    https%3A%2F%2Fledger-nonce.tacra.example HTTP/1.1
+GET /.well-known/est/attest-initiate?credential_type=api-key&amp;\
+    credential_hint=payments.workload.tacra.example&amp;target=https%3A%\
+    2F%2Fledger-nonce.tacra.example HTTP/1.1
 Host: est.tacra.example
 Accept: application/est-attest-initiate+json
 
