@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-01T05:46:41.857207+00:00",
+  "timestamp": "2026-11-03T06:26:37.766873+00:00",
   "repo": "TheBankster/lamps-tacra-est",
   "labels": [
     {
@@ -4606,24 +4606,26 @@
       "id": "PR_kwDOUNE08M8AAAABL1vvOw",
       "title": "The list of 30 October: nine clarifications, and the paragraph of #18",
       "url": "https://github.com/TheBankster/lamps-tacra-est/pull/33",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "nikolaichuk7",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "Grok's remaining list against the text, one commit per item, the paragraph of #18 last so it can be dropped on its own. TheBankster/rats-tacra#28 specifies the container, the Credential Type tokens and the example of a group mapping, which the last commits take out of this profile.\n\n- TACRA stays informative, as work in progress. The binding_input and info constructions are in this text, in TACRA's words, in a commit that can be dropped.\n- The EST Server returns present-nonce Handles their originator minted. Two sentences said it mints them.\n- acceptable_csk and acceptable_cek are REQUIRED for their mode, since a client uses no token they do not list.\n- Server processing: a present-epoch marker serves many requests and is refused only when it has moved. A Credential Authority serves attest-enroll and a Secret Vault attest-retrieve, so a request to the other resource is 400, as both backends of the mock do. credential_type is on both legs with the same value, or on neither.\n- freshness_kind matches the attest-initiate response, or the configuration of a locally completed attest-initiate.\n- CEKpub for DHKEM(P-256): the uncompressed point inside the SubjectPublicKeyInfo is the recipient key HPKE deserializes, stated in TACRA with the suite.\n- The container is TACRA's (TheBankster/rats-tacra#28): this profile carries it and names the suites, and the CDDL keeps the wire messages. The value encoding and the Credential Type tokens moved there with it.\n- Architecture: the two models here against Sections 5.1 and 5.2 of RFC 9334, the paragraph proposed in #18.\n\nLeft as they are, for your call: 406 for a Credential Type not served, and the origin bullet of the Security Considerations.\nHPKE-PQ is informative: MLKEM768-P256 is a suite a Secret Vault MAY offer. JCS output is UTF-8 by Section 3.2.4 of RFC 8785.\n\nBuilt as the Datatracker does. idnits in submission mode: the same three findings as master, all from the -latest docname of the editor's copy. The CDDL parses, refuses an initiation response without acceptable_csk, and refuses a value that is not base64url.\n\nRun on hardware on 30 October with the EST server, the RRPs and the CAI following this text: Passport on GCP SEV-SNP, AWS SEV-SNP and GCP TDX, Background Check and the conduit's seal drill on GCP SEV-SNP, and the MLKEM768-P256 suite. Six runs, all 10 Targets of each acquired and admitted, the five Freshness Kinds among them. In the drill the Attester opened the conduit's container and the relying party refused the key it held, 403, the accepted risk as the text states it. The 120 exchanges of those runs, 30 containers among them, pass the cddl tool against the CDDL of this PR, and 96 alterations of each log are refused. The mock follows in TWI-Unified-Model/globalsign-est#8: 404 for a Target not served, 400 for the resource of the other mode, the items typed and encoded as this text says.",
       "createdAt": "2026-10-30T18:53:37Z",
-      "updatedAt": "2026-10-31T02:16:21Z",
+      "updatedAt": "2026-11-01T17:32:41Z",
       "baseRepository": "TheBankster/lamps-tacra-est",
       "baseRefName": "master",
       "baseRefOid": "2bfb1482bb3e4da33e77f99b8dce83396dd23ada",
       "headRepository": "nikolaichuk7/lamps-tacra-est",
       "headRefName": "grok-pass-2026-10-30",
-      "headRefOid": "52aadf9a1028fe277397a7b9f3654d1a1d2963b6",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "aff0d8e659547c499fce1011a4a96c75a3fca3a6",
+      "closedAt": "2026-11-01T17:32:41Z",
+      "mergedAt": "2026-11-01T17:32:41Z",
+      "mergedBy": "TheBankster",
+      "mergeCommit": {
+        "oid": "e658ac6f481b5b5aa4066ef5135799795082282a"
+      },
       "comments": [
         {
           "author": "nikolaichuk7",
@@ -5088,6 +5090,62 @@
           ]
         }
       ]
+    },
+    {
+      "number": 34,
+      "id": "PR_kwDOUNE08M8AAAABMLGbEQ",
+      "title": "The EST profile after TACRA-02: Target octets, Handle sizes by kind, the configured mode, profile, RFC 8951, small items",
+      "url": "https://github.com/TheBankster/lamps-tacra-est/pull/34",
+      "state": "MERGED",
+      "author": "nikolaichuk7",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Seven commits on master e658ac6: one per item of my note of 1 November, in its order, and one from your list of 21:11Z.\n\n1. c301267 Target per TACRA-02. The Target is an octet string. A configured name is UTF-8 in Normalization Form C (RFC 5198, a normative reference). The query carries it percent-encoded, the `target` member carries the same string, the binding takes the octets of the member neither recoded nor normalized, and the container's `aad` carries them base64url, as TACRA-02 specifies. The example `aad` follows.\n2. 0b64605 Handle sizes in the CDDL by Freshness Kind, on both legs: 16 to 64 octets for `present-nonce`, 8 to 64 for `present-epoch` and `absent-epoch`, 8 for `absent-timestamp`. The prose of both legs names the same sizes.\n3. 2a6ec4a The second-leg mode check in terms of the EST Server's configuration, which `attest-initiate` reports, since a local `attest-initiate` leaves no transaction.\n4. be1062f `profile`: MUST be absent when the `attest-initiate` response carried no `acceptable_evidence` or `attest-initiate` was completed locally, and MUST be one of the listed tokens otherwise. One change against my note: the refusal is 415 Unsupported Media Type, the code the text already gives a format the EST Server does not accept, not 400. The mock answers 415 here already.\n5. 657f37b RFC 8951: the Content-Transfer-Encoding line leaves the enrollment example, and the error section says the body is `text/plain`.\n6. 4c5616a Small items: the labeled path once in the examples, the stray bullet after the Target paragraphs folded into a sentence, GET `attest-initiate` for `present-nonce` is not idempotent, example values shortened to 24 characters, `expires_in` SHOULD NOT be set below 60 seconds, further tokens left for a later revision (#32), Fraunhofer SIT.\n7. ba34284 `cek_pub`: its encoding is the one of its KEM in the Sealing section of TACRA-02, cited by title as the binding section is, and those octets are the binding subject.\n\nNot in this PR, your call: 406 or 400 for a `credential_type` the EST Server does not serve, and `credential_type` on both legs or on neither.\n\nChecks: kramdown-rfc and xml2rfc build with the TACRA reference resolving to -02, idnits as on master, the CDDL parses. The mock and the bench carry the same `aad` target. Two batteries of six hardware runs each on 1 November, after the change and again on this final text, passed: GCP SEV-SNP in Passport and Background Check, AWS SEV-SNP, GCP TDX, the conduit's seal drill, and MLKEM768-P256. The EST wire of every run validates against this CDDL with the TACRA-02 container block, and all 80 containers on the wire carry the request's Target base64url in their `aad`.\n",
+      "createdAt": "2026-11-01T21:49:47Z",
+      "updatedAt": "2026-11-01T23:34:28Z",
+      "baseRepository": "TheBankster/lamps-tacra-est",
+      "baseRefName": "master",
+      "baseRefOid": "e658ac6f481b5b5aa4066ef5135799795082282a",
+      "headRepository": "nikolaichuk7/lamps-tacra-est",
+      "headRefName": "est-after-02",
+      "headRefOid": "ba342842f47985673276682a71711344409f3193",
+      "closedAt": "2026-11-01T23:34:28Z",
+      "mergedAt": "2026-11-01T23:34:28Z",
+      "mergedBy": "TheBankster",
+      "mergeCommit": {
+        "oid": "67a9517014189c53ed95cfb028b216d0fb1c0d4b"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 35,
+      "id": "PR_kwDOUNE08M8AAAABMMZu7w",
+      "title": "The list of 2 November: the originator issues the Handle, one credential_type rule across the legs, 403 and 400 instead of 406, small items",
+      "url": "https://github.com/TheBankster/lamps-tacra-est/pull/35",
+      "state": "MERGED",
+      "author": "nikolaichuk7",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Four commits on master 67a9517, the three important items of your list of 00:18Z and its small items.\n\n1. 76c9757 `attest-initiate` GET for `present-nonce`: each one returns a Handle its originator issued anew. The Architecture's MUST NOT mint stands.\n2. f4e0528 `credential_type` across the legs, one rule stated on `attest-initiate`, in both request sections, both processing lists, the errors and the Security Considerations: a type `attest-initiate` named must come back on the second leg of that `present-nonce` exchange, 400 otherwise. A type it omitted may be named, the one the mode and the algorithms returned imply. For `present-epoch` and the `absent-*` kinds the EST Server does not correlate the type and forwards it to the Relying Party.\n3. dca7e4f 403 Forbidden for a Credential Type the Relying Party does not serve for the Target, with the served types in the body, as its other policy refusals. 400 for a token this profile does not define. 406 and the RFC 9110 citation leave the profile.\n4. 452ed51 Small items: `handle` sizes by kind in the initiation response, `profile` MUST on the second leg when the list was sent, one sentence on the shortened example values, the bundle media type names the TACRA object.\n\nNot changed, as your list allows for -00: the Credential Hint on `attest-initiate`, the RFC 8792 fold in `group_id`, the abstract against the IANA templates, the figure titles, README, #18 and #32.\n\nChecks: kramdown-rfc and xml2rfc build, the TACRA reference resolves to -02, idnits as on master, no sentence over 40 words. The mock refuses with 403 and 400 the same way and correlates only a type `attest-initiate` named; the bench's gateway answers 403. Six hardware runs on 2 November with the mock and the bench so changed passed: GCP SEV-SNP in Passport and Background Check, AWS SEV-SNP, GCP TDX, the conduit's seal drill, and MLKEM768-P256. The EST wire of every run validates against the CDDL, and all 40 containers on the wire carry the request's Target base64url in their `aad`.\n",
+      "createdAt": "2026-11-02T00:51:49Z",
+      "updatedAt": "2026-11-02T01:09:59Z",
+      "baseRepository": "TheBankster/lamps-tacra-est",
+      "baseRefName": "master",
+      "baseRefOid": "b61773d133353bd86a454e310f9a8240bec9fe61",
+      "headRepository": "nikolaichuk7/lamps-tacra-est",
+      "headRefName": "est-leftovers-02",
+      "headRefOid": "e41da913f8da6d05b248d108f13ae7c362fd5bc3",
+      "closedAt": "2026-11-02T01:09:59Z",
+      "mergedAt": "2026-11-02T01:09:59Z",
+      "mergedBy": "TheBankster",
+      "mergeCommit": {
+        "oid": "cb893b0a7d621aa5aed470e38367a9b1112b0152"
+      },
+      "comments": [],
+      "reviews": []
     }
   ]
 }
