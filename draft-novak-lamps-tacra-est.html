@@ -1710,7 +1710,7 @@ EST Server authentication via TLS is <span class="bcp14">REQUIRED</span>.<a href
             <p id="section-5.1-2.4.1">Response: AttestationInitiationResponse (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>): Freshness kind, Credential Acquisition Mode (<code>enroll</code> or <code>retrieve</code>), acceptable ciphers<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.5">
-            <p id="section-5.1-2.5.1">Error: 400 when <code>target</code> is absent or <code>credential_type</code> is not a Credential Type of <a href="#credential-type" class="auto internal xref">Section 8.3</a>, 404 when the EST Server does not serve that Target, 403 when the RATS Relying Party does not serve that Credential Type for it, 400 or 403 for a Credential Hint the policy does not know or denies (<a href="#errors" class="auto internal xref">Section 10</a>)<a href="#section-5.1-2.5.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-2.5.1">Error: 400 when <code>target</code> is absent or <code>credential_type</code> is not a Credential Type of <a href="#credential-type" class="auto internal xref">Section 8.3</a>, 404 when the EST Server does not serve that Target, 422 when the RATS Relying Party does not serve that Credential Type for it, 400 or 403 for a Credential Hint the policy does not know or denies (<a href="#errors" class="auto internal xref">Section 10</a>)<a href="#section-5.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-5.1-3">Query parameters:<a href="#section-5.1-3" class="pilcrow">¶</a></p>
@@ -2123,13 +2123,14 @@ Retrieval only, under the conditions of <a href="#security" class="auto internal
 </li>
         </ul>
 <p id="section-8.3-3"><code>attest-enroll</code> mints <code>x509</code> or <code>wic</code>.
-A <code>credential_type</code> other than these on <code>attest-enroll</code> is a Credential Type the RATS Relying Party does not serve, and the EST Server refuses the request with 403 Forbidden (<a href="#errors" class="auto internal xref">Section 10</a>).
+A <code>credential_type</code> other than these on <code>attest-enroll</code> is a Credential Type the RATS Relying Party does not serve, and the request is refused with 422 Unprocessable Content (<a href="#errors" class="auto internal xref">Section 10</a>).
 When <code>credential_type</code> is absent, on <code>attest-enroll</code> and on <code>attest-retrieve</code> alike, the client takes what the RATS Relying Party issues or releases under its policy.
 A client that needs a Credential Type names it.
 <code>attest-retrieve</code> <span class="bcp14">MAY</span> carry any Credential Type above.
 The Secret Vault selects what it releases from the Attestation Results, its policy and the Credential Hint.
 Where the request names a <code>credential_type</code>, it releases that Credential Type or refuses the request.
-A Credential Type the RATS Relying Party does not serve is refused with 403 Forbidden, and the response names the Credential Types it serves for that <code>target</code> (<a href="#errors" class="auto internal xref">Section 10</a>).
+A Credential Type the RATS Relying Party does not serve is refused with 422 Unprocessable Content, and the response names the Credential Types it serves for that <code>target</code> (<a href="#errors" class="auto internal xref">Section 10</a>).
+The RATS Relying Party appraises the Evidence, or takes the Attestation Results, before it applies its policy to the Credential Type: a request whose attestation failed is refused with 403 Forbidden whatever its <code>credential_type</code> (<a href="#errors" class="auto internal xref">Section 10</a>).
 A <code>credential_type</code> that is not a Credential Type of this section is refused with 400 Bad Request.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2260,7 +2261,7 @@ When the <code>attest-initiate</code> of a <code>present-nonce</code> exchange n
               <p id="section-9.1.4-2.1.1">Validate syntax, media type, and size limits.<a href="#section-9.1.4-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.1.4-2.2">
-              <p id="section-9.1.4-2.2.1">Check that a Credential Authority serves this <code>target</code> and <code>credential_type</code>, and that the <code>mode</code> the EST Server's configuration sets for them, which <code>attest-initiate</code> reports (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>), is <code>enroll</code>.
+              <p id="section-9.1.4-2.2.1">Check that a Credential Authority serves this <code>target</code>, and that the <code>mode</code> the EST Server's configuration sets for it, which <code>attest-initiate</code> reports (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>), is <code>enroll</code>.
   Refuse the request with 400 Bad Request when a Secret Vault serves them.<a href="#section-9.1.4-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.1.4-2.3">
@@ -2282,7 +2283,8 @@ When the <code>attest-initiate</code> of a <code>present-nonce</code> exchange n
   Background Check: skip this step; the Credential Authority obtains Attestation Results itself.<a href="#section-9.1.4-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.1.4-2.5">
-              <p id="section-9.1.4-2.5.1">Forward the CSR and Attestation Results (Passport) or the CSR and Evidence (Background Check) to the Credential Authority, which verifies PoP and authorizes issuance.<a href="#section-9.1.4-2.5.1" class="pilcrow">¶</a></p>
+              <p id="section-9.1.4-2.5.1">Forward the CSR and Attestation Results (Passport) or the CSR and Evidence (Background Check) to the Credential Authority, which verifies PoP and authorizes issuance.
+  It refuses a request whose attestation failed with 403 Forbidden before it considers the <code>credential_type</code>, and a Credential Type it does not serve for the <code>target</code> with 422 Unprocessable Content (<a href="#errors" class="auto internal xref">Section 10</a>).<a href="#section-9.1.4-2.5.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.1.4-2.6">
               <p id="section-9.1.4-2.6.1">Return the Credential Authority's enrollment response.<a href="#section-9.1.4-2.6.1" class="pilcrow">¶</a></p>
@@ -2396,7 +2398,7 @@ This profile accepts that, and <a href="#security" class="auto internal xref">Se
               <p id="section-9.2.5-2.1.1">Validate syntax, media type, and size limits.<a href="#section-9.2.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.2.5-2.2">
-              <p id="section-9.2.5-2.2.1">Check that a Secret Vault serves this <code>target</code> and <code>credential_type</code>, and that the <code>mode</code> the EST Server's configuration sets for them, which <code>attest-initiate</code> reports (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>), is <code>retrieve</code>.
+              <p id="section-9.2.5-2.2.1">Check that a Secret Vault serves this <code>target</code>, and that the <code>mode</code> the EST Server's configuration sets for it, which <code>attest-initiate</code> reports (<a href="#initiation-response" class="auto internal xref">Section 8.1</a>), is <code>retrieve</code>.
   Refuse the request with 400 Bad Request when a Credential Authority serves them.<a href="#section-9.2.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.2.5-2.3">
@@ -2418,7 +2420,8 @@ This profile accepts that, and <a href="#security" class="auto internal xref">Se
   Background Check: skip this step; the Secret Vault obtains Attestation Results itself.<a href="#section-9.2.5-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.2.5-2.5">
-              <p id="section-9.2.5-2.5.1">Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle and seals it to CEKpub (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>).<a href="#section-9.2.5-2.5.1" class="pilcrow">¶</a></p>
+              <p id="section-9.2.5-2.5.1">Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle and seals it to CEKpub (<a href="#bundle" class="auto internal xref">Section 9.2.4</a>).
+  It refuses a request whose attestation failed with 403 Forbidden before it considers the <code>credential_type</code>, and a Credential Type it does not serve for the <code>target</code> with 422 Unprocessable Content (<a href="#errors" class="auto internal xref">Section 10</a>).<a href="#section-9.2.5-2.5.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-9.2.5-2.6">
               <p id="section-9.2.5-2.6.1">Return the EncryptedCredentialBundle produced by the Secret Vault.<a href="#section-9.2.5-2.6.1" class="pilcrow">¶</a></p>
@@ -2452,8 +2455,8 @@ A <code>present-nonce</code> request whose <code>target</code> or <code>freshnes
           <p id="section-10-2.2.1">401 Unauthorized: missing/invalid authentication required by deployment policy<a href="#section-10-2.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.3">
-          <p id="section-10-2.3.1">403 Forbidden, forwarded from the RATS Relying Party: attestation failed, its policy denies enrollment or retrieval, the Credential Hint included, or it does not serve the <code>credential_type</code> for the <code>target</code>.
-In the last case the body names the Credential Types it serves for that <code>target</code>.<a href="#section-10-2.3.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.3.1">403 Forbidden, forwarded from the RATS Relying Party: attestation failed, or its policy denies the enrollment or retrieval, the Credential Hint included.
+Attestation is how the Attester authenticates, so this refusal comes before the ones of 422 and of 400 for a Credential Hint: the RATS Relying Party appraises the Evidence, or takes the Attestation Results, before it applies its policy to the request.<a href="#section-10-2.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.4">
           <p id="section-10-2.4.1">404 Not Found: a <code>target</code> the EST Server does not serve (Section 15.5.5 of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>: the query is part of the target URI, and a request of the second leg names the same <code>target</code>)<a href="#section-10-2.4.1" class="pilcrow">¶</a></p>
@@ -2465,16 +2468,19 @@ In the last case the body names the Credential Types it serves for that <code>ta
           <p id="section-10-2.6.1">415 Unsupported Media Type: a request not of the resource's media type (<a href="#media-types" class="auto internal xref">Section 7</a>), or Evidence of a format that is not accepted, a <code>profile</code> the <code>attest-initiate</code> response did not list among them<a href="#section-10-2.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.7">
-          <p id="section-10-2.7.1">429 Too Many Requests: rate limiting (Section 4 of <span>[<a href="#RFC6585" class="cite xref">RFC6585</a>]</span>)<a href="#section-10-2.7.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.7.1">422 Unprocessable Content (Section 15.5.21 of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>): a Credential Type the RATS Relying Party does not serve for the <code>target</code>, at <code>attest-initiate</code> and on the second leg alike; the body names the Credential Types it serves for that <code>target</code><a href="#section-10-2.7.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.8">
-          <p id="section-10-2.8.1">500 Internal Server Error: internal error<a href="#section-10-2.8.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.8.1">429 Too Many Requests: rate limiting (Section 4 of <span>[<a href="#RFC6585" class="cite xref">RFC6585</a>]</span>)<a href="#section-10-2.8.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.9">
-          <p id="section-10-2.9.1">502 Bad Gateway: the RATS Relying Party did not answer, or answered with a message the EST Server cannot pass on<a href="#section-10-2.9.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.9.1">500 Internal Server Error: internal error<a href="#section-10-2.9.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-10-2.10">
-          <p id="section-10-2.10.1">503 Service Unavailable: the Verifier is unavailable<a href="#section-10-2.10.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.10.1">502 Bad Gateway: the RATS Relying Party did not answer, or answered with a message the EST Server cannot pass on<a href="#section-10-2.10.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-2.11">
+          <p id="section-10-2.11.1">503 Service Unavailable: the Verifier is unavailable<a href="#section-10-2.11.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-10-3">A client acts on the status code.
