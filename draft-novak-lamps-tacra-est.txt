@@ -5,12 +5,12 @@
 Limited Additional Mechanisms for PKIX and SMIME                M. Novak
 Internet-Draft                                   J.P. Morgan Chase & Co.
 Intended status: Informational                             M. Richardson
-Expires: 6 May 2027                             Sandelman Software Works
+Expires: 9 May 2027                             Sandelman Software Works
                                                              H. Birkholz
                                                           Fraunhofer SIT
                                                           S. Nikolaichuk
                                                    The Capital Index LLC
-                                                         2 November 2026
+                                                         5 November 2026
 
 
                  Remote Attestation Extensions for EST
@@ -75,7 +75,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 May 2027.
+   This Internet-Draft will expire on 9 May 2027.
 
 Copyright Notice
 
@@ -113,7 +113,7 @@ Table of Contents
    8.  Common Structures
      8.1.  AttestationInitiationResponse
      8.2.  The Binding in This Profile
-     8.3.  Credential Type Tokens
+     8.3.  Credential Types
      8.4.  Protocol Tokens
    9.  Attested Credential Acquisition Modes
      9.1.  Credential Enrollment Mode
@@ -419,10 +419,10 @@ Table of Contents
       kind, Credential Acquisition Mode (enroll or retrieve), acceptable
       ciphers
 
-   *  Error: 400 when target is absent or credential_type is not a token
-      of Section 8.3, 404 when the EST Server does not serve that
-      Target, 403 when the RATS Relying Party does not serve that
-      Credential Type for it, 400 or 403 for a Credential Hint the
+   *  Error: 400 when target is absent or credential_type is not a
+      Credential Type of Section 8.3, 404 when the EST Server does not
+      serve that Target, 403 when the RATS Relying Party does not serve
+      that Credential Type for it, 400 or 403 for a Credential Hint the
       policy does not know or denies (Section 10)
 
    Query parameters:
@@ -439,7 +439,7 @@ Table of Contents
       The second leg then MAY omit credential_type or name the
       Credential Type those imply.  When attest-initiate named one, the
       second leg of the same present-nonce exchange MUST name the same
-      token (Section 9.1.4, Section 9.2.5).
+      Credential Type (Section 9.1.4, Section 9.2.5).
 
    *  credential_hint: the Credential Hint of Initiate-Credential-
       Acquisition (Section 5.1 of [TACRA]).  The client percent-encodes
@@ -788,10 +788,10 @@ Table of Contents
    A Credential Authority or Secret Vault that does not recognize method
    refuses the request with 400 Bad Request.
 
-8.3.  Credential Type Tokens
+8.3.  Credential Types
 
    credential_type, on attest-initiate and in both requests, takes one
-   of the Credential Type tokens of [TACRA], which this profile uses as
+   of the Credential Types of [TACRA], which this profile uses as
    follows:
 
    *  x509: an X.509 certificate ([RFC5280]).  Enrollment mints one.
@@ -822,14 +822,15 @@ Table of Contents
    (Section 10).  When credential_type is absent, on attest-enroll and
    on attest-retrieve alike, the client takes what the RATS Relying
    Party issues or releases under its policy.  A client that needs a
-   Credential Type names it. attest-retrieve MAY carry any token above.
-   The Secret Vault selects what it releases from the Attestation
-   Results, its policy and the Credential Hint.  Where the request names
-   a credential_type, it releases that Credential Type or refuses the
-   request.  A Credential Type the RATS Relying Party does not serve is
-   refused with 403 Forbidden, and the response names the Credential
-   Types it serves for that target (Section 10).  A credential_type that
-   is not a token of this section is refused with 400 Bad Request.
+   Credential Type names it. attest-retrieve MAY carry any Credential
+   Type above.  The Secret Vault selects what it releases from the
+   Attestation Results, its policy and the Credential Hint.  Where the
+   request names a credential_type, it releases that Credential Type or
+   refuses the request.  A Credential Type the RATS Relying Party does
+   not serve is refused with 403 Forbidden, and the response names the
+   Credential Types it serves for that target (Section 10).  A
+   credential_type that is not a Credential Type of this section is
+   refused with 400 Bad Request.
 
 8.4.  Protocol Tokens
 
@@ -911,7 +912,7 @@ Table of Contents
    *  credential_type (string, OPTIONAL): x509 or wic (Section 8.3).  If
       absent, the client takes what the Credential Authority mints.
       When the attest-initiate of a present-nonce exchange named a
-      credential_type, this member MUST carry the same token
+      credential_type, this member MUST carry the same Credential Type
       (Section 9.1.4).
 
    *  credential_hint (string, OPTIONAL): Credential Hint supplied by
@@ -959,10 +960,10 @@ Table of Contents
        used before, or when its target or freshness_kind differ from the
        corresponding attest-initiate.  Refuse it likewise when that
        attest-initiate named a credential_type and the request omits it
-       or names another token, or named a credential_hint and the
-       request omits it or names another string.  A request MAY name a
-       credential_type its attest-initiate omitted, the one the mode and
-       the algorithms returned imply.  A request MAY name a
+       or names another Credential Type, or named a credential_hint and
+       the request omits it or names another string.  A request MAY name
+       a credential_type its attest-initiate omitted, the one the mode
+       and the algorithms returned imply.  A request MAY name a
        credential_hint its attest-initiate omitted.  A present-nonce
        Handle is single-use.  For present-epoch, handle is the epoch
        marker that every attest-initiate of the epoch returned for this
@@ -1034,11 +1035,11 @@ Table of Contents
    *  binding (object, REQUIRED): declares how CEKpub is bound to
       Evidence
 
-   *  credential_type (string, OPTIONAL): one of the tokens of
+   *  credential_type (string, OPTIONAL): one of the Credential Types of
       Section 8.3.  If absent, the client takes what the Secret Vault
       releases.  When the attest-initiate of a present-nonce exchange
-      named a credential_type, this member MUST carry the same token
-      (Section 9.2.5).
+      named a credential_type, this member MUST carry the same
+      Credential Type (Section 9.2.5).
 
    *  credential_hint (string, OPTIONAL): Credential Hint supplied by
       the Attester; the RATS Relying Party (Secret Vault or Credential
@@ -1110,7 +1111,7 @@ Table of Contents
        expired or was used before, or when its target or freshness_kind
        differ from the corresponding attest-initiate.  Refuse it
        likewise when that attest-initiate named a credential_type and
-       the request omits it or names another token, or named a
+       the request omits it or names another Credential Type, or named a
        credential_hint and the request omits it or names another string.
        A request MAY name a credential_type its attest-initiate omitted,
        the one the mode and the algorithms returned imply.  A request
@@ -1153,18 +1154,18 @@ Table of Contents
 
    *  400 Bad Request: a request that does not match its definition
       (Section 7.1), or an attest-initiate with no target.  A
-      credential_type that is not a token of Section 8.3.  A present-
-      nonce request that omits credential_type, or names another token,
-      when its attest-initiate named one.  A present-nonce request that
-      omits credential_hint, or names another string, when its attest-
-      initiate named one.  A binding digest that does not recompute
-      (Section 8.2).  A present-nonce Handle that no attest-initiate
-      returned, that has expired or was used before, or a present-epoch
-      marker that has moved.  A Credential Hint the policy does not know
-      and does not ignore.  A present-nonce request whose target or
-      freshness_kind differs from the attest-initiate that returned its
-      Handle, or a request to the resource of the other mode
-      (Section 9.1.4, Section 9.2.5).
+      credential_type that is not a Credential Type of Section 8.3.  A
+      present-nonce request that omits credential_type, or names another
+      Credential Type, when its attest-initiate named one.  A present-
+      nonce request that omits credential_hint, or names another string,
+      when its attest-initiate named one.  A binding digest that does
+      not recompute (Section 8.2).  A present-nonce Handle that no
+      attest-initiate returned, that has expired or was used before, or
+      a present-epoch marker that has moved.  A Credential Hint the
+      policy does not know and does not ignore.  A present-nonce request
+      whose target or freshness_kind differs from the attest-initiate
+      that returned its Handle, or a request to the resource of the
+      other mode (Section 9.1.4, Section 9.2.5).
 
    *  401 Unauthorized: missing/invalid authentication required by
       deployment policy
@@ -1554,17 +1555,17 @@ Table of Contents
               Tschofenig, H., Brockhaus, H., Mandel, J., and S. Turner,
               "Requesting a Freshness Nonce for Attestation Evidence in
               Certificate Signing Requests", Work in Progress, Internet-
-              Draft, draft-ietf-lamps-attestation-freshness-09, 17
-              October 2026, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-lamps-attestation-freshness-09>.
+              Draft, draft-ietf-lamps-attestation-freshness-10, 2
+              November 2026, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-lamps-attestation-freshness-10>.
 
    [CSR-ATTEST]
               Ounsworth, M., Tschofenig, H., Birkholz, H., Wiseman, M.,
               and N. Smith, "Use of Remote Attestation with
               Certification Signing Requests", Work in Progress,
-              Internet-Draft, draft-ietf-lamps-csr-attestation-32, 22
-              October 2026, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-lamps-csr-attestation-32>.
+              Internet-Draft, draft-ietf-lamps-csr-attestation-33, 2
+              November 2026, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-lamps-csr-attestation-33>.
 
    [HPKE-PQ]  Barnes, R. and D. Connolly, "Post-Quantum and Post-
               Quantum/Traditional Hybrid Algorithms for HPKE", Work in
@@ -1612,9 +1613,9 @@ Table of Contents
    [TACRA]    Novak, M., Richardson, M., Birkholz, H., and S.
               Nikolaichuk, "Trustworthy Acquisition of Credentials via
               Remote Attestation", Work in Progress, Internet-Draft,
-              draft-novak-rats-tacra-02, 1 November 2026,
+              draft-novak-rats-tacra-03, 2 November 2026,
               <https://datatracker.ietf.org/doc/html/draft-novak-rats-
-              tacra-02>.
+              tacra-03>.
 
    [TWISIGDef]
               Confidential Computing Consortium Trustworthy Workload
