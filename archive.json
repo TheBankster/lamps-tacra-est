@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-03T06:26:37.766873+00:00",
+  "timestamp": "2026-11-05T06:23:48.478169+00:00",
   "repo": "TheBankster/lamps-tacra-est",
   "labels": [
     {
@@ -694,6 +694,30 @@
       "updatedAt": "2026-10-29T17:48:31Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 37,
+      "id": "I_kwDOUNE08M8AAAABcl9tig",
+      "title": "403 Forbidden covers two refusals: a failed attestation and a Credential Type not served",
+      "url": "https://github.com/TheBankster/lamps-tacra-est/issues/37",
+      "state": "CLOSED",
+      "author": "nikolaichuk7",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "draft-novak-lamps-tacra-est.md:637 (master), Error Handling: 403 Forbidden is \"forwarded from the RATS Relying Party: attestation failed, its policy denies enrollment or retrieval, the Credential Hint included, or it does not serve the credential_type\". Lines 257, 441 and 447 say the same for the Credential Type. The caller cannot tell a failed attestation from a Credential Type the RATS Relying Party does not serve for the Target.\n\nAttestation is how the Attester authenticates, so its failure takes precedence and keeps 403. A Credential Type the RATS Relying Party does not serve for the Target is a request the server understands but cannot process: 422 Unprocessable Content (Section 15.5.21 of RFC 9110), the body naming the Credential Types served for that Target, at attest-initiate and on the second leg alike. On the second leg the Evidence is appraised before the Credential Type is considered.\n\nProposed change:\n\n- Error Handling: 403 for a failed attestation and for a policy that denies; a new item for 422;\n- lines 257, 441, 447 and the processing steps: 422 for the Credential Type, checked after the appraisal on the second leg;\n- the mock follows: its policy check, the order of the checks, the tests.\n",
+      "createdAt": "2026-11-05T00:04:21Z",
+      "updatedAt": "2026-11-05T01:05:26Z",
+      "closedAt": "2026-11-05T01:05:26Z",
+      "comments": [
+        {
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Text: #38, mock: TWI-Unified-Model/globalsign-est#9.",
+          "createdAt": "2026-11-05T01:05:25Z",
+          "updatedAt": "2026-11-05T01:05:25Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -5146,6 +5170,103 @@
       },
       "comments": [],
       "reviews": []
+    },
+    {
+      "number": 36,
+      "id": "PR_kwDOUNE08M8AAAABM7qe6g",
+      "title": "Credential Type in place of Credential Type token",
+      "url": "https://github.com/TheBankster/lamps-tacra-est/pull/36",
+      "state": "MERGED",
+      "author": "nikolaichuk7",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "A credential_type value is a Credential Type, as TACRA defines the term: in the errors, the correlation rules, the request members and the section that lists them, now Credential Types. As decided in the review of the mock, TWI-Unified-Model/globalsign-est#8.\n\nThe tokens of the Protocol Tokens section, algorithms and formats, are not touched. Bearer tokens, WIT and JWT keep their names. No CDDL change; the text builds with kramdown-rfc and xml2rfc.",
+      "createdAt": "2026-11-04T22:45:02Z",
+      "updatedAt": "2026-11-05T00:10:39Z",
+      "baseRepository": "TheBankster/lamps-tacra-est",
+      "baseRefName": "master",
+      "baseRefOid": "060e455f7c65cb6a55f0c7bdd058852042494bd6",
+      "headRepository": "nikolaichuk7/lamps-tacra-est",
+      "headRefName": "credential-type-identifiers",
+      "headRefOid": "4245a31a34ffe9b93d9468003a5b29fd665576df",
+      "closedAt": "2026-11-05T00:10:38Z",
+      "mergedAt": "2026-11-05T00:10:38Z",
+      "mergedBy": "TheBankster",
+      "mergeCommit": {
+        "oid": "e0bfbca28e1a2efc6f70bf26edeee497d7eb5524"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 38,
+      "id": "PR_kwDOUNE08M8AAAABM8gdlA",
+      "title": "403 only for a failed attestation and a refusal by policy; 422 for a Credential Type the RATS Relying Party does not serve",
+      "url": "https://github.com/TheBankster/lamps-tacra-est/pull/38",
+      "state": "MERGED",
+      "author": "nikolaichuk7",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "TheBankster/lamps-tacra-est#37. On top of #36; merged after it, this PR is one commit.\n\n- Error Handling: 403 Forbidden for a failed attestation and for a policy that denies, the Credential Hint included; attestation is how the Attester authenticates, so this refusal comes before the others. New item: 422 Unprocessable Content (Section 15.5.21 of RFC 9110) for a Credential Type the RATS Relying Party does not serve for the target, at attest-initiate and on the second leg alike, the body naming the Credential Types it serves.\n- Credential Types section and the overview: 422 in place of 403 for that refusal; on the second leg the Evidence is appraised, or the Attestation Results taken, before the policy on the Credential Type.\n- Processing: step 2 checks target and mode; step 5 refuses a failed attestation with 403 before the Credential Type, and a Credential Type not served with 422.\n\nThe mock follows in TWI-Unified-Model/globalsign-est.\n",
+      "createdAt": "2026-11-05T00:08:58Z",
+      "updatedAt": "2026-11-05T00:30:53Z",
+      "baseRepository": "TheBankster/lamps-tacra-est",
+      "baseRefName": "master",
+      "baseRefOid": "060e455f7c65cb6a55f0c7bdd058852042494bd6",
+      "headRepository": "nikolaichuk7/lamps-tacra-est",
+      "headRefName": "error-codes-422",
+      "headRefOid": "e981462cfab20f2dcd714f80ff23443d0ce8d002",
+      "closedAt": "2026-11-05T00:28:25Z",
+      "mergedAt": "2026-11-05T00:28:25Z",
+      "mergedBy": "TheBankster",
+      "mergeCommit": {
+        "oid": "14be3d00667b5fa5a65e5dba70cc84cc0d514238"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOUNE08M8AAAABWGRsdQ",
+          "commit": {
+            "abbreviatedOid": "e981462"
+          },
+          "author": "TheBankster",
+          "authorAssociation": "OWNER",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-05T00:22:17Z",
+          "updatedAt": "2026-11-05T00:22:18Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "So just to be sure, we are saying that a failed Remote Attestation and a Credential Hint that is denied, both return 403?",
+              "createdAt": "2026-11-05T00:22:17Z",
+              "updatedAt": "2026-11-05T00:22:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOUNE08M8AAAABWGWi7g",
+          "commit": {
+            "abbreviatedOid": "e981462"
+          },
+          "author": "nikolaichuk7",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-05T00:30:52Z",
+          "updatedAt": "2026-11-05T00:30:53Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "Yes. Both are the RATS Relying Party refusing the attested client: a failed attestation for who it is, a denied Credential Hint for what it asks; the client acts on the status code alone, the body is text/plain (Error Handling). 401 is the code of a failed authentication, but Section 15.5.2 of RFC 9110 requires a WWW-Authenticate challenge with it, and the profile has no such scheme; its 401 is the HTTP authentication of RFC 7030. If a client needs to tell the two apart, the machine-readable body the section leaves for a revision (RFC 9457, a type per reason) can come in with a next PR. Your call.",
+              "createdAt": "2026-11-05T00:30:53Z",
+              "updatedAt": "2026-11-05T00:30:53Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
