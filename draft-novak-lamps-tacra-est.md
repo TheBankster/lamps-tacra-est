@@ -254,7 +254,7 @@ The first leg of both modes is where the Attester initiates Remote Attestation b
 * Request: no body; query parameters `target` (REQUIRED) and `credential_type` and `credential_hint` (OPTIONAL)
 * Success: 200 OK
 * Response: AttestationInitiationResponse ({{initiation-response}}): Freshness kind, Credential Acquisition Mode (`enroll` or `retrieve`), acceptable ciphers
-* Error: 400 when `target` is absent or `credential_type` is not a Credential Type of {{credential-type}}, 404 when the EST Server does not serve that Target, 403 when the RATS Relying Party does not serve that Credential Type for it, 400 or 403 for a Credential Hint the policy does not know or denies ({{errors}})
+* Error: 400 when `target` is absent or `credential_type` is not a Credential Type of {{credential-type}}, 404 when the EST Server does not serve that Target, 422 when the RATS Relying Party does not serve that Credential Type for it, 400 or 403 for a Credential Hint the policy does not know or denies ({{errors}})
 
 Query parameters:
 
@@ -438,13 +438,14 @@ A Credential Authority or Secret Vault that does not recognize `method` refuses 
   Retrieval only, under the conditions of {{security}}.
 
 `attest-enroll` mints `x509` or `wic`.
-A `credential_type` other than these on `attest-enroll` is a Credential Type the RATS Relying Party does not serve, and the EST Server refuses the request with 403 Forbidden ({{errors}}).
+A `credential_type` other than these on `attest-enroll` is a Credential Type the RATS Relying Party does not serve, and the request is refused with 422 Unprocessable Content ({{errors}}).
 When `credential_type` is absent, on `attest-enroll` and on `attest-retrieve` alike, the client takes what the RATS Relying Party issues or releases under its policy.
 A client that needs a Credential Type names it.
 `attest-retrieve` MAY carry any Credential Type above.
 The Secret Vault selects what it releases from the Attestation Results, its policy and the Credential Hint.
 Where the request names a `credential_type`, it releases that Credential Type or refuses the request.
-A Credential Type the RATS Relying Party does not serve is refused with 403 Forbidden, and the response names the Credential Types it serves for that `target` ({{errors}}).
+A Credential Type the RATS Relying Party does not serve is refused with 422 Unprocessable Content, and the response names the Credential Types it serves for that `target` ({{errors}}).
+The RATS Relying Party appraises the Evidence, or takes the Attestation Results, before it applies its policy to the Credential Type: a request whose attestation failed is refused with 403 Forbidden whatever its `credential_type` ({{errors}}).
 A `credential_type` that is not a Credential Type of this section is refused with 400 Bad Request.
 
 
@@ -518,7 +519,7 @@ The `binding` object ({{cddl}}) is as {{est-binding}} defines it.
 Upon receiving AttestedEnrollmentRequest, the EST Server MUST:
 
 1. Validate syntax, media type, and size limits.
-2. Check that a Credential Authority serves this `target` and `credential_type`, and that the `mode` the EST Server's configuration sets for them, which `attest-initiate` reports ({{initiation-response}}), is `enroll`.
+2. Check that a Credential Authority serves this `target`, and that the `mode` the EST Server's configuration sets for it, which `attest-initiate` reports ({{initiation-response}}), is `enroll`.
   Refuse the request with 400 Bad Request when a Secret Vault serves them.
 3. For `present-nonce`, correlate `handle` with the `attest-initiate` that returned it.
   Refuse the request with 400 Bad Request when no `attest-initiate` returned this Handle, when it has expired or was used before, or when its `target` or `freshness_kind` differ from the corresponding `attest-initiate`.
@@ -535,6 +536,7 @@ Upon receiving AttestedEnrollmentRequest, the EST Server MUST:
 4. Passport: forward Evidence to the Verifier and obtain Attestation Results.
   Background Check: skip this step; the Credential Authority obtains Attestation Results itself.
 5. Forward the CSR and Attestation Results (Passport) or the CSR and Evidence (Background Check) to the Credential Authority, which verifies PoP and authorizes issuance.
+  It refuses a request whose attestation failed with 403 Forbidden before it considers the `credential_type`, and a Credential Type it does not serve for the `target` with 422 Unprocessable Content ({{errors}}).
 6. Return the Credential Authority's enrollment response.
 
 The Credential Authority MUST NOT mint identities (e.g., DNS names) beyond policy for the attested identity context.
@@ -599,7 +601,7 @@ This profile accepts that, and {{security}} states the consequence.
 Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 
 1. Validate syntax, media type, and size limits.
-2. Check that a Secret Vault serves this `target` and `credential_type`, and that the `mode` the EST Server's configuration sets for them, which `attest-initiate` reports ({{initiation-response}}), is `retrieve`.
+2. Check that a Secret Vault serves this `target`, and that the `mode` the EST Server's configuration sets for it, which `attest-initiate` reports ({{initiation-response}}), is `retrieve`.
   Refuse the request with 400 Bad Request when a Credential Authority serves them.
 3. For `present-nonce`, correlate `handle` with the `attest-initiate` that returned it, as in Enrollment.
   Refuse the request with 400 Bad Request when no `attest-initiate` returned this Handle, when it has expired or was used before, or when its `target` or `freshness_kind` differ from the corresponding `attest-initiate`.
@@ -616,6 +618,7 @@ Upon receiving AttestedRetrievalRequest, the EST Server MUST:
 4. Passport: forward Evidence to the Verifier and obtain Attestation Results.
   Background Check: skip this step; the Secret Vault obtains Attestation Results itself.
 5. Forward Attestation Results (Passport) or Evidence (Background Check) to the Secret Vault, which computes group_id, authorizes, fetches the bundle and seals it to CEKpub ({{bundle}}).
+  It refuses a request whose attestation failed with 403 Forbidden before it considers the `credential_type`, and a Credential Type it does not serve for the `target` with 422 Unprocessable Content ({{errors}}).
 6. Return the EncryptedCredentialBundle produced by the Secret Vault.
 
 A variant in which the EST Server receives a plaintext secret from the Secret Vault and seals it to CEKpub itself is not permitted: it would expose the secret to the EST Server ({{TACRA}}).
@@ -634,11 +637,12 @@ An error response carries one of the status codes below, and a human-readable bo
   A Credential Hint the policy does not know and does not ignore.
   A `present-nonce` request whose `target` or `freshness_kind` differs from the `attest-initiate` that returned its Handle, or a request to the resource of the other `mode` ({{enrollment-processing}}, {{retrieval-processing}}).
 * 401 Unauthorized: missing/invalid authentication required by deployment policy
-* 403 Forbidden, forwarded from the RATS Relying Party: attestation failed, its policy denies enrollment or retrieval, the Credential Hint included, or it does not serve the `credential_type` for the `target`.
-  In the last case the body names the Credential Types it serves for that `target`.
+* 403 Forbidden, forwarded from the RATS Relying Party: attestation failed, or its policy denies the enrollment or retrieval, the Credential Hint included.
+  Attestation is how the Attester authenticates, so this refusal comes before the ones of 422 and of 400 for a Credential Hint: the RATS Relying Party appraises the Evidence, or takes the Attestation Results, before it applies its policy to the request.
 * 404 Not Found: a `target` the EST Server does not serve (Section 15.5.5 of {{RFC9110}}: the query is part of the target URI, and a request of the second leg names the same `target`)
 * 413 Content Too Large: a request larger than the server takes (Section 15.5.14 of {{RFC9110}})
 * 415 Unsupported Media Type: a request not of the resource's media type ({{media-types}}), or Evidence of a format that is not accepted, a `profile` the `attest-initiate` response did not list among them
+* 422 Unprocessable Content (Section 15.5.21 of {{RFC9110}}): a Credential Type the RATS Relying Party does not serve for the `target`, at `attest-initiate` and on the second leg alike; the body names the Credential Types it serves for that `target`
 * 429 Too Many Requests: rate limiting (Section 4 of {{RFC6585}})
 * 500 Internal Server Error: internal error
 * 502 Bad Gateway: the RATS Relying Party did not answer, or answered with a message the EST Server cannot pass on
