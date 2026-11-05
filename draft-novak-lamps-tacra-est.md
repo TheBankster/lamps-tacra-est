@@ -254,7 +254,7 @@ The first leg of both modes is where the Attester initiates Remote Attestation b
 * Request: no body; query parameters `target` (REQUIRED) and `credential_type` and `credential_hint` (OPTIONAL)
 * Success: 200 OK
 * Response: AttestationInitiationResponse ({{initiation-response}}): Freshness kind, Credential Acquisition Mode (`enroll` or `retrieve`), acceptable ciphers
-* Error: 400 when `target` is absent or `credential_type` is not a token of {{credential-type}}, 404 when the EST Server does not serve that Target, 403 when the RATS Relying Party does not serve that Credential Type for it, 400 or 403 for a Credential Hint the policy does not know or denies ({{errors}})
+* Error: 400 when `target` is absent or `credential_type` is not a Credential Type of {{credential-type}}, 404 when the EST Server does not serve that Target, 403 when the RATS Relying Party does not serve that Credential Type for it, 400 or 403 for a Credential Hint the policy does not know or denies ({{errors}})
 
 Query parameters:
 
@@ -265,7 +265,7 @@ Query parameters:
 * `credential_type`: the Credential Type the Attester plans to use with this Target ({{credential-type}}).
   If omitted, the EST Server returns the mode and algorithms its policy sets for the Target.
   The second leg then MAY omit `credential_type` or name the Credential Type those imply.
-  When `attest-initiate` named one, the second leg of the same `present-nonce` exchange MUST name the same token ({{enrollment-processing}}, {{retrieval-processing}}).
+  When `attest-initiate` named one, the second leg of the same `present-nonce` exchange MUST name the same Credential Type ({{enrollment-processing}}, {{retrieval-processing}}).
 * `credential_hint`: the Credential Hint of Initiate-Credential-Acquisition (Section 5.1 of {{TACRA}}).
   The client percent-encodes the string in the query, as for `target`.
   If omitted, the second leg MAY omit `credential_hint` or name one.
@@ -416,9 +416,9 @@ It names the method and the hash:
 
 A Credential Authority or Secret Vault that does not recognize `method` refuses the request with 400 Bad Request.
 
-## Credential Type Tokens {#credential-type}
+## Credential Types {#credential-type}
 
-`credential_type`, on `attest-initiate` and in both requests, takes one of the Credential Type tokens of {{TACRA}}, which this profile uses as follows:
+`credential_type`, on `attest-initiate` and in both requests, takes one of the Credential Types of {{TACRA}}, which this profile uses as follows:
 
 * `x509`: an X.509 certificate ({{RFC5280}}).
   Enrollment mints one.
@@ -441,11 +441,11 @@ A Credential Authority or Secret Vault that does not recognize `method` refuses 
 A `credential_type` other than these on `attest-enroll` is a Credential Type the RATS Relying Party does not serve, and the EST Server refuses the request with 403 Forbidden ({{errors}}).
 When `credential_type` is absent, on `attest-enroll` and on `attest-retrieve` alike, the client takes what the RATS Relying Party issues or releases under its policy.
 A client that needs a Credential Type names it.
-`attest-retrieve` MAY carry any token above.
+`attest-retrieve` MAY carry any Credential Type above.
 The Secret Vault selects what it releases from the Attestation Results, its policy and the Credential Hint.
 Where the request names a `credential_type`, it releases that Credential Type or refuses the request.
 A Credential Type the RATS Relying Party does not serve is refused with 403 Forbidden, and the response names the Credential Types it serves for that `target` ({{errors}}).
-A `credential_type` that is not a token of this section is refused with 400 Bad Request.
+A `credential_type` that is not a Credential Type of this section is refused with 400 Bad Request.
 
 
 ## Protocol Tokens {#alg-tokens}
@@ -496,7 +496,7 @@ Fields:
 * binding (object, REQUIRED): declares how the CSR key is bound to Evidence
 * credential_type (string, OPTIONAL): `x509` or `wic` ({{credential-type}}).
   If absent, the client takes what the Credential Authority mints.
-  When the `attest-initiate` of a `present-nonce` exchange named a `credential_type`, this member MUST carry the same token ({{enrollment-processing}}).
+  When the `attest-initiate` of a `present-nonce` exchange named a `credential_type`, this member MUST carry the same Credential Type ({{enrollment-processing}}).
 * credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the Credential Authority MAY use it, ignore it, or reject the request.
   When the `attest-initiate` of a `present-nonce` exchange named a `credential_hint`, this member MUST carry the same string ({{enrollment-processing}}).
 
@@ -522,7 +522,7 @@ Upon receiving AttestedEnrollmentRequest, the EST Server MUST:
   Refuse the request with 400 Bad Request when a Secret Vault serves them.
 3. For `present-nonce`, correlate `handle` with the `attest-initiate` that returned it.
   Refuse the request with 400 Bad Request when no `attest-initiate` returned this Handle, when it has expired or was used before, or when its `target` or `freshness_kind` differ from the corresponding `attest-initiate`.
-  Refuse it likewise when that `attest-initiate` named a `credential_type` and the request omits it or names another token, or named a `credential_hint` and the request omits it or names another string.
+  Refuse it likewise when that `attest-initiate` named a `credential_type` and the request omits it or names another Credential Type, or named a `credential_hint` and the request omits it or names another string.
   A request MAY name a `credential_type` its `attest-initiate` omitted, the one the mode and the algorithms returned imply.
   A request MAY name a `credential_hint` its `attest-initiate` omitted.
   A `present-nonce` Handle is single-use.
@@ -559,9 +559,9 @@ Fields:
   If absent, the EST Server forwards the Evidence as it is, and the Verifier recognizes its format.
   A format the EST Server does not accept is refused with 415 Unsupported Media Type.
 * binding (object, REQUIRED): declares how CEKpub is bound to Evidence
-* credential_type (string, OPTIONAL): one of the tokens of {{credential-type}}.
+* credential_type (string, OPTIONAL): one of the Credential Types of {{credential-type}}.
   If absent, the client takes what the Secret Vault releases.
-  When the `attest-initiate` of a `present-nonce` exchange named a `credential_type`, this member MUST carry the same token ({{retrieval-processing}}).
+  When the `attest-initiate` of a `present-nonce` exchange named a `credential_type`, this member MUST carry the same Credential Type ({{retrieval-processing}}).
 * credential_hint (string, OPTIONAL): Credential Hint supplied by the Attester; the RATS Relying Party (Secret Vault or Credential Authority) MAY use it, ignore it, or reject the request.
   When the `attest-initiate` of a `present-nonce` exchange named a `credential_hint`, this member MUST carry the same string ({{retrieval-processing}}).
 
@@ -603,7 +603,7 @@ Upon receiving AttestedRetrievalRequest, the EST Server MUST:
   Refuse the request with 400 Bad Request when a Credential Authority serves them.
 3. For `present-nonce`, correlate `handle` with the `attest-initiate` that returned it, as in Enrollment.
   Refuse the request with 400 Bad Request when no `attest-initiate` returned this Handle, when it has expired or was used before, or when its `target` or `freshness_kind` differ from the corresponding `attest-initiate`.
-  Refuse it likewise when that `attest-initiate` named a `credential_type` and the request omits it or names another token, or named a `credential_hint` and the request omits it or names another string.
+  Refuse it likewise when that `attest-initiate` named a `credential_type` and the request omits it or names another Credential Type, or named a `credential_hint` and the request omits it or names another string.
   A request MAY name a `credential_type` its `attest-initiate` omitted, the one the mode and the algorithms returned imply.
   A request MAY name a `credential_hint` its `attest-initiate` omitted.
   A `present-nonce` Handle is single-use.
@@ -626,8 +626,8 @@ A variant in which the EST Server receives a plaintext secret from the Secret Va
 An error response carries one of the status codes below, and a human-readable body of media type `text/plain`, as a simpleenroll error does (Section 4.2.3 of {{RFC7030}}, updated by Section 5.1 of {{RFC8951}}):
 
 * 400 Bad Request: a request that does not match its definition ({{cddl}}), or an `attest-initiate` with no `target`.
-  A `credential_type` that is not a token of {{credential-type}}.
-  A `present-nonce` request that omits `credential_type`, or names another token, when its `attest-initiate` named one.
+  A `credential_type` that is not a Credential Type of {{credential-type}}.
+  A `present-nonce` request that omits `credential_type`, or names another Credential Type, when its `attest-initiate` named one.
   A `present-nonce` request that omits `credential_hint`, or names another string, when its `attest-initiate` named one.
   A binding digest that does not recompute ({{est-binding}}).
   A `present-nonce` Handle that no `attest-initiate` returned, that has expired or was used before, or a `present-epoch` marker that has moved.
