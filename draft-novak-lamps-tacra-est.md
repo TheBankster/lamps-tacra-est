@@ -434,8 +434,6 @@ A Credential Authority or Secret Vault that does not recognize `method` refuses 
   Retrieval only.
 * `psk`: a pre-shared symmetric key.
   Retrieval only.
-* `private-key`: a private key shared by the instances of a replicated service.
-  Retrieval only, under the conditions of {{security}}.
 
 `attest-enroll` mints `x509` or `wic`.
 A `credential_type` other than these on `attest-enroll` is a Credential Type the RATS Relying Party does not serve, and the request is refused with 422 Unprocessable Content ({{errors}}).
