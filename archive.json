@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-05T06:23:48.478169+00:00",
+  "timestamp": "2026-11-15T06:07:25.766677+00:00",
   "repo": "TheBankster/lamps-tacra-est",
   "labels": [
     {
@@ -5267,6 +5267,32 @@
           ]
         }
       ]
+    },
+    {
+      "number": 39,
+      "id": "PR_kwDOUNE08M8AAAABO1atHQ",
+      "title": "private-key is not a Credential Type",
+      "url": "https://github.com/TheBankster/lamps-tacra-est/pull/39",
+      "state": "OPEN",
+      "author": "nikolaichuk7",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Part of TWI-Unified-Model/tacra#13. Follows TheBankster/rats-tacra#40.\n\n`private-key` leaves the Credential Types of the profile. The private key of an `x509` or `wic` credential is released under the Credential Type of the certificate, as TACRA describes the item.\n\nThe Security Considerations on a shared signing key do not name `private-key` and stay as they are.\n\nBuilt with kramdown-rfc and xml2rfc. idnits reports nothing new.\n",
+      "createdAt": "2026-11-13T05:17:51Z",
+      "updatedAt": "2026-11-13T05:17:51Z",
+      "baseRepository": "TheBankster/lamps-tacra-est",
+      "baseRefName": "master",
+      "baseRefOid": "14be3d00667b5fa5a65e5dba70cc84cc0d514238",
+      "headRepository": "nikolaichuk7/lamps-tacra-est",
+      "headRefName": "remove-private-key",
+      "headRefOid": "84d7e838147794401d068391e217453f0a1553d0",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
